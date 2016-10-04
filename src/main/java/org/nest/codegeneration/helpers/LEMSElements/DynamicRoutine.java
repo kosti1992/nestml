@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import de.monticore.emf._ast.ASTECNode;
 import org.nest.codegeneration.helpers.LEMSCollector;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
@@ -40,7 +41,7 @@ public class DynamicRoutine {
   }
 
   /**
-   * Handles a given statement by evoking a adequate subroutine.
+   * Handles a given statement by evoking an adequate subroutine.
    *
    * @param input the processed AST statement.
    */
@@ -49,12 +50,10 @@ public class DynamicRoutine {
     if (input.small_StmtIsPresent()) {
       //a simple statement can be processed directly
       List<Instruction> tempList = new ArrayList<>();
-      //simple statements have only one small statement, thus we retrieve it with get(0)
       if (input.getSmall_Stmt().get().getFunctionCall().isPresent()) {
-        Instruction temp = handleFunctionCall(
-            input.getSmall_Stmt().get().getFunctionCall().get());
-        if (temp
-            != null) {//some function calls do not generate an instruction, thus it is not required to add null to the list
+        Instruction temp = handleFunctionCall(input.getSmall_Stmt().get().getFunctionCall().get());
+        if (temp!= null) {
+          //some function calls do not generate an instruction, thus it is not required to add null to the list
           tempList.add(temp);
         }
       }
@@ -62,15 +61,9 @@ public class DynamicRoutine {
         tempList.add(handleSmallStatement(input.getSmall_Stmt().get()));
       }
       //generate a description header
-      String rawCodeTemp =
-          "Generated from source lines " + input.get_SourcePositionStart().toString() +
-              " to " + input.get_SourcePositionEnd().toString() + ".\n";
       SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
-      //collect the raw source
-      input.accept(tempPrettyPrinter);
-      rawCodeTemp = rawCodeTemp + tempPrettyPrinter.result();
-      rawCodeTemp = rawCodeTemp.trim();
-      rawCodeTemp = rawCodeTemp.replaceAll("\\n\\s*\\n", "\n");//kill empty lines
+      tempPrettyPrinter.print(input);
+      String rawCodeTemp = this.buildHeader(input,tempPrettyPrinter.result());
       if (tempList.size() > 0) {//generate a new block
         this.blocks.add(new ConditionalBlock(tempList, "1.eq.1", rawCodeTemp));
       }
@@ -107,10 +100,7 @@ public class DynamicRoutine {
             container.getLEMSExpressionsPrettyPrinter().print(input.getIF_Stmt().get().getIF_Clause().getExpr(), false))
             + ")";
       }
-      //TODO: something goes wrong with the visitor
-      //System.out.println(input.getIF_Stmt().get().getIF_Clause().getPrettyPrinter())
-      //input.getIF_Stmt().get().getIF_Clause().accept(tempPrettyPrinter);
-      //input.getIF_Stmt().get().getIF_Clause().accept(tempPrettyPrinter);//collect the raw code for printing in target
+      tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
       //store a new conditional block
       handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 
@@ -118,7 +108,7 @@ public class DynamicRoutine {
       for (ASTELIF_Clause clause : input.getIF_Stmt().get().getELIF_Clauses()) {
         tempList.add(clause.getExpr());//store each elif condition
         tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
-        clause.accept(tempPrettyPrinter);//collect raw code for the header
+        tempPrettyPrinter.print(clause);//collect raw code for the header
         tempCondition = "(" + LEMSCollector.helper.replaceConstantsWithReferences(container,
             container.getLEMSExpressionsPrettyPrinter().print(clause.getExpr(), false)) + ")";
         if (!condition.equals("")) {
@@ -129,15 +119,11 @@ public class DynamicRoutine {
 
       //process the else statement
       if (input.getIF_Stmt().get().getELSE_Clause().isPresent()) {
-        //used for generating the else block condition by combining all stored ifs and negating them
-        StringBuilder builder = new StringBuilder();
-        for (ASTExpr expr : tempList) {
-          builder.append("(" + container.getLEMSExpressionsPrettyPrinter().print(expr, true) + ")").append(".and.");
-        }
-        builder.delete(builder.toString().length() - 5, builder.toString().length());//delete the last .and.
         tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
-        input.getIF_Stmt().get().getELSE_Clause().get().accept(tempPrettyPrinter);//collect raw code for the header
-        tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container, builder.toString());
+        //collect raw code for the header
+        tempPrettyPrinter.print(input.getIF_Stmt().get().getELSE_Clause().get());
+        //now generate a proper condition
+        tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container,this.buildElseCondition(tempList));
         if (!condition.equals("")) {
           tempCondition = condition + ".and." + tempCondition;
         }
@@ -147,6 +133,7 @@ public class DynamicRoutine {
             tempPrettyPrinter.result());
       }
     }
+    //TODO: are these blocks really not supported?
     else if (input.getWHILE_Stmt().isPresent()) {//the block is a while block-> not supported yet
       System.err.println("WHILE blocks are not yet supported.");
     }
@@ -156,19 +143,14 @@ public class DynamicRoutine {
   }
 
   /**
-   * Handles a block of instructions consisting of e.g assignments, function-calls an further blocks.
+   * Handles a block of instructions consisting of e.g. assignments, function-calls and further blocks.
    *
    * @param input block which will be processed
    */
   private void handleASTBlock(ASTBlock input, String condition, String rawCode) {
     List<Instruction> tempInstruction = new ArrayList<>();
     //generate a description header
-    String rawCodeTemp =
-        "Generated from source lines " + input.get_SourcePositionStart().toString() +
-            " to " + input.get_SourcePositionEnd().toString() + ".\n";
-    rawCodeTemp = rawCodeTemp + rawCode;
-    rawCodeTemp = rawCodeTemp.trim();
-    rawCodeTemp = rawCodeTemp.replaceAll("\\n\\s*\\n", "\n");//kill empty lines
+    String rawCodeTemp = this.buildHeader(input,rawCode);
     //iterate over all statements in the block
     for (ASTStmt stmt : input.getStmts()) {
       //if a compound block has been found, generate a cond. block for all previously found directives if required
@@ -187,7 +169,7 @@ public class DynamicRoutine {
         }
       }
       else {
-        System.out.println("Error in if-processing.");
+        System.err.println("Error in if-processing.");
       }
     }
     //if no "integrate" directives have been found in this block but there exist some local "integrates", we
@@ -210,10 +192,7 @@ public class DynamicRoutine {
         //check if not supported functions are part of the assignment
         if (LEMSCollector.helper.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
           //Generate a proper error message
-          System.err.println("Not supported function call(s) found in update block.");
-          container.addNotConverted("Not supported function call in update block, lines "
-              + input.get_SourcePositionStart()
-              + " to " + input.get_SourcePositionEnd());
+          container.getHelper().printNotSupportedFunctionInBlock(input);
           return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
               "not_supported: "
                   + container.getLEMSExpressionsPrettyPrinter()
@@ -274,7 +253,7 @@ public class DynamicRoutine {
     switch (functionCall.getName().toString()) {
       case "integrate":
         return this.handleIntegrate(functionCall);
-      case "emitSpike":
+      case "emit_spike":
         return this.handleEmitSpike(functionCall);
       default:
         System.err.println("Not supported function call found.");
@@ -339,6 +318,33 @@ public class DynamicRoutine {
       //integrate the corresponding variable in this block
       return new Assignment("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString(), "1");
     }
+  }
+
+
+  private String buildElseCondition(List<ASTExpr> list){
+    StringBuilder builder = new StringBuilder();
+    for (ASTExpr expr : list) {
+      builder.append("(" + container.getLEMSExpressionsPrettyPrinter().print(expr, true) + ")").append(".and.");
+    }
+    builder.delete(builder.toString().length() - 5, builder.toString().length());//delete the last .and.
+    return builder.toString();
+  }
+
+  /**
+   * This method is called whenever it is required to generate a proper header
+   * for a block of the dynamic routine.
+   * @param input a node whose code is processed
+   * @param rawCode
+   * @return
+   */
+  private String buildHeader(ASTECNode input,String rawCode){
+    String rawCodeTemp =
+        "Generated from source lines " + input.get_SourcePositionStart().toString() +
+            " to " + input.get_SourcePositionEnd().toString() + ".\n";
+    rawCodeTemp = rawCodeTemp + rawCode;
+    rawCodeTemp = rawCodeTemp.trim();
+    rawCodeTemp = rawCodeTemp.replaceAll("\\n\\s*\\n", "\n");//kill empty lines
+    return rawCodeTemp;
   }
 
   @SuppressWarnings("unused")//DebugMethod

@@ -144,7 +144,8 @@ public class LEMSCollector {
       /*
        * process all sub-elements used in the actual ODE expression
        */
-      for(int i=0;i<neuronBody.getEquations().size();i++){
+      //TODO:this whole block is currently not used<----
+      for(int i=100;i<neuronBody.getEquations().size();i++){
         String temp = "";//required during the computation
         ASTEquation eq = neuronBody.getEquations().get(i);
 
@@ -168,35 +169,36 @@ public class LEMSCollector {
       /*
        * process the defining differential equation
        */
-      for (ASTEquation ode : neuronBody.getODEBlock().get().getEquations()) {
+      for(int i=0;i<neuronBody.getEquations().size();i++){
+        ASTEquation eq = neuronBody.getEquations().get(i);
         String temp = "";//required during the computation
-        if (helper.containsFunctionCall(ode.getRhs(), true)) {//check whether the equation contains a function call
+        if (helper.containsFunctionCall(eq.getRhs(), true)) {//check whether the equation contains a function call
           //print a proper warning
           System.err
-              .println("Not supported function call in expression found: " + prettyPrint.print(ode.getRhs(), false));
-          temp = temp + "not_supported:" + prettyPrint.print(ode.getRhs(), false);
+              .println("Not supported function call in expression found: " + prettyPrint.print(eq.getRhs(), false));
+          temp = temp + "not_supported:" + prettyPrint.print(eq.getRhs(), false);
           this.addNotConverted(
-              "Not supported function call(s) found in differential equation of \"" + ode.getLhs().getName().toString()
-                  + "\" in lines " + ode.get_SourcePositionStart() + " to " + ode.get_SourcePositionEnd() + ".");
-          equation.put(ode.getLhs().toString(), temp);
+              "Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString()
+                  + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
+          equation.put(eq.getLhs().toString(), temp);
         }
         else {
-          temp = temp + prettyPrint.print(ode.getRhs(), false);//replace constants with references
+          temp = temp + prettyPrint.print(eq.getRhs(), false);//replace constants with references
           List<String> tempList = new ArrayList<>();
-          tempList.add(ode.getLhs().toString());// a list is required, since method blockContains requires lists of args.
+          tempList.add(eq.getLhs().toString());// a list is required, since method blockContains requires lists of args.
           //check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
           if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
             //only ode, i.e. integrate directives have to be manipulated
-            equation.put(ode.getLhs().toString(),
-                "ACT" + ode.getLhs().toString() + "*(" + helper.replaceConstantsWithReferences(this, temp) + ")/CON1ms");
+            equation.put(eq.getLhs().toString(),
+                "ACT" + eq.getLhs().toString() + "*(" + helper.replaceConstantsWithReferences(this, temp) + ")/CON1ms");
             //now generate the corresponding activator
             this.stateVariablesList.add(
-                new StateVariable("ACT" + ode.getLhs().toString(), "none", "1", "", this));
-            this.localTimeDerivative.add(ode.getLhs().toString());
+                new StateVariable("ACT" + eq.getLhs().toString(), "none", "1", "", this));
+            this.localTimeDerivative.add(eq.getLhs().toString());
           }
           else {
             //otherwise the integration is global, no further steps required
-            equation.put(ode.getLhs().toString(),"("+helper.replaceConstantsWithReferences(this, temp)+ ")/CON1ms");
+            equation.put(eq.getLhs().toString(),"("+helper.replaceConstantsWithReferences(this, temp)+ ")/CON1ms");
           }
         }
       }

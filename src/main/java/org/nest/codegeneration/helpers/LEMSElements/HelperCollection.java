@@ -10,6 +10,7 @@ import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
+import org.nest.spl._ast.ASTSmall_Stmt;
 import org.nest.spl._ast.ASTStmt;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
@@ -364,9 +365,22 @@ public class HelperCollection {
         + ".");
   }
 
+  /**
+   * This method prints and stores a message regarding a not supported yet found
+   * function call inside a expression.
+   * @param variable
+   */
   public void printNotSupportedFunctionCallInExpression(VariableSymbol variable){
     System.err.println("Function call found in constant/parameter declaration"
         + " in lines "+variable.getSourcePosition().getLine()+ ". Please declare as "
         + "derived variable!");
+  }
+
+
+  public void printNotSupportedFunctionInBlock(ASTSmall_Stmt input){
+    System.err.println("Not supported function call(s) found in update block.");
+    container.addNotConverted("Not supported function call in update block, lines "
+        + input.get_SourcePositionStart()
+        + " to " + input.get_SourcePositionEnd());
   }
 }
