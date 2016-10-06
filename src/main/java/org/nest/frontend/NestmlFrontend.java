@@ -43,6 +43,12 @@ public class NestmlFrontend {
   private static final String HELP_ARGUMENT = "help";
   private static final String TARGET_PATH = "target";
   private static final String PYTHON_INTERPRETER = "python ";
+  private static final String LEMS_ARGUMENT = "lems";
+  private static final String CONFIG_ARGUMENT = "config";
+  private static final String UNITS_EXTERNAL = "units_external";
+  private static final String SIM_STEPS = "simSteps";
+
+  private boolean GENERATE_LEMS = false;
 
   private final Options options = new Options();
   private final HelpFormatter formatter = new HelpFormatter();
@@ -62,6 +68,32 @@ public class NestmlFrontend {
     options.addOption(Option.builder(HELP_ARGUMENT)
         .longOpt(HELP_ARGUMENT)
         .build());
+
+    options.addOption(Option.builder(LEMS_ARGUMENT).
+        longOpt(LEMS_ARGUMENT).
+        desc("Specifies that a LEMS model should be generated.").
+        build());
+
+    options.addOption(Option.builder(CONFIG_ARGUMENT)
+        .longOpt(CONFIG_ARGUMENT)
+        .desc("Optional: Used to hand over an artifact containing additional information. Standard: non.")
+        .hasArgs()
+        .numberOfArgs(1)
+        .build());
+
+    options.addOption(Option.builder(UNITS_EXTERNAL)
+        .longOpt(UNITS_EXTERNAL)
+        .desc("Optional: Indicate whether units and dimensions should be generated to each file individually or to a single file. Standard: false")
+        .build());
+
+    options.addOption(Option.builder(SIM_STEPS)
+        .longOpt(SIM_STEPS)
+        .desc("Optional: Indicate the length of each step in simulation. Standard: 0.1ms / step. Caution: Only"
+            + "the numerical value in ms shall be entered! Used in case of the \"steps\" function call.")
+        .hasArgs()
+        .numberOfArgs(1)
+        .build());
+
   }
 
   public static void main(final String[] args) {
@@ -72,7 +104,10 @@ public class NestmlFrontend {
     if (args.length > 0) {
       final CliConfiguration cliConfiguration = createCLIConfiguration(args);
 
-      if (checkEnvironment(cliConfiguration)) {
+      if(GENERATE_LEMS){
+        executeConfiguration(cliConfiguration);
+      }
+      else if (checkEnvironment(cliConfiguration)) {
         executeConfiguration(cliConfiguration);
 
       }
@@ -84,7 +119,7 @@ public class NestmlFrontend {
 
     }
     else {
-      reporter.addSystemInfo("The tool must get one argumet with the path to the model folder", Reporter.Level.ERROR);
+      reporter.addSystemInfo("The tool must get one argument with the path to the model folder", Reporter.Level.ERROR);
       formatter.printHelp("NESTML frontend: ", options);
     }
 
@@ -94,19 +129,23 @@ public class NestmlFrontend {
     checkArgument(args.length > 0);
     final CommandLine commandLineParameters = parseCLIArguments(args);
     interpretHelpArgument(commandLineParameters);
+    interpretLEMSArgument(commandLineParameters);//check if LEMS models should be generated
 
     final String targetPath = interpretTargetPathArgument(commandLineParameters);
+    final String configPath = interpretConfigPathArgument(commandLineParameters);
 
     final String inputPathMsg = "The input modelpath: " + Paths.get(args[0]).toAbsolutePath().toString();
     reporter.addSystemInfo(inputPathMsg, Reporter.Level.INFO);
     final String outputPathMsg = "The base output path: " + Paths.get(targetPath).toAbsolutePath().toString();
     reporter.addSystemInfo(outputPathMsg, Reporter.Level.INFO);
-
     return new CliConfiguration
         .Builder()
         .withCoCos(true)
         .withInputBasePath(args[0])
         .withTargetPath(targetPath)
+        .withConfigPath(configPath)
+        .withUnitsExternal(interpretUnitsExternal(commandLineParameters))
+        .withSimSteps(interpretSimSteps(commandLineParameters))
         .build();
   }
 
@@ -255,9 +294,13 @@ public class NestmlFrontend {
     final CliConfigurationExecutor executor = new CliConfigurationExecutor();
 
     final NESTMLScopeCreator nestmlScopeCreator = new NESTMLScopeCreator(CliConfiguration.getInputBase());
-    final NestCodeGenerator nestCodeGenerator = new NestCodeGenerator(nestmlScopeCreator);
-
-    executor.execute(nestCodeGenerator, CliConfiguration);
+    if(GENERATE_LEMS){
+      executor.executeLEMS(CliConfiguration);
+    }
+    else{
+      final NestCodeGenerator nestCodeGenerator = new NestCodeGenerator(nestmlScopeCreator);
+      executor.execute(nestCodeGenerator, CliConfiguration);
+    }
   }
 
   CommandLine parseCLIArguments(String[] args) {
@@ -297,5 +340,31 @@ public class NestmlFrontend {
     }
 
   }
+
+
+  private void interpretLEMSArgument(CommandLine cmd){
+    if(cmd.hasOption(LEMS_ARGUMENT)){
+      this.GENERATE_LEMS = true;
+    }
+  }
+
+  String interpretConfigPathArgument(final CommandLine cmd){
+    return interpretPathArgument(cmd,CONFIG_ARGUMENT).orElse("");
+  }
+
+  boolean interpretUnitsExternal(final CommandLine cmd){
+    return cmd.hasOption(UNITS_EXTERNAL);
+  }
+
+  double interpretSimSteps(final CommandLine cmd){
+    try{
+      return Double.parseDouble(cmd.getOptionValue(SIM_STEPS));
+    }
+    catch(Exception exp){
+      System.err.println("SimSteps argument not handed over! Set to standard 0.1ms / step.");
+    }
+    return 0.1;
+  }
+
 
 }

@@ -17,16 +17,32 @@ public class CliConfiguration {
   private final boolean checkCoCos;
   private final Path inputBasePath;
   private final Path targetPath;
+  private final Path configPath;
+  private final boolean printUnitsExternal;
+  private final double simSteps;
 
   public CliConfiguration(final Builder builder) {
     this.checkCoCos = builder.checkCoCos;
     this.inputBasePath = builder.inputBasePath;
     this.targetPath = builder.targetPath;
+    this.configPath = builder.configFile;
+    this.printUnitsExternal = builder.printUnitsExternal;
+    this.simSteps = builder.simSteps;
   }
 
   boolean isCheckCoCos() {
     return checkCoCos;
   }
+
+  Path getConfigPath(){
+    return  configPath;
+  }
+
+  boolean isPrintUnitsExternal(){
+    return this.printUnitsExternal;
+  }
+
+  double getSimSteps(){return this.simSteps;}
 
   Path getInputBase() {
 
@@ -41,6 +57,9 @@ public class CliConfiguration {
     private boolean checkCoCos = false;
     private Path inputBasePath;
     private Path targetPath;
+    private Path configFile;
+    private boolean printUnitsExternal = false;
+    private double simSteps;
 
     Builder withCoCos() {
       this.checkCoCos = true;
@@ -71,6 +90,32 @@ public class CliConfiguration {
       this.targetPath = targetPath;
       return this;
     }
+
+
+    Builder withUnitsExternal(){
+      this.printUnitsExternal = true;
+      return this;
+    }
+    Builder withUnitsExternal(boolean printUnitsExternal){
+      this.printUnitsExternal = printUnitsExternal;
+      return this;
+    }
+
+
+    Builder withConfigPath(final String configPath){
+      this.configFile = Paths.get(configPath);
+      return this;
+    }
+    Builder withConfigPath(final Path configPath){
+      this.configFile = configPath;
+      return this;
+    }
+
+    Builder withSimSteps(final double simSteps){
+      this.simSteps = simSteps;
+      return this;
+    }
+
 
     public CliConfiguration build() {
       return new CliConfiguration(this);

@@ -49,14 +49,14 @@ public class StateVariable{
       }
     }
     else if (variable.getDeclaringExpression().isPresent()) {
-      //otherwise just copy the value
-      this.defaultValue = container.getLEMSExpressionsPrettyPrinter().print(variable.getDeclaringExpression().get(), false);
+      //otherwise just copy the value, but first replace the constants with references
+      this.defaultValue = container.getHelper().replaceConstantsWithReferences(container,
+          container.getLEMSExpressionsPrettyPrinter().print(variable.getDeclaringExpression().get(), false));
     }
     if (!this.dimension.equals("none") && !this.dimension.equals("not_supported")) {
       //state variables are often generated outside the main routine, thus a processing of units has to be triggered
       this.unit = (new Unit(variable.getType())).getSymbol();
     }
-    //}
   }
 
   /**

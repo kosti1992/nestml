@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
 import org.apache.commons.io.FilenameUtils;
+import org.nest.codegeneration.LEMSGenerator;
 import org.nest.codegeneration.NestCodeGenerator;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 import org.nest.nestml._parser.NESTMLParser;
@@ -59,6 +60,18 @@ public class CliConfigurationExecutor {
     processNestmlModels(modelRoots, config, scopeCreator, generator);
     formatGeneratedCode(config.getTargetPath());
     reporter.printReports(System.out, System.out);
+  }
+
+  void executeLEMS(final CliConfiguration config){
+    final NESTMLParser parser =  new NESTMLParser(config.getInputBase());
+    final List<Path> modelFilenames = collectNESTMLModelFilenames(config.getInputBase());
+    final List<ASTNESTMLCompilationUnit> modelRoots = parseModels(modelFilenames, parser);
+    final NESTMLScopeCreator scopeCreator = new NESTMLScopeCreator(config.getInputBase());
+    modelRoots.forEach(scopeCreator::runSymbolTableCreator);
+    LEMSGenerator generator = new LEMSGenerator();
+    for(ASTNESTMLCompilationUnit elem :modelRoots){
+      generator.generateLEMS(elem,config.getTargetPath(),config.getConfigPath(),config.isPrintUnitsExternal(),config.getSimSteps());
+    }
   }
 
   private List<ASTNESTMLCompilationUnit> parseModels(

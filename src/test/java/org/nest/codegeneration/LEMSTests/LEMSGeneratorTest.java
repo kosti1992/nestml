@@ -2,6 +2,7 @@ package org.nest.codegeneration.LEMSTests;
 
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
+import org.nest.frontend.NestmlFrontend;
 //import org.nest.frontend.NESTMLFrontend;
 
 /**
@@ -10,13 +11,13 @@ import org.nest.base.ModelbasedTest;
  * @author perun
  */
 public class LEMSGeneratorTest extends ModelbasedTest {
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/testSim";
-  //NESTMLFrontend fe = new NESTMLFrontend();
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests";
+  NestmlFrontend fe = new NestmlFrontend();
 
   @Test
   public void testGenerateLEMS() throws Exception {
     String args[] = {INPUT_DIRECTORY,"-lems","-target build",
         "-config"+INPUT_DIRECTORY+"/config","-units_external","-simSteps0.1"};
-    //fe.start(args);
+    fe.start(args);
   }
 }

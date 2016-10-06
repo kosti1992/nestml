@@ -32,6 +32,18 @@ public class Dimension{
     this.ELECTRIC_CURRENT=definition[6];;
   }
 
+  public Dimension(String name, int LENGTH, int MASS, int TIME,
+      int ELECTRIC_CURRENT, int THERMODYNAMIC_TEMPERATURE, int AMOUNT_OF_SUBSTANCE, int LUMINOUS_INTENSITY) {
+    this.name = name;
+    this.LENGTH = LENGTH;
+    this.MASS = MASS;
+    this.TIME = TIME;
+    this.ELECTRIC_CURRENT = ELECTRIC_CURRENT;
+    this.THERMODYNAMIC_TEMPERATURE = THERMODYNAMIC_TEMPERATURE;
+    this.AMOUNT_OF_SUBSTANCE = AMOUNT_OF_SUBSTANCE;
+    this.LUMINOUS_INTENSITY = LUMINOUS_INTENSITY;
+  }
+
   /**
    * Required by the Generator-engine!
    * @return parameter of the base-unit "amount of substance" as int.

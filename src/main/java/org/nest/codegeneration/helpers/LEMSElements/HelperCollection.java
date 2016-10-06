@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.nest.codegeneration.helpers.LEMSCollector;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
+import org.nest.commons._ast.ASTVariable;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
 import org.nest.spl._ast.ASTSmall_Stmt;
@@ -374,6 +375,11 @@ public class HelperCollection {
     System.err.println("Function call found in constant/parameter declaration"
         + " in lines "+variable.getSourcePosition().getLine()+ ". Please declare as "
         + "derived variable!");
+  }
+
+  public void printNotSupportedFunctionCallInEquations(ASTVariable variable){
+    System.err
+        .println("Not supported function call in equation: "+ variable.getName().toString());
   }
 
 

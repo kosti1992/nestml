@@ -29,7 +29,7 @@ public class ArtifactTest extends ModelbasedTest{
     Assert.assertTrue(testant.getListOfNeurons().get(0).getConfig().getInstructions().size()>0);
     //test if the derived variable has been read in properly
     Assert.assertEquals("I",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getName());
-    Assert.assertEquals(Dimension.DimensionName.none,
+    Assert.assertEquals("none",
         testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getDimension());
     Assert.assertEquals("pulseGeneratorDL[*]/I",
         testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getDerivationInstruction());
