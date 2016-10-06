@@ -1,0 +1,223 @@
+<!-- Generated on Jul 28, 2016 4:25:30 PM.-->
+
+<Lems>
+    <!--------------------------------------------------------------------------------------->
+    <!-- Following components are used to generate networks of cells and assisting sources.-->
+    <!--------------------------------------------------------------------------------------->
+    <!--A type declaration for networks of neurons.-->
+    <ComponentType name="Network">
+        <Children name="populations" type="Population"/>
+        <Children name="connectivities" type="EventConnectivity"/>
+        <Children name="ex_connectivities" type="PortToPortConnection"/>
+        <Children name="explicitInput" type="explicitInput"/>
+    </ComponentType>
+
+    <!--Defines the population of a network.-->
+    <ComponentType name="Population">
+        <ComponentReference name="component" type="Component"/>
+        <Parameter name="size" dimension="none"/>
+        <Structure>
+            <MultiInstantiate number="size" component="component"/>
+        </Structure>
+    </ComponentType>
+
+    <ComponentType name="explicitInput">
+        <ComponentReference name="input" type="basePointCurrentDL"/>
+        <Path name="target"/>
+        <Text name="destination"/>
+        <Text name="sourcePort"/>
+        <Text name="targetPort"/>
+
+        <Structure>
+            <With instance="target" as="a"/>
+            <With instance="target" as="b"/>
+            <EventConnection from="a" to="b" receiver="input" receiverContainer="destination"/>
+        </Structure>
+    </ComponentType>
+
+    <ComponentType name="EventConnectivity">
+        <Link name="source" type="Population"/>
+        <Link name="target" type="Population"/>
+        <Child name="Connections" type="ConnectionPattern"/>
+    </ComponentType>
+
+    <ComponentType name="ConnectionPattern"/>
+
+    <!--Connects all neurons to all other neurons.-->
+    <ComponentType name="AllAll" extends="ConnectionPattern">
+        <Structure>
+            <ForEach instances="../source" as="a">
+                <ForEach instances="../target" as="b">
+                    <EventConnection from="a" to="b"/>
+                </ForEach>
+            </ForEach>
+        </Structure>
+    </ComponentType>
+
+    <ComponentType name="PortToPortConnection">
+        <Path name="from"/>
+        <Path name="to"/>
+        <Path name="sourceport"/>
+        <Path name="targetport"/>
+        <Structure>
+            <With instance="from" as="a"/>
+            <With instance="to" as="b"/>
+            <EventConnection from="a" to="b" sourcePort="sourceport" targetPort="targetport"/>
+        </Structure>
+    </ComponentType>
+
+    <!--------------------------------------------------------------------------------------->
+    <!-- Following components are used to generate a simulation of environment.-------------->
+    <!--------------------------------------------------------------------------------------->
+	<!--			modiefied version - dimension of time is now dimensionOf_ms ------------->
+    <ComponentType name="Display">
+        <Text name="title"/>
+        <Parameter name="xmin" dimension="none"/>
+        <Parameter name="xmax" dimension="none"/>
+        <Parameter name="ymin" dimension="none"/>
+        <Parameter name="ymax" dimension="none"/>
+
+        <Parameter name="timeScale" dimension="DimensionOf_ms"/>
+        <Children name="lines" type="Line"/>
+
+        <Simulation>
+            <DataDisplay title="title" dataRegion="xmin,xmax,ymin,ymax"/>
+        </Simulation>
+    </ComponentType>
+
+    <ComponentType name="Line">
+        <Parameter name="scale" dimension="*"/>
+        <Parameter name="timeScale" dimension="*"/>
+        <Text name="color"/>
+        <Path name="quantity"/>
+        <Simulation>
+            <Record quantity="quantity" timeScale="timeScale" scale="scale" color="color"/>
+        </Simulation>
+    </ComponentType>
+
+    <ComponentType name="OutputFile">
+        <Text name="path"/>
+        <Text name="fileName"/>
+
+        <Children name="outputColumn" type="OutputColumn"/>
+
+        <Simulation>
+            <DataWriter path="path" fileName="fileName"/>
+        </Simulation>
+
+    </ComponentType>
+
+    <ComponentType name="OutputColumn">
+        <Path name="quantity"/>
+        <Simulation>
+            <Record quantity="quantity"/>
+        </Simulation>
+    </ComponentType>
+
+    <ComponentType name="Simulation">
+        <Parameter name="length" dimension="DimensionOf_ms"/>
+        <Parameter name="step" dimension="DimensionOf_ms"/>
+
+        <ComponentReference name="target" type="Component"/>
+
+
+        <Children name="displays" type="Display"/>
+
+        <Children name="outputs" type="OutputFile"/>
+
+        <Dynamics>
+            <StateVariable name="t" dimension="DimensionOf_ms"/>
+        </Dynamics>
+
+        <Simulation>
+            <Run component="target" variable="t" increment="step" total="length"/>
+        </Simulation>
+    </ComponentType>
+
+    <!--------------------------------------------------------------------------------------->
+    <!-- Following components are addtional components utilized during the simulation.------->
+    <!--------------------------------------------------------------------------------------->
+
+    <Dimension name="DimensionOf_ms" t="1"/>
+    <Unit symbol="ms" dimension="DimensionOf_ms" power="-3"/>
+    <ComponentType name="spikeGenerator">
+        <Parameter name="period" dimension="DimensionOf_ms"/>
+        <EventPort name="a" direction="out"/>
+        <Exposure name="tsince" dimension="DimensionOf_ms"/>
+        <Dynamics>
+            <StateVariable name="tsince" exposure="tsince" dimension="DimensionOf_ms"/>
+            <TimeDerivative variable="tsince" value="1"/>
+            <OnCondition test="tsince .gt. period">
+                <StateAssignment variable="tsince" value="0"/>
+                <EventOut port="a"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+    <ComponentType name="basePointCurrentDL">
+        <Exposure name="I" dimension="none"
+                  description="The total (time varying) current produced by this ComponentType"/>
+    </ComponentType>
+
+    <ComponentType name="pulseGeneratorDL" extends="basePointCurrentDL">
+        <Parameter name="delay" dimension="DimensionOf_ms"
+                   description="Delay before change in current. Current is zero  prior to this."/>
+        <Parameter name="duration" dimension="DimensionOf_ms"
+                   description="Duration for holding current at amplitude. Current is zero after delay + duration."/>
+        <Parameter name="amplitude" dimension="none" description="Amplitude of current pulse"/>
+
+        <EventPort name="in" direction="in"/>
+
+        <Dynamics>
+            <StateVariable name="I" exposure="I" dimension="none"/>
+            <OnCondition test="t .lt. delay">
+                <StateAssignment variable="I" value="0"/>
+            </OnCondition>
+
+            <OnCondition test="t .geq. delay .and. t .lt. duration + delay">
+                <StateAssignment variable="I" value="amplitude"/>
+            </OnCondition>
+
+            <OnCondition test="t .geq. duration + delay">
+                <StateAssignment variable="I" value="0"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+    <ComponentType name="currentGeneratorDL" extends="basePointCurrentDL">
+        <Parameter name="amplitude" dimension="none" description="The amplitude of the transmitted current."/>
+        <EventPort name="in" direction="in"/>
+        <Dynamics>
+            <StateVariable name="I" exposure="I" dimension="none"/>
+            <OnStart>
+                <StateAssignment variable="I" value="amplitude"/>
+            </OnStart>
+        </Dynamics>
+    </ComponentType>
+
+    <ComponentType name="linearEvolvingGeneratorDL" extends="basePointCurrentDL">
+        <Parameter name="offset" dimension="DimensionOf_ms" description="The duration of time after which the component start to evolve."/>
+        <Parameter name="duration" dimension="DimensionOf_ms" description="The duration of the emission."/>
+        <Parameter name="delta" dimension="none" description="The value added to the current value in each step."/>
+        <EventPort name="in" direction="in"/><!--required by LEMS in order to establish connections.-->
+        <Constant name="CON1ms" dimension="DimensionOf_ms" value="1ms"/>
+        <Dynamics>
+            <StateVariable name="I" exposure="I" dimension="none"/>
+            <StateVariable name="tsinceStart" dimension="DimensionOf_ms"/>
+            <StateVariable name="activator" dimension="none"/>
+            <TimeDerivative variable="tsinceStart" value="1"/>
+            <TimeDerivative variable="I" value="activator*(delta)/CON1ms"/>
+            <OnStart>
+                <StateAssignment variable="activator" value="0"/>
+            </OnStart>
+            <OnCondition test="tsinceStart.geq.offset">
+                <StateAssignment variable="activator" value="1"/>
+            </OnCondition>
+            <OnCondition test="tsinceStart.geq.(offset+duration)">
+                <StateAssignment variable="activator" value="0"/>
+                <StateAssignment variable="I" value="0"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+</Lems>

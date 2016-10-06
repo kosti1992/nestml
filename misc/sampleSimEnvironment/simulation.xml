@@ -1,0 +1,78 @@
+<!-- Generated on Jul 28, 2016 4:25:30 PM.-->
+
+<Lems>
+    <Include file="predefined_components.xml"/>
+    <Include file="izhikevich_nestml.xml"/>
+	
+	<Dimension name="DimensionOf_mV" m="1" l="2" t="-3" i="-1"/>
+	<Unit symbol="mV" dimension="DimensionOf_mV" power="-3"/>
+
+    <izhikevich_nestml id="izPhasicSpiking" a="0.02" b="0.25" c="-65" d="6" I_e="0mA" V_m_init="-64mV"/>
+    <pulseGeneratorDL id="iA" delay="20ms" duration="180ms" amplitude="0.5"/>
+    <izhikevich_nestml id="izTonicSpiking" a="0.02" b="0.2" c="-65" d="6" I_e="0mA" V_m_init="-70mV"/>
+    <pulseGeneratorDL id="iB" delay="10ms" duration="90ms" amplitude="14"/>
+    <izhikevich_nestml id="izTonicBursting" a="0.02" b="0.2" c="-50" d="2" I_e="0mA" V_m_init="-70mV"/>
+    <pulseGeneratorDL id="iC" delay="22ms" duration="198ms" amplitude="15"/>
+    <izhikevich_nestml id="resonator" a="0.1" b="0.26" c="-60" d="-1" I_e="0mA" V_m_init="-62mV"/>
+    <pulseGeneratorDL id="iD1" delay="40ms" duration="4ms" amplitude="0.65"/>
+    <pulseGeneratorDL id="iD2" delay="60ms" duration="4ms" amplitude="0.65"/>
+    <pulseGeneratorDL id="iD3" delay="200ms" duration="4ms" amplitude="0.65"/>
+    <pulseGeneratorDL id="iD4" delay="240ms" duration="4ms" amplitude="0.65"/>
+    <izhikevich_nestml id="izReboundBurst" a="0.03" b="0.25" c="-52" d="0" I_e="0mA" V_m_init="-64mV"/>
+    <pulseGeneratorDL id="iE4" delay="20ms" duration="5ms" amplitude="-15"/>
+
+    <Network id="net1">
+        <Population id="izPhasicSpiking" component="izPhasicSpiking" size="1"/>
+        <Population id="izTonicSpiking" component="izTonicSpiking" size="1"/>
+        <Population id="izTonicBursting" component="izTonicBursting" size="1"/>
+        <Population id="resonator" component="resonator" size="1"/>
+        <Population id="izReboundBurst" component="izReboundBurst" size="1"/>
+        <explicitInput input="iA" target="izPhasicSpiking[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iB" target="izTonicSpiking[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iC" target="izTonicBursting[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iD1" target="resonator[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iD2" target="resonator[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iD3" target="resonator[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iD4" target="resonator[0]" destination="pulseGeneratorDL"/>
+        <explicitInput input="iE4" target="izReboundBurst[0]" destination="pulseGeneratorDL"/>
+    </Network>
+
+    <Simulation id="sim1" length="200.0ms" step="0.1ms" target="net1">
+
+            <Display id="d0" title="SimpleSimulation - izPhasicSpiking"
+                     timeScale="1ms" xmin="-10" xmax="90" ymin="-90" ymax="60">
+                <Line id="izPhasicSpiking.V_m" quantity="izPhasicSpiking[0]/V_m" scale="1mV" timeScale="1ms" color="#8CA8B8"/>
+                <Line id="izPhasicSpiking.u" quantity="izPhasicSpiking[0]/u" scale="1" timeScale="1ms" color="#5598E9"/>
+                <Line id="izPhasicSpiking.I" quantity="izPhasicSpiking[0]/I" scale="1" timeScale="1ms" color="#CDD9BB"/>
+            </Display>
+
+            <Display id="d3" title="SimpleSimulation - izTonicSpiking"
+                     timeScale="1ms" xmin="-10" xmax="90" ymin="-90" ymax="60">
+                <Line id="izTonicSpiking.V_m" quantity="izTonicSpiking[0]/V_m" scale="1mV" timeScale="1ms" color="#155812"/>
+                <Line id="izTonicSpiking.u" quantity="izTonicSpiking[0]/u" scale="1" timeScale="1ms" color="#014B34"/>
+                <Line id="izTonicSpiking.I" quantity="izTonicSpiking[0]/I" scale="1" timeScale="1ms" color="#CD85A1"/>
+            </Display>
+
+            <Display id="d6" title="SimpleSimulation - izTonicBursting"
+                     timeScale="1ms" xmin="-10" xmax="90" ymin="-90" ymax="60">
+                <Line id="izTonicBursting.V_m" quantity="izTonicBursting[0]/V_m" scale="1mV" timeScale="1ms" color="#15B8C7"/>
+                <Line id="izTonicBursting.u" quantity="izTonicBursting[0]/u" scale="1" timeScale="1ms" color="#D3CD63"/>
+                <Line id="izTonicBursting.I" quantity="izTonicBursting[0]/I" scale="1" timeScale="1ms" color="#7724E7"/>
+            </Display>
+
+            <Display id="d9" title="SimpleSimulation - resonator"
+                     timeScale="1ms" xmin="-10" xmax="90" ymin="-90" ymax="60">
+                <Line id="resonator.V_m" quantity="resonator[0]/V_m" scale="1mV" timeScale="1ms" color="#A3624A"/>
+                <Line id="resonator.u" quantity="resonator[0]/u" scale="1" timeScale="1ms" color="#935CBD"/>
+                <Line id="resonator.I" quantity="resonator[0]/I" scale="1" timeScale="1ms" color="#9AB8A4"/>
+            </Display>
+            <Display id="d18" title="SimpleSimulation - izReboundBurst"
+                     timeScale="1ms" xmin="-10" xmax="90" ymin="-90" ymax="60">
+                <Line id="izReboundBurst.V_m" quantity="izReboundBurst[0]/V_m" scale="1mV" timeScale="1ms" color="#D41374"/>
+                <Line id="izReboundBurst.u" quantity="izReboundBurst[0]/u" scale="1" timeScale="1ms" color="#5D28DB"/>
+                <Line id="izReboundBurst.I" quantity="izReboundBurst[0]/I" scale="1" timeScale="1ms" color="#85B953"/>
+            </Display>
+    </Simulation>
+
+</Lems>
+
