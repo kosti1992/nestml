@@ -34,8 +34,7 @@ neuron izhikevich_nestml:
       V_m = c*1mV
       u += d
       emit_spike()
-	end
-	
+	end	
   end
 
 end

@@ -20,8 +20,8 @@ public class EventPort {
    * @param variable an input-buffer
    */
   public EventPort(ASTInputLine variable) {
-    name = variable.getName();
-    dir = Direction.in;
+    this.name = variable.getName();
+    this.dir = Direction.in;
   }
 
   /**
@@ -40,11 +40,11 @@ public class EventPort {
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 
   public Direction getDirection() {
-    return dir;
+    return this.dir;
   }
 
   public enum Direction {

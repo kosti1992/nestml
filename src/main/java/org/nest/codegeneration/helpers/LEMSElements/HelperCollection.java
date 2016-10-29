@@ -2,10 +2,12 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.nest.codegeneration.helpers.LEMSCollector;
+import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.Operator;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.commons._ast.ASTVariable;
@@ -13,7 +15,6 @@ import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
 import org.nest.spl._ast.ASTSmall_Stmt;
 import org.nest.spl._ast.ASTStmt;
-import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 
@@ -30,22 +31,6 @@ public class HelperCollection {
     container = collector;
   }
 
-  /**
-   * Generates a random HEX Code as required for coloring the graphs.
-   *
-   * @return a HEX color code as String
-   */
-  @SuppressWarnings("unused")//used in the template
-  public String gencode() {
-    String[] letters = "0123456789ABCDEF".split("");
-    String code = "#";
-    for (int i = 0; i < 6; i++) {
-      double ind = Math.random() * 15;
-      int index = (int) Math.round(ind);
-      code += letters[index];
-    }
-    return code;
-  }
 
   /**
    * Returns all spike input ports of a given set.
@@ -200,31 +185,36 @@ public class HelperCollection {
   }
 
   /**
-   * This method can be used to extract from a given expression all constants, e.g. 70mv, generate corresponding
-   * constant, and replace the constants in the expression with references.
-   *
-   * @param input the expression
+   * Inspects an expression and replaces all directly stated constants with references
+   * to additionally created constants, e.g. V_m +10mV -> V_m + CON10mV
+   * @param container
+   * @param expr
+   * @return
    */
-  public String replaceConstantsWithReferences(LEMSCollector container, String input) {
-    String inputString = input;
-    //split the expression on arithmetic operations and brackets, and logical expressions
-    String[] parts = inputString.split("[+\\-*/%()]|.(gt|geq|eq|neq|leq|lt).");
-    List<String> processed = new ArrayList<>();
-    for (String part : parts) {//check for each part, if it ends with an unit -> is a constant
-      for (Unit unit : container.getUnitsSet()) {//check all utilize units
-        if (part.endsWith(unit.getSymbol()) && !processed.contains(part)) {//process only if not already processed
-          processed.add(part);
-          String numValue = part.replaceAll("\\D+", "");//extract the numerical value
-          Constant temp = new Constant("CON" + part, unit.getDimension().getName(), numValue, unit.getSymbol(),false);
-          if (!container.getConstantsList().contains(temp)) {//do not add any duplicates to the list of constants
-            container.addConstant(temp);
-          }
-          inputString = inputString.replaceAll(part, temp.getName());//replace the corresponding part in the string
-        }
+  public Expression replaceConstantsWithReferences(LEMSCollector container,Expression expr){
+    List<Expression> temp = expr.getNumericals();
+    for(Expression exp:temp){
+      if(((NumericalLiteral)exp).hasType()){
+        int[] dec = convertTypeDeclToArray(((NumericalLiteral)exp).getType().get().getSerializedUnit());
+        //create the required units and dimensions
+        Dimension tempDimension =
+            new Dimension("DimensionOf_"+((NumericalLiteral)exp).getType().get().getUnit().get().toString(),
+            dec[2],dec[3],dec[1],dec[6],dec[0],dec[5],dec[4]);
+        Unit tempUnit = new Unit(((NumericalLiteral)exp).getType().get().getUnit().get().toString(),
+            tempDimension);
+        container.addDimension(tempDimension);
+        container.addUnit(tempUnit);
+
+        Constant tempConstant = new Constant("CON"+((NumericalLiteral)exp).printValueType(),
+            tempDimension.getName(),exp,false);
+        container.addConstant(tempConstant);
+        Variable var = new Variable(tempConstant.getName());
+        expr.replaceElement(exp,var);
       }
     }
-    return inputString;
+    return expr;
   }
+
 
   /**
    * Returns the arguments of a function separated by ",".
@@ -253,7 +243,7 @@ public class HelperCollection {
   public boolean containsNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
     for (DynamicRoutine.Instruction instr : list) {
       if (instr.getClass() == DynamicRoutine.FunctionCall.class &&
-          ((DynamicRoutine.FunctionCall) instr).getFunctionName().equals(funcName)) {
+          ((DynamicRoutine.FunctionCall) instr).printName().equals(funcName)) {
         return true;
       }
     }
@@ -270,7 +260,7 @@ public class HelperCollection {
   public List<DynamicRoutine.FunctionCall> getNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
     return list.stream()
         .filter(call -> call.getClass().equals(DynamicRoutine.FunctionCall.class) &&
-            ((DynamicRoutine.FunctionCall) call).getFunctionName().equals(funcName))
+            ((DynamicRoutine.FunctionCall) call).printName().equals(funcName))
         .map(call -> (DynamicRoutine.FunctionCall) call).collect(Collectors.toList());
   }
 
@@ -305,6 +295,7 @@ public class HelperCollection {
         temp = temp || temp2;
       }
       else {
+        //TODO:potential source for erros in case WHILE blocks are used
         temp = temp || this.blockContainsFunction(function, args,
             stmt.getCompound_Stmt().get().getIF_Stmt().get().getIF_Clause().getBlock());
         for (ASTELIF_Clause clause : stmt.getCompound_Stmt().get().getIF_Stmt().get().getELIF_Clauses()) {
@@ -382,11 +373,54 @@ public class HelperCollection {
         .println("Not supported function call in equation: "+ variable.getName().toString());
   }
 
-
-  public void printNotSupportedFunctionInBlock(ASTSmall_Stmt input){
+  public void printNotSupportedFunctionInBlock(ASTSmall_Stmt input) {
     System.err.println("Not supported function call(s) found in update block.");
-    container.addNotConverted("Not supported function call in update block, lines "
-        + input.get_SourcePositionStart()
-        + " to " + input.get_SourcePositionEnd());
+    container.addNotConverted("Not supported function call in update block, lines " + input.get_SourcePositionStart() + " to " + input.get_SourcePositionEnd());
+  }
+
+  /**
+   * Extends the input by an activator variable whose name is handed over.
+   * @param var The name of the variable whose activator will be used.
+   * @param expr The expression which will be modified by an activator.
+   * @return the extended expression
+   */
+  public Expression buildExpressionWithActivator(String var, Expression expr) {
+    String temp = "ACT" + var.replaceAll("'", "");
+    Expression lhs = new Variable(temp);
+    Expression ret = new Expression();
+    Expression rightSubExpr = new Expression();
+    Operator parenthesis = new Operator();
+    parenthesis.setLeftParentheses(true);
+    parenthesis.setRightParentheses(true);
+    rightSubExpr.replaceOp(parenthesis);
+    rightSubExpr.replaceRhs(expr);
+    Operator op = new Operator();
+    op.setTimesOp(true);
+    ret.replaceLhs(lhs);
+    ret.replaceOp(op);
+    ret.replaceRhs(rightSubExpr);
+    return ret;
+  }
+
+  /**
+   * Encapsulates the expression by brackets and extends by /CON1ms
+   * @param expr the expression which will be extended
+   * @return the extended expr
+   */
+  public Expression extendExpressionByCON1ms(Expression expr) {
+    Expression leftSubExpr = new Expression();
+    Operator parenthesis = new Operator();
+    parenthesis.setLeftParentheses(true);
+    parenthesis.setRightParentheses(true);
+    leftSubExpr.replaceOp(parenthesis);
+    leftSubExpr.replaceRhs(expr);
+    Variable var = new Variable("CON1ms");
+    Expression exp = new Expression();
+    Operator op = new Operator();
+    op.setDivOp(true);
+    exp.replaceLhs(leftSubExpr);
+    exp.replaceOp(op);
+    exp.replaceRhs(var);
+    return exp;
   }
 }

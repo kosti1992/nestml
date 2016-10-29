@@ -32,7 +32,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
     <#list container.getDerivedParametersList() as derivedParameter>
         <DerivedParameter <@compress single_line=true>name="${derivedParameter.getName()}"
                               dimension="${derivedParameter.getDimension()}"
-                              value="${derivedParameter.getDerivationInstruction()}"/></@compress>
+                              value="${derivedParameter.getDerivationInstruction().print()}"/></@compress>
     </#list>
 
     <#list container.getPortsList() as port>
@@ -52,11 +52,11 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
             <#if !derivedVariable.isExternal()>
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
-                                                            value="${derivedVariable.getDerivationInstruction()}" </@compress>/>
+                                                            value="${derivedVariable.getDerivationInstruction().print()}" </@compress>/>
             <#else>
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
-                                                            select="${derivedVariable.getDerivationInstruction()}"
+                                                            select="${derivedVariable.getDerivationInstruction().print()}"
                                                             reduce="add"</@compress>/>
             </#if>
           </#list>
@@ -64,13 +64,13 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
           <#if (container.getStateVariablesList()?size>0) >
               <OnStart>
                 <#list container.getStateVariablesList() as defaults>
-                <StateAssignment variable="${defaults.getName()}" value="${defaults.getDefaultValue()}"/>
+                <StateAssignment variable="${defaults.getName()}" value="${defaults.print()}"/>
                 </#list>
               </OnStart>
           </#if>
 
           <#list (container.getEquations())?keys as var>
-              <TimeDerivative variable="${var}" value="${container.getEquations()[var]}"/>
+              <TimeDerivative variable="${var}" value="${container.getEquations()[var].print()}"/>
           </#list>
 
           <#if container.conditionsPresent()>
@@ -78,16 +78,16 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
               <#list condBlock.getInitialCode() as line><#--print the information header-->
               <!--${line}-->
               </#list>
-              <OnCondition test="${condBlock.getCondition()}">
+              <OnCondition test="${condBlock.getCondition().print()}">
                   <#list condBlock.getInstructions() as instr>
                   <#if condBlock.getInstructionType(instr)=="Assignment">
-                  <StateAssignment variable="${container.getAutomaton().getAssignmentFromInstruction(instr).getAssignedVariable()}" value="${container.getAutomaton().getAssignmentFromInstruction(instr).getAssignedValue()}"/>
+                  <StateAssignment variable="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedVariable()}" value="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedValue()}"/>
                   <#elseif condBlock.getInstructionType(instr)=="FunctionCall">
                   <#attempt>
-                  ${tc.includeArgs("org.nest.lems.functions.${container.getAutomaton().getFunctionCallFromInstruction(instr).getFunctionName()}",
+                  ${tc.includeArgs("org.nest.lems.functions.${container.getAutomaton().getFunctionCallFromInstruction(instr).printName()}",
                   [container.getAutomaton().getFunctionCallFromInstruction(instr),container])}
                   <#recover>
-                  <Text name="function not defined:${container.getAutomaton().getFunctionCallFromInstruction(instr).getFunctionName()}"/>
+                  <Text name="function not defined:${container.getAutomaton().getFunctionCallFromInstruction(instr).printName()}"/>
                   </#attempt>
                   </#if>
                   </#list>

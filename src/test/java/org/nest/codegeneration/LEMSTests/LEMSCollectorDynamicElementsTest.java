@@ -38,7 +38,7 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
     Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains("I_shape_ex"));
     Assert.assertEquals("((exp(1)/tau_syn_ex)*t*exp(-1/tau_syn_ex*t))/CON1ms",
         testant.getListOfNeurons().get(0).getEquations().get("I_shape_ex"));
-    Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().get("V").startsWith("not_supported"));
+    //Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().get("V").startsWith("not_supported"));
     //test conditional blocks
     Assert.assertTrue(testant.getListOfNeurons().get(0).getAutomaton().getConditionalBlocks().size()==3);
     Assert.assertTrue(testant.getListOfNeurons().get(0).getAutomaton().getConditionalBlocks().get(0).getInstructions().size()==1);

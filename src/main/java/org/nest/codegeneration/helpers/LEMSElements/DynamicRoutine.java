@@ -8,7 +8,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import de.monticore.emf._ast.ASTECNode;
-import org.nest.codegeneration.helpers.LEMSCollector;
+import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.Function;
+import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.Operator;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTDynamics;
@@ -64,12 +69,12 @@ public class DynamicRoutine {
       SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
       tempPrettyPrinter.print(input);
       String rawCodeTemp = this.buildHeader(input,tempPrettyPrinter.result());
-      if (tempList.size() > 0) {//generate a new block
-        this.blocks.add(new ConditionalBlock(tempList, "1.eq.1", rawCodeTemp));
+      if (tempList.size() > 0) {//generate a new block which shall be allway executed, thus cond=TRUE
+        this.blocks.add(new ConditionalBlock(tempList,Expression.generateTrue(), rawCodeTemp));
       }
     }
     else if (input.compound_StmtIsPresent()) {
-      handleCompoundStatement(input.getCompound_Stmt().get(), "");
+      handleCompoundStatement(input.getCompound_Stmt().get(),null);
     }
     else {
       System.err.println("Not supported type of statement in line " + input.get_SourcePositionStart());
@@ -81,39 +86,58 @@ public class DynamicRoutine {
    *
    * @param input a compound statement, i.e a block
    */
-  private void handleCompoundStatement(ASTCompound_Stmt input, String condition) {
+  private void handleCompoundStatement(ASTCompound_Stmt input, Expression condition) {
     List<ASTExpr> tempList = new ArrayList<>();//used for generating the final else block by concatenating all conditions
+    //printer used to print a header
     SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
+    Expression tempCondition = new Expression();
 
     if (input.getIF_Stmt().isPresent()) {//this block is an if-block
       //process the if statement
       tempList.add(input.getIF_Stmt().get().getIF_Clause().getExpr());//store the if-condition
-      String tempCondition;
-      //store the condition of this if-block temporary
-      if (!condition.equals("")) {//required in order to process nested blocks
-        tempCondition = condition + ".and.(" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-            container.getLEMSExpressionsPrettyPrinter().print(input.getIF_Stmt().get().getIF_Clause().getExpr(), false))
-            + ")";
+
+      if (condition != null) {//required in order to process nested blocks
+        Operator tempOp = new Operator();
+        tempOp.setLogicalAnd(true);
+        Expression tempRhs = this.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
+        tempCondition.replaceLhs(condition);
+        tempCondition.replaceRhs(tempRhs);
+        tempCondition.replaceOp(tempOp);
       }
-      else {
-        tempCondition = "(" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-            container.getLEMSExpressionsPrettyPrinter().print(input.getIF_Stmt().get().getIF_Clause().getExpr(), false))
-            + ")";
+      else{
+        tempCondition = this.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
       }
       tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
       //store a new conditional block
+      tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container,tempCondition);
       handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
-
+    }
       //process all elif statements
+
       for (ASTELIF_Clause clause : input.getIF_Stmt().get().getELIF_Clauses()) {
+        List<ASTExpr> copYofTempList = new ArrayList<>(tempList);
         tempList.add(clause.getExpr());//store each elif condition
         tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
         tempPrettyPrinter.print(clause);//collect raw code for the header
-        tempCondition = "(" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-            container.getLEMSExpressionsPrettyPrinter().print(clause.getExpr(), false)) + ")";
-        if (!condition.equals("")) {
-          tempCondition = condition + ".and." + tempCondition;
+        tempCondition = this.encapsulateInBrackets(new Expression(clause.getExpr()));
+        Expression tExpr = new Expression();
+        Operator opr = new Operator();
+        opr.setLogicalAnd(true);
+        tExpr.replaceLhs(this.buildElseCondition(copYofTempList));
+        tExpr.replaceOp(opr);
+        tExpr.replaceRhs(tempCondition);
+        tempCondition = tExpr;
+
+        if (condition!=null) {
+          Expression tempExpr = new Expression();
+          tempExpr.replaceLhs(condition);
+          tempExpr.replaceRhs(tempCondition);
+          Operator newOp = new Operator();
+          newOp.setLogicalAnd(true);
+          tempExpr.replaceOp(newOp);
+          tempCondition=tempExpr;
         }
+        tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container,tempCondition);
         handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
       }
 
@@ -123,16 +147,21 @@ public class DynamicRoutine {
         //collect raw code for the header
         tempPrettyPrinter.print(input.getIF_Stmt().get().getELSE_Clause().get());
         //now generate a proper condition
-        tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container,this.buildElseCondition(tempList));
-        if (!condition.equals("")) {
-          tempCondition = condition + ".and." + tempCondition;
+        tempCondition = this.buildElseCondition(tempList);
+        if (condition!=null) {
+          Expression tempExpr = new Expression();
+          tempExpr.replaceLhs(condition);
+          tempExpr.replaceRhs(tempCondition);
+          Operator newOp = new Operator();
+          newOp.setLogicalAnd(true);
+          tempCondition=tempExpr;
         }
         //create the corresponding block
+        tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container,tempCondition);
         handleASTBlock(input.getIF_Stmt().get().getELSE_Clause().get().getBlock(),
-            tempCondition,
-            tempPrettyPrinter.result());
+            tempCondition, tempPrettyPrinter.result());
       }
-    }
+
     //TODO: are these blocks really not supported?
     else if (input.getWHILE_Stmt().isPresent()) {//the block is a while block-> not supported yet
       System.err.println("WHILE blocks are not yet supported.");
@@ -147,7 +176,7 @@ public class DynamicRoutine {
    *
    * @param input block which will be processed
    */
-  private void handleASTBlock(ASTBlock input, String condition, String rawCode) {
+  private void handleASTBlock(ASTBlock input, Expression condition, String rawCode) {
     List<Instruction> tempInstruction = new ArrayList<>();
     //generate a description header
     String rawCodeTemp = this.buildHeader(input,rawCode);
@@ -193,46 +222,47 @@ public class DynamicRoutine {
         if (LEMSCollector.helper.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
           //Generate a proper error message
           container.getHelper().printNotSupportedFunctionInBlock(input);
-          return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-              "not_supported: "
-                  + container.getLEMSExpressionsPrettyPrinter()
-                  .print(input.getAssignment().get().getExpr(), false));
+          //now generate a expression which indicates that it is not supported
+          Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
+          tempExpression = tempExpression.setNotSupported();
+          //return a corresponding assignment
+          return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),tempExpression);
         }
         else {
+          Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
+          Expression ret = new Expression();
+          Variable tempVar = new Variable(input.getAssignment().get().getLhsVarialbe().getName().toString());
+          Operator tempOp = new Operator();
+          ret.replaceRhs(tempVar);
+          ret.replaceLhs(tempExpression);
           //in order to process assignments of type x-=y
           if (input.getAssignment().get().isCompoundMinus()) {
-            return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-                input.getAssignment().get().getLhsVarialbe().toString()
-                    + "-" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-                    container.getLEMSExpressionsPrettyPrinter()
-                        .print(input.getAssignment().get().getExpr(), false)));
+            tempOp.setMinusOp(true);
+            ret.replaceOp(tempOp);
+            ret = LEMSCollector.helper.replaceConstantsWithReferences(container,ret);
+            return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),ret);
           }//in order to process assignments of type x*=y
           else if (input.getAssignment().get().isCompoundProduct()) {
-            return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-                input.getAssignment().get().getLhsVarialbe().toString()
-                    + "*" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-                    container.getLEMSExpressionsPrettyPrinter()
-                        .print(input.getAssignment().get().getExpr(), false)));
+            tempOp.setTimesOp(true);
+            ret.replaceOp(tempOp);
+            ret = LEMSCollector.helper.replaceConstantsWithReferences(container,ret);
+            return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),ret);
           }//in order to process assignments of type x+=y
           else if (input.getAssignment().get().isCompoundSum()) {
-            return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-                input.getAssignment().get().getLhsVarialbe().toString()
-                    + "+" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-                    container.getLEMSExpressionsPrettyPrinter()
-                        .print(input.getAssignment().get().getExpr(), false)));
+            tempOp.setPlusOp(true);
+            ret.replaceOp(tempOp);
+            ret = LEMSCollector.helper.replaceConstantsWithReferences(container,ret);
+            return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),ret);
           }//in order to process assignments of type x/=y
           else if (input.getAssignment().get().isCompoundQuotient()) {
-            return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-                input.getAssignment().get().getLhsVarialbe().toString()
-                    + "/" + LEMSCollector.helper.replaceConstantsWithReferences(container,
-                    container.getLEMSExpressionsPrettyPrinter()
-                        .print(input.getAssignment().get().getExpr(), false)));
+            tempOp.setDivOp(true);
+            ret.replaceOp(tempOp);
+            ret = LEMSCollector.helper.replaceConstantsWithReferences(container,ret);
+            return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),ret);
           }
           else {
-            return new Assignment(input.getAssignment().get().getLhsVarialbe().toString(),
-                LEMSCollector.helper.replaceConstantsWithReferences(container,
-                    container.getLEMSExpressionsPrettyPrinter()
-                        .print(input.getAssignment().get().getExpr(), false)));
+            ret = LEMSCollector.helper.replaceConstantsWithReferences(container,new Expression(input.getAssignment().get().getExpr()));
+            return new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),ret);
           }
         }
       }
@@ -240,7 +270,7 @@ public class DynamicRoutine {
         return handleFunctionCall(input.getFunctionCall().get());
       }
     System.err.println("Something went wrong in small statement processing.");
-    return new Assignment("", "");
+    return new Assignment("",null);
   }
 
   /**
@@ -285,13 +315,14 @@ public class DynamicRoutine {
       temp = false;
       //for all elements in the list, check if an integration directive has been found
       for (Instruction call : list) {
-        if (call.getClass().equals(Assignment.class) && ((Assignment) call).getAssignedVariable().equals("ACT" + var)) {
+        if (call.getClass().equals(Assignment.class) && ((Assignment) call).printAssignedVariable().equals("ACT" + var)) {
           temp = true;
         }
       }
       //add a deactivation assignment to the list of directives if no integrate directive has been found
       if (!temp) {
-        list.add(new Assignment("ACT" + var, "0"));
+        NumericalLiteral tempLiteral = new NumericalLiteral(0,null);
+        list.add(new Assignment("ACT" + var,tempLiteral));
       }
     }
     return list;
@@ -301,7 +332,7 @@ public class DynamicRoutine {
    * Generates a "integrate" counter piece in the target modeling language by replacing it with assignments.
    *
    * @param functionCall a integrate function call
-   * @return a instruction which represents the integrate directive
+   * @return an instruction which represents the integrate directive
    */
   private Instruction handleIntegrate(ASTFunctionCall functionCall) {
     //add a new state variable which symbolize that integration should be activated in necessary
@@ -312,29 +343,55 @@ public class DynamicRoutine {
     else {
       for (StateVariable var : container.getStateVariablesList()) {
         if (var.getName().equals("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-          var.setDefaultValue("0");//is should be now only activated if required
+          //NumericalLiteral tempLiteral = new NumericalLiteral(0,null);
+          //NumericalLiteral tempLiteral = (NumericalLiteral) var.getDefaultValue().get();
+          //tempLiteral.setValue(0);
+          ((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
+          //var.setDefaultValue("0");//is should be now only activated if required
         }
       }
       //integrate the corresponding variable in this block
-      return new Assignment("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString(), "1");
+      NumericalLiteral tempLiteral = new NumericalLiteral(1,null);
+      return new Assignment("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString(),tempLiteral);
     }
   }
 
 
-  private String buildElseCondition(List<ASTExpr> list){
-    StringBuilder builder = new StringBuilder();
-    for (ASTExpr expr : list) {
-      builder.append("(" + container.getLEMSExpressionsPrettyPrinter().print(expr, true) + ")").append(".and.");
+  private Expression buildElseCondition(List<ASTExpr> list){
+    if(!list.isEmpty()){
+      Expression tempExpr = encapsulateInBrackets(new Expression(list.get(0)));
+      tempExpr.negateLogic();
+      Expression combExpr = new Expression();
+      if(list.size()<=1){
+        return tempExpr;
+      }
+      if(list.size()>1){
+        combExpr.replaceLhs(tempExpr);
+        Operator tempOp = new Operator();
+        tempOp.setLogicalAnd(true);
+        combExpr.replaceOp(tempOp);
+        list.remove(0);
+        combExpr.replaceRhs(this.buildElseCondition(list));
+      }
+      return combExpr;
     }
-    builder.delete(builder.toString().length() - 5, builder.toString().length());//delete the last .and.
-    return builder.toString();
+    return new Expression();
   }
 
+  public Expression encapsulateInBrackets(Expression expr){
+    Expression ret = new Expression();
+    Operator op = new Operator();
+    op.setLeftParentheses(true);
+    op.setRightParentheses(true);
+    ret.replaceOp(op);
+    ret.replaceRhs(expr);
+    return ret;
+  }
   /**
    * This method is called whenever it is required to generate a proper header
    * for a block of the dynamic routine.
    * @param input a node whose code is processed
-   * @param rawCode
+   * @param rawCode the raw source code which will be printed
    * @return
    */
   private String buildHeader(ASTECNode input,String rawCode){
@@ -353,6 +410,7 @@ public class DynamicRoutine {
       System.out.println(key + "=" + input.get(key));
     }
   }
+
 
   @SuppressWarnings("unused")//DebugMethod
   private void printHashSet(HashSet<String> input) {
@@ -394,57 +452,67 @@ public class DynamicRoutine {
    */
   public class Assignment extends Instruction {
     private String assignedVariable = "";
+    private Expression assignedValue = null;
+    //private String old_assignedValue = "";
 
-    private String assignedValue = "";
-
-    public Assignment(String assignedVariable, String assignedValue) {
+    public Assignment(String assignedVariable, Expression assignedValue) {
       this.assignedVariable = assignedVariable;
       this.assignedValue = assignedValue;
     }
 
     @SuppressWarnings("unused")//used in the template
-    public String getAssignedVariable() {
+    public String printAssignedVariable() {
       return this.assignedVariable;
     }
 
     @SuppressWarnings("unused")//used in the template
-    public String getAssignedValue() {
+    public Expression getAssignedValue() {
       return this.assignedValue;
     }
 
+    public String printAssignedValue(){
+      return this.assignedValue.print(new LEMSSyntaxContainer());
+    }
   }
 
   /**
    * This class is used to store concrete instructions, namely function calls.
    */
   public class FunctionCall extends Instruction {
-    private String functionName;
-
-    private List<ASTExpr> args;
+    private Function functionCallExpr;
+    //private String functionName;
+    //private List<ASTExpr> args;
 
     public FunctionCall(ASTFunctionCall call) {
-      this.args = call.getArgs();
-      this.functionName = call.getName().toString();
+      this.functionCallExpr = new Function(call);
+      //this.args = call.getArgs();
+      //this.functionName = call.getName().toString();
     }
 
     @SuppressWarnings("unused")//used in the template
-    public String getFunctionName() {
-      return this.functionName;
+    public String printName() {
+      return this.functionCallExpr.getFunctionName();
+      //return this.functionName;
     }
 
     @SuppressWarnings("unused")//used in the template
-    public String getArgs() {
+    public String printArgs() {
       StringBuilder newBuilder = new StringBuilder();
-      for (ASTExpr expr : args) {
-        newBuilder.append(container.getLEMSExpressionsPrettyPrinter().print(expr, false));
+      for (Expression expr : this.functionCallExpr.getArguments()) {
+        newBuilder.append(expr.print(new LEMSSyntaxContainer()));
         newBuilder.append(",");
       }
       newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string
       return newBuilder.toString();
     }
 
-    public List<ASTExpr> getArgsAsList() {
-      return this.args;
+    public List<Expression> getArgs() {
+      return functionCallExpr.getArguments();
+      //return this.args;
     }
+
+
+
+
   }
 }

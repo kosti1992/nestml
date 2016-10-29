@@ -3,6 +3,7 @@ package org.nest.codegeneration.helpers.Expressions;
 import org.nest.commons._ast.ASTExpr;
 
 /**
+ * This class stores an operator, e.g. +,-,OR,AND,>> ....
  * @author perun
  */
 public class Operator extends Expression{
@@ -38,83 +39,85 @@ public class Operator extends Expression{
     if(expr.isInf()){
       this.inf=true;
     }
-    else if(expr.isLogicalOr()){
+    if(expr.isLogicalOr()){
       this.logicalOr = true;
     }
-    else if(expr.isLogicalAnd()){
+    if(expr.isLogicalAnd()){
       this.logicalAnd = true;
     }
-    else if(expr.isLogicalNot()){
+    if(expr.isLogicalNot()){
       this.logicalNot = true;
     }
-    else if(expr.isGt()){
+    if(expr.isGt()){
       this.gt = true;
     }
-    else if(expr.isGe()){
+    if(expr.isGe()){
       this.ge= true;
     }
-    else if(expr.isNe()){
+    if(expr.isNe()){
       this.ne = true;
     }
-    else if(expr.isEq()){
+    if(expr.isEq()){
       this.eq = true;
     }
-    else if(expr.isLe()){
+    if(expr.isLe()){
       this.le = true;
     }
-    else if(expr.isLt()){
+    if(expr.isLt()){
       this.lt = true;
     }
-    else if(expr.isBitOr()){
+    if(expr.isBitOr()){
       this.bitOr = true;
     }
-    else if(expr.isBitXor()){
+    if(expr.isBitXor()){
       this.bitXor = true;
     }
-    else if(expr.isBitAnd()){
+    if(expr.isBitAnd()){
       this.bitAnd = true;
     }
-    else if(expr.isShiftRight()){
+    if(expr.isShiftRight()){
       this.shiftRight = true;
     }
-    else if(expr.isShiftLeft()){
+    if(expr.isShiftLeft()){
       this.shiftLeft = true;
     }
-    else if(expr.isMinusOp()){
+    if(expr.isMinusOp()){
       this.minusOp = true;
     }
-    else if(expr.isPlusOp()){
+    if(expr.isPlusOp()){
       this.plusOp = true;
     }
-    else if(expr.isModuloOp()){
+    if(expr.isModuloOp()){
       this.moduloOp = true;
     }
-    else if(expr.isDivOp()){
+    if(expr.isDivOp()){
       this.divOp = true;
     }
-    else if(expr.isTimesOp()){
+    if(expr.isTimesOp()){
       this.timesOp = true;
     }
-    else if(expr.isUnaryTilde()){
+    if(expr.isUnaryTilde()){
       this.unaryTilde = true;
     }
-    else if(expr.isUnaryPlus()){
+    if(expr.isUnaryPlus()){
       this.unaryPlus = true;
     }
-    else if(expr.isUnaryMinus()){
+    if(expr.isUnaryMinus()){
       this.unaryMinus = true;
     }
-    else if(expr.isPow()){
+    if(expr.isPow()){
       this.power = true;
     }
-    else if(expr.isLeftParentheses()){
+    if(expr.isLeftParentheses()){
       this.leftParentheses = true;
     }
-    else if(expr.isRightParentheses()){
+    if(expr.isRightParentheses()){
       this.rightParentheses = true;
     }
 
   }
+
+  public Operator(){}
 
   public boolean isInf() {
     return inf;
@@ -220,6 +223,110 @@ public class Operator extends Expression{
     return rightParentheses;
   }
 
+  public void setInf(boolean inf) {
+    this.inf = inf;
+  }
+
+  public void setLogicalOr(boolean logicalOr) {
+    this.logicalOr = logicalOr;
+  }
+
+  public void setLogicalAnd(boolean logicalAnd) {
+    this.logicalAnd = logicalAnd;
+  }
+
+  public void setLogicalNot(boolean logicalNot) {
+    this.logicalNot = logicalNot;
+  }
+
+  public void setGt(boolean gt) {
+    this.gt = gt;
+  }
+
+  public void setGe(boolean ge) {
+    this.ge = ge;
+  }
+
+  public void setNe(boolean ne) {
+    this.ne = ne;
+  }
+
+  public void setEq(boolean eq) {
+    this.eq = eq;
+  }
+
+  public void setLe(boolean le) {
+    this.le = le;
+  }
+
+  public void setLt(boolean lt) {
+    this.lt = lt;
+  }
+
+  public void setBitOr(boolean bitOr) {
+    this.bitOr = bitOr;
+  }
+
+  public void setBitXor(boolean bitXor) {
+    this.bitXor = bitXor;
+  }
+
+  public void setBitAnd(boolean bitAnd) {
+    this.bitAnd = bitAnd;
+  }
+
+  public void setShiftRight(boolean shiftRight) {
+    this.shiftRight = shiftRight;
+  }
+
+  public void setShiftLeft(boolean shiftLeft) {
+    this.shiftLeft = shiftLeft;
+  }
+
+  public void setMinusOp(boolean minusOp) {
+    this.minusOp = minusOp;
+  }
+
+  public void setPlusOp(boolean plusOp) {
+    this.plusOp = plusOp;
+  }
+
+  public void setModuloOp(boolean moduloOp) {
+    this.moduloOp = moduloOp;
+  }
+
+  public void setTimesOp(boolean timesOp) {
+    this.timesOp = timesOp;
+  }
+
+  public void setDivOp(boolean divOp) {
+    this.divOp = divOp;
+  }
+
+  public void setUnaryTilde(boolean unaryTilde) {
+    this.unaryTilde = unaryTilde;
+  }
+
+  public void setUnaryMinus(boolean unaryMinus) {
+    this.unaryMinus = unaryMinus;
+  }
+
+  public void setUnaryPlus(boolean unaryPlus) {
+    this.unaryPlus = unaryPlus;
+  }
+
+  public void setPower(boolean power) {
+    this.power = power;
+  }
+
+  public void setLeftParentheses(boolean leftParentheses) {
+    this.leftParentheses = leftParentheses;
+  }
+
+  public void setRightParentheses(boolean rightParentheses) {
+    this.rightParentheses = rightParentheses;
+  }
+
   public void negate(){
     if(this.logicalAnd){
       this.logicalAnd = false;
@@ -233,5 +340,124 @@ public class Operator extends Expression{
       //this case is quite interesting, since no log. op would be active
       this.logicalNot = false;
     }
+    else if(this.le){
+      this.le = false;
+      this.gt = true;
+    }
+    else if(this.lt){
+      this.lt = false;
+      this.ge = true;
+    }
+    else if(this.gt){
+      this.gt = false;
+      this.le = true;
+    }
+    else if(this.ge){
+      this.ge = false;
+      this.lt = true;
+    }
+    else if(this.eq){
+      this.eq = false;
+      this.ne = true;
+    }
+  }
+
+  public String print(SyntaxContainer container){
+    return container.print(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+
+    Operator operator = (Operator) o;
+
+    if (inf != operator.inf)
+      return false;
+    if (logicalOr != operator.logicalOr)
+      return false;
+    if (logicalAnd != operator.logicalAnd)
+      return false;
+    if (logicalNot != operator.logicalNot)
+      return false;
+    if (gt != operator.gt)
+      return false;
+    if (ge != operator.ge)
+      return false;
+    if (ne != operator.ne)
+      return false;
+    if (eq != operator.eq)
+      return false;
+    if (le != operator.le)
+      return false;
+    if (lt != operator.lt)
+      return false;
+    if (bitOr != operator.bitOr)
+      return false;
+    if (bitXor != operator.bitXor)
+      return false;
+    if (bitAnd != operator.bitAnd)
+      return false;
+    if (shiftRight != operator.shiftRight)
+      return false;
+    if (shiftLeft != operator.shiftLeft)
+      return false;
+    if (minusOp != operator.minusOp)
+      return false;
+    if (plusOp != operator.plusOp)
+      return false;
+    if (moduloOp != operator.moduloOp)
+      return false;
+    if (timesOp != operator.timesOp)
+      return false;
+    if (divOp != operator.divOp)
+      return false;
+    if (unaryTilde != operator.unaryTilde)
+      return false;
+    if (unaryMinus != operator.unaryMinus)
+      return false;
+    if (unaryPlus != operator.unaryPlus)
+      return false;
+    if (power != operator.power)
+      return false;
+    if (leftParentheses != operator.leftParentheses)
+      return false;
+    return rightParentheses == operator.rightParentheses;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (inf ? 1 : 0);
+    result = 31 * result + (logicalOr ? 1 : 0);
+    result = 31 * result + (logicalAnd ? 1 : 0);
+    result = 31 * result + (logicalNot ? 1 : 0);
+    result = 31 * result + (gt ? 1 : 0);
+    result = 31 * result + (ge ? 1 : 0);
+    result = 31 * result + (ne ? 1 : 0);
+    result = 31 * result + (eq ? 1 : 0);
+    result = 31 * result + (le ? 1 : 0);
+    result = 31 * result + (lt ? 1 : 0);
+    result = 31 * result + (bitOr ? 1 : 0);
+    result = 31 * result + (bitXor ? 1 : 0);
+    result = 31 * result + (bitAnd ? 1 : 0);
+    result = 31 * result + (shiftRight ? 1 : 0);
+    result = 31 * result + (shiftLeft ? 1 : 0);
+    result = 31 * result + (minusOp ? 1 : 0);
+    result = 31 * result + (plusOp ? 1 : 0);
+    result = 31 * result + (moduloOp ? 1 : 0);
+    result = 31 * result + (timesOp ? 1 : 0);
+    result = 31 * result + (divOp ? 1 : 0);
+    result = 31 * result + (unaryTilde ? 1 : 0);
+    result = 31 * result + (unaryMinus ? 1 : 0);
+    result = 31 * result + (unaryPlus ? 1 : 0);
+    result = 31 * result + (power ? 1 : 0);
+    result = 31 * result + (leftParentheses ? 1 : 0);
+    result = 31 * result + (rightParentheses ? 1 : 0);
+    return result;
   }
 }

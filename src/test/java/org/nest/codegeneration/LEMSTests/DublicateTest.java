@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSGenerator;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.codegeneration.helpers.LEMSElements.Constant;
 import org.nest.codegeneration.helpers.LEMSElements.DerivedElement;
 import org.nest.codegeneration.helpers.LEMSElements.Dimension;
@@ -31,9 +32,9 @@ public class DublicateTest extends ModelbasedTest {
     final LEMSGenerator testant = new LEMSGenerator();
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"),false,0.1);
     //add two constants and check whether duplicates have been recognized
-    testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none","test","test",true));
+    //testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),"test",true));
     varCount = testant.getListOfNeurons().get(0).getConstantsList().size();
-    testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none","test","test",true));
+    //testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),"test",true));
     Assert.assertTrue(varCount==testant.getListOfNeurons().get(0).getConstantsList().size());
     //add two derived elements and check whether duplicates have been recognized
     //testant.getListOfNeurons().get(0).addDerivedElement(new DerivedElement("test",

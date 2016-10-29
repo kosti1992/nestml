@@ -7,17 +7,15 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import de.monticore.generating.GeneratorEngine;
 import de.monticore.generating.GeneratorSetup;
 import de.monticore.generating.templateengine.GlobalExtensionManagement;
-import org.nest.codegeneration.helpers.LEMSCollector;
+import org.nest.codegeneration.helpers.LEMSElements.LEMSCollector;
 import org.nest.codegeneration.helpers.LEMSElements.Dimension;
 import org.nest.codegeneration.helpers.LEMSElements.SimulationConfiguration;
 import org.nest.codegeneration.helpers.LEMSElements.Unit;

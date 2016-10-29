@@ -1,6 +1,5 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
-import org.nest.codegeneration.helpers.LEMSCollector;
 import org.nest.symboltable.symbols.TypeSymbol;
 
 /**

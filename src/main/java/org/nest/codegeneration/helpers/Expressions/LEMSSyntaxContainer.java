@@ -1,115 +1,113 @@
 package org.nest.codegeneration.helpers.Expressions;
 
-import org.nest.commons._ast.ASTExpr;
-
 /**
+ * A concrete syntax container for the target modeling language LEMS.
  * @author perun
  */
 public class LEMSSyntaxContainer implements SyntaxContainer{
 
-  public String print(Expression expr){
-    if(expr.getClass().equals(NumericalLiteral.class)){
-     return this.printNumericalLiteral((NumericalLiteral) expr);
+  public String print(NumericalLiteral expr){
+    if(expr.getValue() - (int)expr.getValue()==0){
+      if(expr.hasType()){
+        return String.valueOf((int)expr.getValue())+expr.getType().get().getUnit().get().toString();
+      }
+      else{
+        return String.valueOf((int)expr.getValue());
+      }
     }
-    else if(expr.getClass().equals(Variable.class)){
-     return this.printVariable((Variable) expr);
+
+    if(expr.hasType()){
+      return String.valueOf(expr.getValue())+expr.getType().get().getUnit().get().toString();
     }
-    else if(expr.getClass().equals(Operator.class)){
-     return this.printOperator((Operator) expr);
-    }
-    else{//the last case -> function
-     return this.printFunction((Function) expr);
+    else{
+      return String.valueOf(expr.getValue());
     }
   }
 
-  public String printNumericalLiteral(NumericalLiteral expr){
-    return expr.getValueAsString();
-  }
-
-  public String printVariable(Variable expr){
+  public String print(Variable expr){
     return expr.getVariable();
   }
 
-  public String printOperator(Operator expr){
+  public String print(Operator expr){
     if(expr.isInf()){
       return "[Inf_not_supported]";
     }
-    else if(expr.isLogicalOr()){
+    if(expr.isLogicalOr()){
       return ".or.";
     }
-    else if(expr.isLogicalAnd()){
+    if(expr.isLogicalAnd()){
       return ".and.";
     }
-    else if(expr.isLogicalNot()){
+    if(expr.isLogicalNot()){
       //TODO
       //caution: this case seems to be rather fishy in LEMS, not sure if it works
       return ".not.";
     }
-    else if(expr.isGt()){
+    if(expr.isGt()){
       return ".gt.";
     }
-    else if(expr.isGe()){
+    if(expr.isGe()){
       return ".geq.";
     }
-    else if(expr.isNe()){
-      return ".ne.";
+    if(expr.isNe()){
+      return ".neq.";
     }
-    else if(expr.isEq()){
+    if(expr.isEq()){
       return ".eq.";
     }
-    else if(expr.isLe()){
+    if(expr.isLe()){
       return ".leq.";
     }
-    else if(expr.isLt()){
+    if(expr.isLt()){
       return ".lt.";
     }
-    else if(expr.isBitOr()){
+    if(expr.isBitOr()){
       return "[BitOr_not_supported]";
     }
-    else if(expr.isBitXor()){
+    if(expr.isBitXor()){
       return "[BitXor_not_supported]";
     }
-    else if(expr.isBitAnd()){
+    if(expr.isBitAnd()){
       return "[BitAnd_not_supported]";
     }
-    else if(expr.isShiftRight()){
+    if(expr.isShiftRight()){
       return "[BitShiftR_not_supported]";
     }
-    else if(expr.isShiftLeft()){
+    if(expr.isShiftLeft()){
       return "[BitShiftL_not_supported]";
     }
-    else if(expr.isMinusOp()){
+    if(expr.isMinusOp()){
       return "-";
     }
-    else if(expr.isPlusOp()){
+    if(expr.isPlusOp()){
       return "+";
     }
-    else if(expr.isModuloOp()){
+    if(expr.isModuloOp()){
       return "%";
     }
-    else if(expr.isDivOp()){
+    if(expr.isDivOp()){
       return "/";
     }
-    else if(expr.isTimesOp()){
+    if(expr.isTimesOp()){
       return "*";
     }
-    else if(expr.isUnaryTilde()){
+    if(expr.isUnaryTilde()){
       return "[UnaryTilde_not_supported]";
     }
-    else if(expr.isUnaryPlus()){
+    if(expr.isUnaryPlus()){
       return "+";
     }
-    else if(expr.isUnaryMinus()){
+    if(expr.isUnaryMinus()){
       return "-";
     }
-    else if(expr.isPower()){
+    if(expr.isPower()){
       //TODO:this is a big todo <-
       return "TODO";
     }
-    else if(expr.isLeftParentheses()){
+    if(expr.isLeftParentheses()){
       return "(";
     }
-    else if(expr.isRightParentheses()){
+    if(expr.isRightParentheses()){
       return ")";
     }
     else{
@@ -118,11 +116,11 @@ public class LEMSSyntaxContainer implements SyntaxContainer{
 
   }
 
-  public String printFunction(Function expr){
+  public String print(Function expr){
     String ret = expr.getFunctionName() + "(";
     StringBuilder newBuilder = new StringBuilder();
     for (Expression  arg: expr.getArguments()) {
-      newBuilder.append(arg.printExpression(this));
+      newBuilder.append(arg.print(this));
       newBuilder.append(",");
     }
     newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string

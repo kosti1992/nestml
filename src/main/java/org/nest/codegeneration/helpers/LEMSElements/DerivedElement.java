@@ -1,6 +1,6 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
-import org.nest.codegeneration.helpers.LEMSCollector;
+import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.symboltable.symbols.VariableSymbol;
 
   /**
@@ -11,7 +11,7 @@ import org.nest.symboltable.symbols.VariableSymbol;
   public class DerivedElement{
     private String name;
     private String dimension;
-    private String derivationInstruction;
+    private Expression derivationInstruction;
     private boolean dynamic;//distinguish between derived variables and derived parameter
     private boolean external;//uses an external source, i.e. other tags are used
 
@@ -33,9 +33,11 @@ import org.nest.symboltable.symbols.VariableSymbol;
         dimension = container.getHelper().typeToDimensionConverter(variable.getType());
       }
       //get the derivation instruction in LEMS format
-      derivationInstruction = container.getLEMSExpressionsPrettyPrinter().print(variable.getDeclaringExpression().get(), false);
+      derivationInstruction = new Expression(variable);
+      derivationInstruction = container.getHelper().replaceConstantsWithReferences(container,derivationInstruction);
+      //derivationInstruction = container.getLEMSExpressionsPrettyPrinter().print(variable.getDeclaringExpression().get(), false);
       //replace constants with references
-      derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
+      //derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
     }
 
     /**
@@ -46,7 +48,7 @@ import org.nest.symboltable.symbols.VariableSymbol;
      * @param dynamic true, if derived element contains changeable elements
      */
     public DerivedElement(String name,String dimension,
-        String derivationInstruction,boolean dynamic, boolean external){
+        Expression derivationInstruction,boolean dynamic, boolean external){
       this.name = name;
       this.dimension = dimension;
       this.derivationInstruction = derivationInstruction;
@@ -59,9 +61,10 @@ import org.nest.symboltable.symbols.VariableSymbol;
       return this.name;
     }
     @SuppressWarnings("unused")//used in the template
-    public String getDerivationInstruction() {
+    public Expression getDerivationInstruction() {
       return this.derivationInstruction;
     }
+
     @SuppressWarnings("unused")//used in the template
     public String getDimension() {
       return this.dimension;

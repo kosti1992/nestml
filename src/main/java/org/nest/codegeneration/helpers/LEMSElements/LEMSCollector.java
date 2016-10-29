@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers;
+package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.nest.codegeneration.helpers.Collector;
+import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.codegeneration.helpers.LEMSElements.ConditionalBlock;
 import org.nest.codegeneration.helpers.LEMSElements.Constant;
 import org.nest.codegeneration.helpers.LEMSElements.DerivedElement;
@@ -28,6 +33,7 @@ import org.nest.ode._ast.ASTShape;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class provides an infrastructure which generates an internal,processed representation of an input model, which
@@ -37,7 +43,9 @@ import org.nest.symboltable.symbols.VariableSymbol;
  *
  * @author perun
  */
-public class LEMSCollector {
+public class LEMSCollector extends Collector{
+  private LEMSSyntaxContainer syntax = new LEMSSyntaxContainer();
+
   private String neuronName="";
 
   private String extendedModel;
@@ -60,7 +68,7 @@ public class LEMSCollector {
 
   private List<String> notConverted = null;//List of not converted elements
 
-  private Map<String, String> equation = null;//a map of variables and the corresponding equation
+  private Map<String, Expression> equation = null;//a map of variables and the corresponding equation
 
   private List<String> localTimeDerivative = null;//a list of time derivatives which are only invoked in certain steps
 
@@ -141,17 +149,31 @@ public class LEMSCollector {
      */
     if (!neuronBody.getEquations().isEmpty()) {
       //create a new constant in order to achieve a correct dimension of the equation:
-      this.addConstant(new Constant("CON1ms","DimensionOf_ms","1","ms",false));
-      Dimension msDimension = new Dimension("DimensionOf_ms",0,0,1,0,0,0,0);
+      ASTUnitType tempType = new ASTUnitType();
+      tempType.setUnit("ms");
+      this.addConstant(new Constant("CON1ms", "DimensionOf_ms", new NumericalLiteral(1, tempType), false));
+      Dimension msDimension = new Dimension("DimensionOf_ms", 0, 0, 1, 0, 0, 0, 0);
       this.addDimension(msDimension);
-      this.addUnit(new Unit("ms",msDimension));
+      this.addUnit(new Unit("ms", msDimension));
       /*
        * first process all shapes of the model
        */
-      for(int i=0;i<neuronBody.getShapes().size();i++){
-        String temp = "";//required during the computation
+      for (int i = 0; i < neuronBody.getShapes().size(); i++) {
         ASTShape eq = neuronBody.getShapes().get(i);
+        if (helper.containsFunctionCall(eq.getRhs(), true)) {
+          this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
+          this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
+          equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
+        }
+        else {
+          Expression tempExpression = new Expression(eq.getRhs());
+          DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), "none", tempExpression, true, false);
+          //store the shape
+          this.addDerivedElement(shapeVariable);
+        }
 
+        //String temp = "";//required during the computation
+        /*
         if (helper.containsFunctionCall(eq.getRhs(), true)) {
           //print a proper warning
           this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
@@ -170,12 +192,45 @@ public class LEMSCollector {
           //store the shape
           this.addDerivedElement(shapeVariable);
         }
+        */
       }
       /*
        * process the defining differential equation, i.e. non "shapes"
        */
-      for(int i=0;i<neuronBody.getEquations().size();i++){
+      for (int i = 0; i < neuronBody.getEquations().size(); i++) {
         ASTEquation eq = neuronBody.getEquations().get(i);
+        if (helper.containsFunctionCall(eq.getRhs(), true)) {
+          System.err.println("Not supported function call in expression found: " + prettyPrint.print(eq.getRhs(), false));
+          this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
+          equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
+        }
+        else {
+          List<String> tempList = new ArrayList<>();
+          //TODO: the deletion of tilde is hardcoded, some kind or workaround is required
+          tempList.add(eq.getLhs().toString().replaceAll("'", ""));// a list is required, since method blockContains requires lists of args.
+          //check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
+          if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
+            Expression expr = new Expression(eq.getRhs());
+            expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
+            expr = helper.extendExpressionByCON1ms(expr);
+            expr = helper.replaceConstantsWithReferences(this,expr);
+            //only ode, i.e. integrate directives have to be manipulated
+            equation.put(eq.getLhs().toString().replaceAll("'", ""), expr);
+            //now generate the corresponding activator
+            this.stateVariablesList.add(new StateVariable("ACT" + eq.getLhs().toString().replaceAll("'", ""), "none", new NumericalLiteral(1, null), "", this));
+            this.localTimeDerivative.add(eq.getLhs().toString().replaceAll("'", ""));
+          }
+          else {
+            //otherwise the integration is global, no further steps required
+            Expression expr = new Expression(eq.getRhs());
+            expr = helper.extendExpressionByCON1ms(expr);
+            expr = helper.replaceConstantsWithReferences(this,expr);
+            equation.put(eq.getLhs().toString().replaceAll("'", ""), expr);
+          }
+        }
+      }
+    }
+/*
         String temp = "";//required during the computation
         if (helper.containsFunctionCall(eq.getRhs(), true)) {//check whether the equation contains a function call
           //print a proper warning
@@ -209,8 +264,8 @@ public class LEMSCollector {
                 "("+helper.replaceConstantsWithReferences(this, temp)+ ")/CON1ms");
           }
         }
-      }
-    }
+      }*/
+
     /*
      * processes all non-aliases in the parameter block, namely the constants
      */
@@ -244,7 +299,8 @@ public class LEMSCollector {
         if (varName != null) {
           for (StateVariable stateVar : stateVariablesList) {
             if (stateVar.getName().equals(varName)) {
-              stateVar.setDefaultValue(temp.getName());
+              Variable tempVar = new Variable(temp.getName());
+              stateVar.setDefaultValue(tempVar);
             }
           }
         }
@@ -297,15 +353,17 @@ public class LEMSCollector {
           else if (var.getDeclaringExpression().get().functionCallIsPresent() &&
               var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("steps")) {
             //the steps function is a special case, here we have derive the value by hand
-            this.addConstant(new Constant("CON" + config.getSimSteps() + "ms",
-                "DimensionOfms", helper.getNumberFormatted(config.getSimSteps()), "ms", false));
+            ASTUnitType tempType = new ASTUnitType();
+            tempType.setUnit("ms");
+            NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimSteps(),tempType);
+            this.addConstant(new Constant("CON" + config.getSimSteps() + "ms", "DimensionOfms", tempNumerical, false));
             //search for the constant to which steps refer
             for (Constant v : this.getConstantsList()) {
-              if (v.getName()
-                  .equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
+              if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
                 //create a new derived parameter for this expression
+                Variable tempVar = new Variable(v.getName()+"/CON" + config.getSimSteps() + "ms");
                 this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
-                    v.getName() + "/CON" + config.getSimSteps() + "ms", false, false));
+                      tempVar, false, false));
               }
             }
 
@@ -524,7 +582,7 @@ public class LEMSCollector {
   }
 
   @SuppressWarnings("unused")//used in the template
-  public Map<String, String> getEquations() {
+  public Map<String, Expression> getEquations() {
     return equation;
   }
   @SuppressWarnings("unused")//used in the template
@@ -605,8 +663,12 @@ public class LEMSCollector {
     }
   }
 
+  public LEMSSyntaxContainer getSyntaxContainer(){
+    return this.syntax;
+  }
+
   /**
-   * This method is used to parse a handed over string representing a element which has to be added to the model.
+   * This method is used to parse a handed over string representing of an element which has to be added to the model.
    * @param elem The element as a string.
    */
   private void adaptElementFromString(String elem) {
@@ -618,10 +680,11 @@ public class LEMSCollector {
         this.addAttachment(segmentTemp[getIndex(segmentTemp,"name")+1],segmentTemp[getIndex(segmentTemp,"type")+1]);
       }
       else if (segmentTemp[0].equals("DerivedVariable")) {
+        Variable tempVar = new Variable(segmentTemp[getIndex(segmentTemp,"select")+1]);
         this.addDerivedElement(new DerivedElement(
             segmentTemp[getIndex(segmentTemp,"name")+1],
             segmentTemp[getIndex(segmentTemp,"dimension")+1],
-            segmentTemp[getIndex(segmentTemp,"select")+1],
+            tempVar,
             true,true));
       }
     }

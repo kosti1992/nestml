@@ -7,14 +7,12 @@ package org.nest.codegeneration.helpers.Expressions;
  */
 interface SyntaxContainer {
 
-  public String print(Expression expr);
+  public String print(NumericalLiteral expr);
 
-  public String printNumericalLiteral(NumericalLiteral expr);
+  public String print(Variable expr);
 
-  public String printVariable(Variable expr);
+  public String print(Operator expr);
 
-  public String printOperator(Operator expr);
-
-  public String printFunction(Function expr);
+  public String print(Function expr);
 
 }

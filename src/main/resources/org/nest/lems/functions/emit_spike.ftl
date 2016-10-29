@@ -5,7 +5,7 @@
 <#--@author perun -->
 <#compress>
 ${signature("functionCall","container")}
-<#if container.outputPortDefined()&&functionCall.getFunctionName()=="emit_spike">
+<#if container.outputPortDefined()&&functionCall.printName()=="emit_spike">
 <EventOut port="${container.getOutputPort().getName()}"/>
 </#if>
 </#compress>

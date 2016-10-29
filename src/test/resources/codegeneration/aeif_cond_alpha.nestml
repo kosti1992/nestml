@@ -40,6 +40,8 @@ neuron aeif_cond_alpha_neuron:
   state:
     V_m cd = 10mV+10mV      # Membrane potential
     w pA = 0          # Spike-adaptation current
+	test real = -10
+	test2 mV = -steps(V)
   end
 
   equations:
