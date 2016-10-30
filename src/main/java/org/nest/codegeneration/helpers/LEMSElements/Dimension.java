@@ -142,10 +142,4 @@ public class Dimension{
         this.getMASS()==((Dimension)other).getMASS();
   }
 
-  /**
-   * A enumeration class of all currently supported dimensions.
-   */
-  public enum DimensionName{
-    capacitance,conductance,current,voltage,time,none,length,not_supported
-  }
 }

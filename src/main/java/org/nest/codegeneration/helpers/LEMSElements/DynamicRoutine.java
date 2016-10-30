@@ -309,6 +309,9 @@ public class DynamicRoutine {
    * @return a possibly modified list of instructions
    */
   private List<Instruction> deactivateIntegration(List<Instruction> list) {
+    if(list.isEmpty()){
+      return list;//in order to avoid cond blocks which only consists of the deactivate directve
+    }
     boolean temp;
     //check all local dime derivatives
     for (String var : container.getLocalTimeDerivative()) {
@@ -356,7 +359,12 @@ public class DynamicRoutine {
     }
   }
 
-
+  /**
+   * For a given list of ASTExpressions, this method build an else condtion by
+   * negating all stated condition and combining them by AND-operator.
+   * @param list a list of ASTExpressions
+   * @return a Expression object representing the else condition
+   */
   private Expression buildElseCondition(List<ASTExpr> list){
     if(!list.isEmpty()){
       Expression tempExpr = encapsulateInBrackets(new Expression(list.get(0)));
@@ -378,6 +386,11 @@ public class DynamicRoutine {
     return new Expression();
   }
 
+  /**
+   * Encapsulates a given expression object in brackets. e.g V_m+10mV -> (V_m+10mV)
+   * @param expr the expression which will be encapsulated.
+   * @return the encapsulated expression.
+   */
   public Expression encapsulateInBrackets(Expression expr){
     Expression ret = new Expression();
     Operator op = new Operator();
@@ -508,7 +521,6 @@ public class DynamicRoutine {
 
     public List<Expression> getArgs() {
       return functionCallExpr.getArguments();
-      //return this.args;
     }
 
 

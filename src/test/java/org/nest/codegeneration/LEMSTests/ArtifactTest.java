@@ -8,8 +8,6 @@ import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSGenerator;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.LEMSElements.Dimension;
-import org.nest.codegeneration.helpers.LEMSElements.EventPort;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
 /**
@@ -25,18 +23,17 @@ public class ArtifactTest extends ModelbasedTest{
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
     final LEMSGenerator testant = new LEMSGenerator();
-    testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"),false,0.1);
+    testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(INPUT_DIRECTORY + "/"), false, 0.1);
     //test whether the artifact has been correctly read in
-    Assert.assertTrue(testant.getListOfNeurons().get(0).getConfig().getInstructions().size()>0);
+    Assert.assertTrue(testant.getListOfNeurons().get(0).getConfig().getInstructions().size() > 0);
     //test if the derived variable has been read in properly
-    Assert.assertEquals("INITu",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getName());
-    Assert.assertEquals("none",
-        testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getDimension());
-    Assert.assertEquals("pulseGeneratorDL[*]/I",
-        testant.getListOfNeurons().get(0).getDerivedElementList().get(1).getDerivationInstruction().print(new LEMSSyntaxContainer()));
+    Assert.assertEquals("INITu", testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getName());
+    Assert.assertEquals("none", testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getDimension());
+    Assert.assertEquals("pulseGeneratorDL[*]/I", testant.getListOfNeurons().get(0).getDerivedElementList().get(1).getDerivationInstruction().print(new LEMSSyntaxContainer()));
     //test whether the attachment has been read in properly
-    Assert.assertTrue(testant.getListOfNeurons().get(0).getAttachments().size()==1);
+    Assert.assertTrue(testant.getListOfNeurons().get(0).getAttachments().size() == 1);
     Assert.assertTrue(testant.getListOfNeurons().get(0).
         getAttachments().get("pulseGeneratorDL").equals("pulseGeneratorDL"));
+
   }
 }
