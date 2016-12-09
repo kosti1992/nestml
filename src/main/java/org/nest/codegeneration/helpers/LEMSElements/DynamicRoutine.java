@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import de.monticore.emf._ast.ASTECNode;
+import de.monticore.types.types._ast.ASTQualifiedName;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.Function;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
@@ -33,12 +34,12 @@ import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
  */
 public class DynamicRoutine {
   private List<ConditionalBlock> blocks;//A List of all states of the automaton.
-
   private LEMSCollector container;//required in order to use the same pretty printer as in other parts of transformation
 
   public DynamicRoutine(List<ASTDynamics> input, LEMSCollector container) {
     this.blocks = new ArrayList<>();
     this.container = container;
+    //currently, only one dynamics block can be present, however, NESTML deals with it by means of a List
     for (ASTDynamics dyn : input) {//for all dynamic blocks in the model
       //for all outer statements in the model
       dyn.getBlock().getStmts().forEach(this::handleStatement);
@@ -99,13 +100,13 @@ public class DynamicRoutine {
       if (condition != null) {//required in order to process nested blocks
         Operator tempOp = new Operator();
         tempOp.setLogicalAnd(true);
-        Expression tempRhs = this.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
+        Expression tempRhs = Expression.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
         tempCondition.replaceLhs(condition);
         tempCondition.replaceRhs(tempRhs);
         tempCondition.replaceOp(tempOp);
       }
       else{
-        tempCondition = this.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
+        tempCondition = Expression.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
       }
       tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
       //store a new conditional block
@@ -119,7 +120,7 @@ public class DynamicRoutine {
         tempList.add(clause.getExpr());//store each elif condition
         tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
         tempPrettyPrinter.print(clause);//collect raw code for the header
-        tempCondition = this.encapsulateInBrackets(new Expression(clause.getExpr()));
+        tempCondition = Expression.encapsulateInBrackets(new Expression(clause.getExpr()));
         Expression tExpr = new Expression();
         Operator opr = new Operator();
         opr.setLogicalAnd(true);
@@ -198,7 +199,7 @@ public class DynamicRoutine {
         }
       }
       else {
-        System.err.println("Error in if-processing.");
+        System.err.println("Error in if-processing. Neither small nor compound statement found.");
       }
     }
     //if no "integrate" directives have been found in this block but there exist some local "integrates", we
@@ -269,23 +270,29 @@ public class DynamicRoutine {
       if (input.functionCallIsPresent()) {
         return handleFunctionCall(input.getFunctionCall().get());
       }
-    System.err.println("Something went wrong in small statement processing.");
+    System.err.println("Something went wrong in small statement processing." +
+            " Position in source: "+input.get_SourcePositionStart());
     return new Assignment("",null);
   }
 
   /**
-   * This functions evokes further processing of a given function call.
+   * This functions evokes further processing of a given function call. This method is a point of extension whenever
+   * new function processing subroutines have to be included.
    *
    * @param functionCall the function call.
    * @return a instruction which states steps steps need to be done
    */
   private Instruction handleFunctionCall(ASTFunctionCall functionCall) {
+    checkNotNull(functionCall);
     switch (functionCall.getName().toString()) {
       case "integrate":
         return this.handleIntegrate(functionCall);
       case "emit_spike":
         return this.handleEmitSpike(functionCall);
       default:
+        this.container.addNotConverted("Not supported function call "
+                +functionCall.getName().toString() +" in lines "
+                + functionCall.get_SourcePositionStart()+ " to "+ functionCall.get_SourcePositionEnd());
         System.err.println("Not supported function call found.");
         return null;
     }
@@ -346,11 +353,7 @@ public class DynamicRoutine {
     else {
       for (StateVariable var : container.getStateVariablesList()) {
         if (var.getName().equals("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-          //NumericalLiteral tempLiteral = new NumericalLiteral(0,null);
-          //NumericalLiteral tempLiteral = (NumericalLiteral) var.getDefaultValue().get();
-          //tempLiteral.setValue(0);
           ((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
-          //var.setDefaultValue("0");//is should be now only activated if required
         }
       }
       //integrate the corresponding variable in this block
@@ -367,7 +370,7 @@ public class DynamicRoutine {
    */
   private Expression buildElseCondition(List<ASTExpr> list){
     if(!list.isEmpty()){
-      Expression tempExpr = encapsulateInBrackets(new Expression(list.get(0)));
+      Expression tempExpr = Expression.encapsulateInBrackets(new Expression(list.get(0)));
       tempExpr.negateLogic();
       Expression combExpr = new Expression();
       if(list.size()<=1){
@@ -387,20 +390,6 @@ public class DynamicRoutine {
   }
 
   /**
-   * Encapsulates a given expression object in brackets. e.g V_m+10mV -> (V_m+10mV)
-   * @param expr the expression which will be encapsulated.
-   * @return the encapsulated expression.
-   */
-  public Expression encapsulateInBrackets(Expression expr){
-    Expression ret = new Expression();
-    Operator op = new Operator();
-    op.setLeftParentheses(true);
-    op.setRightParentheses(true);
-    ret.replaceOp(op);
-    ret.replaceRhs(expr);
-    return ret;
-  }
-  /**
    * This method is called whenever it is required to generate a proper header
    * for a block of the dynamic routine.
    * @param input a node whose code is processed
@@ -417,6 +406,20 @@ public class DynamicRoutine {
     return rawCodeTemp;
   }
 
+  /**
+   * There is currently a bug with jLEMS which requires that each output port has to be stated with a
+   * corresponding EventOut directive. This method adds a new block which is never invoked but provides
+   * such a EventOut directive.
+   */
+  public void addPortActivator(LEMSCollector container) {
+    FunctionCall functionCall = new FunctionCall("emit_spike",null);
+    ArrayList<Instruction> instructionArrayList = new ArrayList<>();
+    instructionArrayList.add(functionCall);
+    String rawCode = "This is an artificial EventOut which is never used,\n but required by LEMS to regard out-ports.";
+    ConditionalBlock block = new ConditionalBlock(instructionArrayList,Expression.generateFalse(),rawCode);
+    this.blocks.add(block);
+  }
+
   @SuppressWarnings("unused")//DebugMethod
   private void printHashMap(LinkedHashMap<String, String> input) {
     for (String key : input.keySet()) {
@@ -424,6 +427,18 @@ public class DynamicRoutine {
     }
   }
 
+  /**
+   * Returns a list of all instructions in all blocks.
+   *
+   * @return a list of instrcution objects
+   */
+  public List<Instruction> getAllInstructions() {
+    ArrayList<Instruction> ret = new ArrayList<>();
+    for(ConditionalBlock block:this.blocks){
+      ret.addAll(block.getInstructions());
+    }
+    return ret;
+  }
 
   @SuppressWarnings("unused")//DebugMethod
   private void printHashSet(HashSet<String> input) {
@@ -466,7 +481,6 @@ public class DynamicRoutine {
   public class Assignment extends Instruction {
     private String assignedVariable = "";
     private Expression assignedValue = null;
-    //private String old_assignedValue = "";
 
     public Assignment(String assignedVariable, Expression assignedValue) {
       this.assignedVariable = assignedVariable;
@@ -482,7 +496,7 @@ public class DynamicRoutine {
     public Expression getAssignedValue() {
       return this.assignedValue;
     }
-
+    @SuppressWarnings("unused")//used in the template
     public String printAssignedValue(){
       return this.assignedValue.print(new LEMSSyntaxContainer());
     }
@@ -493,19 +507,18 @@ public class DynamicRoutine {
    */
   public class FunctionCall extends Instruction {
     private Function functionCallExpr;
-    //private String functionName;
-    //private List<ASTExpr> args;
 
     public FunctionCall(ASTFunctionCall call) {
       this.functionCallExpr = new Function(call);
-      //this.args = call.getArgs();
-      //this.functionName = call.getName().toString();
+    }
+
+    public FunctionCall(String call,List<Expression> args){
+      this.functionCallExpr = new Function(call,args);
     }
 
     @SuppressWarnings("unused")//used in the template
     public String printName() {
       return this.functionCallExpr.getFunctionName();
-      //return this.functionName;
     }
 
     @SuppressWarnings("unused")//used in the template

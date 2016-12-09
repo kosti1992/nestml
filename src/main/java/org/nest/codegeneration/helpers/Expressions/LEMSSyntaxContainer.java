@@ -39,8 +39,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer{
       return ".and.";
     }
     if(expr.isLogicalNot()){
-      //TODO
-      //caution: this case seems to be rather fishy in LEMS, not sure if it works
+      //TODO:this case seems to be rather fishy in LEMS, not sure if it works
       return ".not.";
     }
     if(expr.isGt()){

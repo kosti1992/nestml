@@ -1,8 +1,18 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
+import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -13,81 +23,88 @@ import java.util.Scanner;
  * @author perun
  */
 public class SimulationConfiguration {
-  //indicates whether units and dimensions have to be generated externally
-  boolean unitsExternal = true;
-  double simSteps;
-  List<List<String>> instructions;
+	//indicates whether units and dimensions have to be generated externally
+	private boolean unitsExternal = true;
+	private double simSteps;
+	private Path configPath;
+
+	public SimulationConfiguration() {}
+
+	public SimulationConfiguration(Path configPath, boolean ext, double simSteps) {
+		this.unitsExternal = ext;
+		this.simSteps = simSteps;
+		this.configPath = configPath;
+	}
+
+	/**
+	 * Reads an external artifact in XML format and extracts all required information.
+	 *
+	 * @throws IOException thrown if non file is given.
+	 */
+	public void adaptSettings(LEMSCollector container) {
+		if(configPath==null){
+			return;
+		}
+
+		try {
+			File inputFile = new File(configPath.toAbsolutePath().toString());
+			DocumentBuilderFactory dbFactory
+					= DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(inputFile);
+			doc.getDocumentElement().normalize();
+			NodeList outerList = doc.getElementsByTagName("Target");
+			NodeList innerList;
+			Node outerNode;
+			Node innerNode;
+			for (int i = 0; i < outerList.getLength(); i++) {
+				outerNode = outerList.item(i);
+				//first check if the object we are looking for is in the list
+				if (outerNode.getAttributes().getNamedItem("name").getNodeValue().equals(container.getNeuronName())) {
+					//if so, start to extract
+					innerList = outerNode.getChildNodes();
+					for (int j = 0; j < innerList.getLength(); j++) {
+						innerNode = innerList.item(j);
+						if (innerNode.getNodeName().equals("Attachments")) {
+							container.addAttachment(new Attachment(innerNode));
+						}
+						if (innerNode.getNodeName().equals("Parameter") || innerNode.getNodeName().equals("Constant")) {
+							container.addConstant(new Constant(innerNode));
+						}
+						if (innerNode.getNodeName().equals("DerivedParameter") || innerNode.getNodeName().equals("DerivedVariable")) {
+							container.addDerivedElement(new DerivedElement(innerNode));
+						}
+						if (innerNode.getNodeName().equals("EventPort")) {
+							container.addEventPort(new EventPort(innerNode));
+						}
+						if (innerNode.getNodeName().equals("StateVariable")) {
+							container.addStateVariable(new StateVariable(innerNode));
+						}
+						if (innerNode.getNodeName().equals("TimeDerivative")) {
+							container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
+									, new Expression(innerNode.getAttributes().getNamedItem("value").getNodeValue()));
+						}
+
+					}
 
 
-  public SimulationConfiguration(Path configPath,boolean ext,double simSteps){
-    this.unitsExternal = ext;
-    this.simSteps = simSteps;
-    this.instructions = new ArrayList<>();
-    if(configPath==null){
-      System.err.println("Could not read external artifact.");
-      return;
-    }
-    try{
-      this.adaptSettings(configPath);
-    }catch(IOException exception){
-      System.err.println("Problems with the external artifact! Settings are set to standard.");
-    }
-  }
+				}
+			}
 
-  /**
-   * Reads an external simulation script and extracts all required information.
-   * @param path A path to the external script file.
-   * @throws IOException thrown if non file is given.
-   */
-  private void adaptSettings(Path path) throws  IOException{
-    try{
-    Scanner input = new Scanner(new File(path.toAbsolutePath().toString()));
-    String temp;
-    List<String>  tempInstructions = new ArrayList<>();
-    int commentIndex;
-    while(input.hasNextLine()){
-      temp = input.nextLine().replaceAll("\\s\\t","");//kill white spaces
-      if(!temp.startsWith("#")){//ignore comments lines completely
-        if(temp.contains("#")){//comment is present, ignore everything after the # symbol
-          commentIndex = temp.indexOf("#");
-          if(commentIndex!=-1){
-            temp = temp.substring(0,commentIndex);
-          }
-        }
-        if (temp.endsWith(":")) {
-          if (tempInstructions.size()>0){
-            instructions.add(tempInstructions);//add the preceding block
-          }
-          tempInstructions = new ArrayList<>();
-          tempInstructions.add(temp.replaceAll(":|\\s|\\t",""));//kill white spaces and the : symbol
-        }
-        else{
-          if(!temp.trim().isEmpty()){//not a whitespace line
-            tempInstructions.add(temp.replaceAll("\\t",""));
-          }
-        }
-      }
-    }
-      if(tempInstructions.size()>0){
-        instructions.add(tempInstructions);//add the preceding block
-      }
-    }
-    catch(NullPointerException excep){
-      System.err.println("No external artifact provided!");
-    }
+		} catch (SAXException e) {
+			return;
+		} catch (ParserConfigurationException e) {
+			return;
+		} catch (IOException e) {
+			return;
+		}
+	}
 
-  }
+	public boolean isUnitsExternal() {
+		return unitsExternal;
+	}
 
-  public boolean isUnitsExternal() {
-    return unitsExternal;
-  }
-
-  public List getInstructions(){
-    return this.instructions;
-  }
-
-  public double getSimSteps(){
-    return this.simSteps;
-  }
-
+	public double getSimSteps() {
+		return this.simSteps;
+	}
 }

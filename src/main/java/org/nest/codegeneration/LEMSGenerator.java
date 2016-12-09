@@ -82,7 +82,7 @@ public class LEMSGenerator {
 
     SimulationConfiguration config = new SimulationConfiguration(configPath,unitsExternal,simSteps);
 
-    LEMSCollector collect = null;
+    LEMSCollector collect;
     //transform each given neuron
     for (ASTNeuron neuron : neurons) {
       collect = new LEMSCollector(neuron, config);//process the neuron

@@ -9,7 +9,6 @@ import org.nest.commons._ast.ASTVariable;
 public class Variable extends Expression {
   private String variable;
 
-
   public Variable(ASTVariable variable){
     this.variable = variable.getName().toString();
   }

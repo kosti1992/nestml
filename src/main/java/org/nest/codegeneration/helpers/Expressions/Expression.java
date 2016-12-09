@@ -12,288 +12,318 @@ import org.nest.symboltable.symbols.VariableSymbol;
 /**
  * This class represents an internal representation of an expression, e.g
  * 10mV + V_reset .
+ *
  * @author perun
  */
 public class Expression {
-  private Optional<Expression> lhs = Optional.empty();
-  private Optional<Operator> operator = Optional.empty();
-  private Optional<Expression> rhs = Optional.empty();
+	private Optional<Expression> lhs = Optional.empty();
+	private Optional<Operator> operator = Optional.empty();
+	private Optional<Expression> rhs = Optional.empty();
 
-  public Expression(){}
+	//TODO: this is actually not really nice, a workaround to generate from string would be good
+	public Expression(String value) {
+		this.rhs = Optional.of(new Variable(value));
+	}
 
-  public Expression(ASTExpr expr){
-    checkNotNull(expr);
-    this.handleExpression(expr);
-  }
+	public Expression() {}
 
-  public Expression(VariableSymbol expr){
-    checkNotNull(expr);
-    if(expr.getDeclaringExpression().isPresent()){
-      this.handleExpression(expr.getDeclaringExpression().get());
-    }
-  }
+	public Expression(ASTExpr expr) {
+		checkNotNull(expr);
+		this.handleExpression(expr);
+	}
 
-  /**
-   * The main routine which deals with the correct creation of an internal representation of
-   * an expression.
-   * @param expr The expression which shall be transformed to the internal representation.
-   *             Caution: the AST expression is not changed.
-   */
-  private void handleExpression(ASTExpr expr){
-    if (expr.getTerm().isPresent()) {
-      this.operator = Optional.of(new Operator(expr));
-      if (expr.getTerm().get().nESTMLNumericLiteralIsPresent()) {
-        this.rhs = Optional.of(new NumericalLiteral(expr.getTerm().get().getNESTMLNumericLiteral().get()));
-      }
-      else if(expr.getTerm().get().variableIsPresent()){
-        this.rhs = Optional.of(new Variable(expr.getTerm().get().getVariable().get()));
-      }
-      else if(expr.getTerm().get().functionCallIsPresent()){
-        this.rhs = Optional.of(new Function(expr.getTerm().get().getFunctionCall().get()));
-      }
-    }
-    else if(expr.nESTMLNumericLiteralIsPresent()){
-      this.rhs = Optional.of(new NumericalLiteral(expr.getNESTMLNumericLiteral().get()));
-    }
-    else if(expr.variableIsPresent()){
-      this.rhs = Optional.of(new Variable(expr.getVariable().get().getName().toString()));
-    }
-    else if(expr.functionCallIsPresent()){
-      this.rhs = Optional.of(new Function(expr.getFunctionCall().get()));
-    }
-    else if(expr.exprIsPresent()){
-      this.operator = Optional.of(new Operator(expr));
-      this.rhs = Optional.of(new Expression(expr.getExpr().get()));
-    }
-    else{
-      if(expr.leftIsPresent()){
-        this.lhs = Optional.of(new Expression(expr.getLeft().get()));
-      }
-      this.operator = Optional.of(new Operator(expr));
-      if(expr.rightIsPresent()){
-        this.rhs = Optional.of(new Expression(expr.getRight().get()));
-      }
-    }
-  }
+	public Expression(VariableSymbol expr) {
+		checkNotNull(expr);
+		if (expr.getDeclaringExpression().isPresent()) {
+			this.handleExpression(expr.getDeclaringExpression().get());
+		}
+	}
 
-  /**
-   * Returns a list of all Operator objects stored in an expression.
-   * @return a list of operators
-   */
-  public List<Expression> getOperators(){
-    List<Expression> resOps = new ArrayList<>();
-    if(this.getClass().equals(Operator.class)){
-      resOps.add(this);
-    }
-    if(this.operator.isPresent()){
-      resOps.add(this.operator.get());
-    }
-    if(this.lhs.isPresent()){
-      resOps.addAll(lhs.get().getOperators());
-    }
-    if(this.rhs.isPresent()){
-      resOps.addAll(rhs.get().getOperators());
-    }
-    return resOps;
-  }
-  /**
-   * Returns a list of all Function objects stored in an expression.
-   * @return a list of operators
-   */
-  public List<Expression> getFunctions(){
-    List<Expression> resFunc = new ArrayList<>();
-    if(this.getClass().equals(Function.class)){
-      resFunc.add(this);
-    }
-    if(this.lhs.isPresent()){
-      resFunc.addAll(lhs.get().getFunctions());
-    }
-    if(this.rhs.isPresent()){
-      resFunc.addAll(rhs.get().getFunctions());
-    }
-    return resFunc;
-  }
-  /**
-   * Returns a list of all Variable objects stored in an expression.
-   * @return a list of operators
-   */
-  public List<Expression> getVariables(){
-    List<Expression> resVars = new ArrayList<>();
-    if(this.getClass().equals(Variable.class)){
-      resVars.add(this);
-    }
-    if(this.lhs.isPresent()){
-      resVars.addAll(lhs.get().getVariables());
-    }
-    if(this.rhs.isPresent()){
-      resVars.addAll(rhs.get().getVariables());
-    }
-    return resVars;
-  }
-  /**
-   * Returns a list of all Numericals objects stored in an expression.
-   * @return a list of operators
-   */
-  public List<Expression> getNumericals(){
-    List<Expression> resNums = new ArrayList<>();
-    if(this.getClass().equals(NumericalLiteral.class)){
-      resNums.add(this);
-    }
-    if(this.lhs.isPresent()){
-      resNums.addAll(lhs.get().getNumericals());
-    }
-    if(this.rhs.isPresent()){
-      resNums.addAll(rhs.get().getNumericals());
-    }
-    return resNums;
-  }
+	/**
+	 * The main routine which deals with the correct creation of an internal representation of
+	 * an expression.
+	 *
+	 * @param expr The expression which shall be transformed to the internal representation.
+	 *             Caution: the AST expression is not changed.
+	 */
+	private void handleExpression(ASTExpr expr) {
+		if (expr.getTerm().isPresent()) {
+			this.operator = Optional.of(new Operator(expr));
+			if (expr.getTerm().get().nESTMLNumericLiteralIsPresent()) {
+				this.rhs = Optional.of(new NumericalLiteral(expr.getTerm().get().getNESTMLNumericLiteral().get()));
+			} else if (expr.getTerm().get().variableIsPresent()) {
+				this.rhs = Optional.of(new Variable(expr.getTerm().get().getVariable().get()));
+			} else if (expr.getTerm().get().functionCallIsPresent()) {
+				this.rhs = Optional.of(new Function(expr.getTerm().get().getFunctionCall().get()));
+			}
+		} else if (expr.nESTMLNumericLiteralIsPresent()) {
+			this.rhs = Optional.of(new NumericalLiteral(expr.getNESTMLNumericLiteral().get()));
+		} else if (expr.variableIsPresent()) {
+			this.rhs = Optional.of(new Variable(expr.getVariable().get().getName().toString()));
+		} else if (expr.functionCallIsPresent()) {
+			this.rhs = Optional.of(new Function(expr.getFunctionCall().get()));
+		} else if (expr.exprIsPresent()) {
+			this.operator = Optional.of(new Operator(expr));
+			this.rhs = Optional.of(new Expression(expr.getExpr().get()));
+		} else {
+			if (expr.leftIsPresent()) {
+				this.lhs = Optional.of(new Expression(expr.getLeft().get()));
+			}
+			this.operator = Optional.of(new Operator(expr));
+			if (expr.rightIsPresent()) {
+				this.rhs = Optional.of(new Expression(expr.getRight().get()));
+			}
+		}
+	}
+
+	/**
+	 * Returns a list of all Operator objects stored in an expression.
+	 *
+	 * @return a list of operators
+	 */
+	public List<Expression> getOperators() {
+		List<Expression> resOps = new ArrayList<>();
+		if (this.getClass().equals(Operator.class)) {
+			resOps.add(this);
+		}
+		if (this.operator.isPresent()) {
+			resOps.add(this.operator.get());
+		}
+		if (this.lhs.isPresent()) {
+			resOps.addAll(lhs.get().getOperators());
+		}
+		if (this.rhs.isPresent()) {
+			resOps.addAll(rhs.get().getOperators());
+		}
+		return resOps;
+	}
+
+	/**
+	 * Returns a list of all Function objects stored in an expression.
+	 *
+	 * @return a list of operators
+	 */
+	public List<Expression> getFunctions() {
+		List<Expression> resFunc = new ArrayList<>();
+		if (this.getClass().equals(Function.class)) {
+			resFunc.add(this);
+		}
+		if (this.lhs.isPresent()) {
+			resFunc.addAll(lhs.get().getFunctions());
+		}
+		if (this.rhs.isPresent()) {
+			resFunc.addAll(rhs.get().getFunctions());
+		}
+		return resFunc;
+	}
+
+	/**
+	 * Returns a list of all Variable objects stored in an expression.
+	 *
+	 * @return a list of operators
+	 */
+	public List<Expression> getVariables() {
+		List<Expression> resVars = new ArrayList<>();
+		if (this.getClass().equals(Variable.class)) {
+			resVars.add(this);
+		}
+		if (this.lhs.isPresent()) {
+			resVars.addAll(lhs.get().getVariables());
+		}
+		if (this.rhs.isPresent()) {
+			resVars.addAll(rhs.get().getVariables());
+		}
+		return resVars;
+	}
+
+	/**
+	 * Returns a list of all Numericals objects stored in an expression.
+	 *
+	 * @return a list of operators
+	 */
+	public List<Expression> getNumericals() {
+		List<Expression> resNums = new ArrayList<>();
+		if (this.getClass().equals(NumericalLiteral.class)) {
+			resNums.add(this);
+		}
+		if (this.lhs.isPresent()) {
+			resNums.addAll(lhs.get().getNumericals());
+		}
+		if (this.rhs.isPresent()) {
+			resNums.addAll(rhs.get().getNumericals());
+		}
+		return resNums;
+	}
 
 
-  /**
-   * Prints a String representation of the stored expression. The syntax is
-   * of the corresponding elements is determined by the handed over SyntaxContainer
-   * object.
-   * @param container determines which syntax shall be used.
-   * @return a string representation of the expression
-   */
-  public String print(SyntaxContainer container){
-    String ret = "";
-    //This is a special case, since brackets have to be around the whole expr.
-    if(this.operator.isPresent()&&this.operator.get().isLeftParentheses()&&
-        this.operator.get().isLeftParentheses()&&this.rhs.isPresent()){
-      ret = "(" + this.rhs.get().print(container) + ")";
-    }
-    else{
-      if (this.lhs.isPresent()) {
-        ret = ret + this.lhs.get().print(container);
-      }
-      if (this.operator.isPresent()) {
-        ret = ret + this.operator.get().print(container);
-      }
-      if (this.rhs.isPresent()) {
-        ret = ret + this.rhs.get().print(container);
-      }
-    }
-    return  ret;
-  }
+	/**
+	 * Prints a String representation of the stored expression. The syntax is
+	 * of the corresponding elements is determined by the handed over SyntaxContainer
+	 * object.
+	 *
+	 * @param container determines which syntax shall be used.
+	 * @return a string representation of the expression
+	 */
+	public String print(SyntaxContainer container) {
+		String ret = "";
+		//This is a special case, since brackets have to be around the whole expr.
+		if (this.operator.isPresent() && this.operator.get().isLeftParentheses() &&
+				this.operator.get().isLeftParentheses() && this.rhs.isPresent()) {
+			ret = "(" + this.rhs.get().print(container) + ")";
+		} else {
+			if (this.lhs.isPresent()) {
+				ret = ret + this.lhs.get().print(container);
+			}
+			if (this.operator.isPresent()) {
+				ret = ret + this.operator.get().print(container);
+			}
+			if (this.rhs.isPresent()) {
+				ret = ret + this.rhs.get().print(container);
+			}
+		}
+		return ret;
+	}
 
-  //TODO:a temporal solution
-  public String print(){
-    return this.print(new LEMSSyntaxContainer());
-  }
+	//TODO:a temporal solution
+	public String print() {
+		return this.print(new LEMSSyntaxContainer());
+	}
 
-  public void replaceElement(Expression pre,Expression post){
-    if(this.lhs.isPresent()&&this.lhs.get().equals(pre)){
-      this.lhs = Optional.of(post);
-    }
-    if(this.operator.isPresent()&&this.operator.get().equals(pre)){
-      this.operator = Optional.of((Operator) post);
-    }
-    if(this.rhs.isPresent()&&this.rhs.get().equals(pre)){
-      this.rhs = Optional.of(post);
-    }
-    else{
-     if(this.lhs.isPresent()){
-      this.lhs.get().replaceElement(pre,post);
-     }
-     if(this.rhs.isPresent()){
-       this.rhs.get().replaceElement(pre,post);
-     }
-    }
-  }
+	/**
+	 * Traverses through the expression tree and replaces each occurrence of pre by post.
+	 *
+	 * @param pre  the expression which will be replaced
+	 * @param post the expression which replaces
+	 */
+	public void replaceElement(Expression pre, Expression post) {
+		if (this.lhs.isPresent() && this.lhs.get().equals(pre)) {
+			this.lhs = Optional.of(post);
+		}
+		if (this.operator.isPresent() && this.operator.get().equals(pre)) {
+			this.operator = Optional.of((Operator) post);
+		}
+		if (this.rhs.isPresent() && this.rhs.get().equals(pre)) {
+			this.rhs = Optional.of(post);
+		}
+		if (this.lhs.isPresent()) {
+			this.lhs.get().replaceElement(pre, post);
+		}
+		if (this.rhs.isPresent()) {
+			this.rhs.get().replaceElement(pre, post);
+		}
+	}
 
-  public void replaceLhs(Expression expr){
-    this.lhs = Optional.of(expr);
-  }
+	public void replaceLhs(Expression expr) {
+		this.lhs = Optional.of(expr);
+	}
 
-  public void replaceRhs(Expression expr){
-    this.rhs = Optional.of(expr);
-  }
+	public void replaceRhs(Expression expr) {
+		this.rhs = Optional.of(expr);
+	}
 
-  public void replaceOp(Operator op){
-    this.operator = Optional.of(op);
-  }
+	public void replaceOp(Operator op) {
+		this.operator = Optional.of(op);
+	}
 
-  /**
-   * Negates the logical expression located in this expresion.
-   */
-  public void negateLogic(){
-    if (this.lhs.isPresent()) {
-     this.lhs.get().negateLogic();
-    }
-    if (this.operator.isPresent()) {
-     this.operator.get().negate();
-    }
-    if (this.rhs.isPresent()) {
-     this.rhs.get().negateLogic();
-    }
-  }
+	/**
+	 * Negates the logical expression located in this expresion.
+	 */
+	public void negateLogic() {
+		if (this.lhs.isPresent()) {
+			this.lhs.get().negateLogic();
+		}
+		if (this.operator.isPresent()) {
+			this.operator.get().negate();
+		}
+		if (this.rhs.isPresent()) {
+			this.rhs.get().negateLogic();
+		}
+	}
 
-  /**
-   * Generates a new expression which indicates that the handed over expression
-   * is currently not supported.
-   * @return a new expression withc "not_supported" prefix.
-   */
-  public Expression setNotSupported(){
-    Expression ret = new Expression();
-    ret.replaceRhs(this);
-    Variable var = new Variable("not_supported:");
-    ret.replaceRhs(var);
-    return ret;
-  }
+	/**
+	 * Generates a new expression which indicates that the handed over expression
+	 * is currently not supported.
+	 *
+	 * @return a new expression with "not_supported" prefix.
+	 */
+	public Expression setNotSupported() {
+		Expression ret = new Expression();
+		ret.replaceRhs(this);
+		Variable var = new Variable("not_supported:");
+		ret.replaceRhs(var);
+		return ret;
+	}
 
-  /**
-   * Generates an expression which represent the logical value TRUE.
-   * @return TRUE expression
-   */
-  public static Expression generateTrue(){
-    //first the whole expression
-    Expression ret = new Expression();
-    //since both sides equal, it is sufficient to create a single object
-    NumericalLiteral lhs_rhs = new NumericalLiteral(1,null);
-    //connection between
-    Operator op = new Operator();
-    op.setEq(true);
-    //now combine these elements
-    ret.replaceLhs(lhs_rhs);
-    ret.replaceRhs(lhs_rhs);
-    ret.replaceOp(op);
-    return ret;
+	/**
+	 * Generates an expression which represent the logical value TRUE.
+	 *
+	 * @return TRUE expression
+	 */
+	public static Expression generateTrue() {
+		//first the whole expression
+		Expression ret = new Expression();
+		//since both sides equal, it is sufficient to create a single object
+		NumericalLiteral lhs_rhs = new NumericalLiteral(1, null);
+		//connection between
+		Operator op = new Operator();
+		op.setEq(true);
+		//now combine these elements
+		ret.replaceLhs(lhs_rhs);
+		ret.replaceRhs(lhs_rhs);
+		ret.replaceOp(op);
+		return ret;
 
-  }
+	}
 
-  /**
-   * Generates an expression which represent the logical value FALSE.
-   * @return FALSE expression.
-   */
-  public static Expression generateFalse(){
-    Expression ret = generateTrue();
-    ret.negateLogic();
-    return ret;
-  }
+	/**
+	 * Generates an expression which represent the logical value FALSE.
+	 *
+	 * @return FALSE expression.
+	 */
+	public static Expression generateFalse() {
+		Expression ret = generateTrue();
+		ret.negateLogic();
+		return ret;
+	}
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o)
-      return true;
-    if (o == null || getClass() != o.getClass())
-      return false;
 
-    Expression that = (Expression) o;
+	/**
+	 * Encapsulates a given expression object in brackets. e.g V_m+10mV -> (V_m+10mV)
+	 * @param expr the expression which will be encapsulated.
+	 * @return the encapsulated expression.
+	 */
+	public static Expression encapsulateInBrackets(Expression expr){
+		Expression ret = new Expression();
+		Operator op = new Operator();
+		op.setLeftParentheses(true);
+		op.setRightParentheses(true);
+		ret.replaceOp(op);
+		ret.replaceRhs(expr);
+		return ret;
+	}
 
-    if (!lhs.equals(that.lhs))
-      return false;
-    if (!operator.equals(that.operator))
-      return false;
-    return rhs.equals(that.rhs);
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-  }
+		Expression that = (Expression) o;
 
-  @Override
-  public int hashCode() {
-    int result = lhs.hashCode();
-    result = 31 * result + operator.hashCode();
-    result = 31 * result + rhs.hashCode();
-    return result;
-  }
+		if (!lhs.equals(that.lhs))
+			return false;
+		if (!operator.equals(that.operator))
+			return false;
+		return rhs.equals(that.rhs);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = lhs.hashCode();
+		result = 31 * result + operator.hashCode();
+		result = 31 * result + rhs.hashCode();
+		return result;
+	}
 }

@@ -72,7 +72,7 @@ public class LEMSCollector extends Collector{
 
   private List<String> localTimeDerivative = null;//a list of time derivatives which are only invoked in certain steps
 
-  private Map<String, String> attachments = null;//a list of attachments to the neuron
+  private List<Attachment> attachments = null;//a list of attachments to the neuron
 
   private SimulationConfiguration config = null;// the configuration of the simulation
 
@@ -91,7 +91,7 @@ public class LEMSCollector extends Collector{
     this.prettyPrint = new LEMSExpressionsPrettyPrinter(this);
     this.equation = new HashMap<>();
     this.localTimeDerivative = new ArrayList<>();
-    this.attachments = new HashMap<>();
+    this.attachments = new ArrayList<>();
     this.config = config;
     this.helper = new HelperCollection(this);
     this.handleNeuron(neuron);
@@ -404,21 +404,18 @@ public class LEMSCollector extends Collector{
       this.addEventPort(new EventPort(var));
     }
     /*
-     * now adapt the settings according to the handed over artifact
+     * now adapt the settings according to the handed over artifact if required
      */
-    for(Object set:config.getInstructions()){
-      List<String> tempList = (List<String>)set;//in order to avoid casting each time
-      if(tempList.get(0).equals(this.neuronName)){//check whether the settings apply to this model
-        for(int i=1;i<tempList.size();i++){
-          this.adaptElementFromString(tempList.get(i));
-        }
-      }
-    }
+    config.adaptSettings(this);
     /*
      * check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding automaton
      */
     if (neuronBody.getDynamicsBlock().isPresent()) {
       automaton = new DynamicRoutine(neuronBody.getDynamics(), this);
+    }
+    //if there is no event out
+    if (outputPortDefined()&&!helper.containsNamedFunction("emit_spike",automaton.getAllInstructions())){
+      automaton.addPortActivator(this);
     }
   }
 
@@ -471,6 +468,10 @@ public class LEMSCollector extends Collector{
   @SuppressWarnings("unused")//Used in the template
   public boolean conditionsPresent() {
     return (this.automaton != null) && (this.automaton.getConditionalBlocks().size() > 0);
+  }
+
+  public void addEquation(String var,Expression expr){
+    this.equation.put(var,expr);
   }
 
   @SuppressWarnings("unused")//Used in the template
@@ -603,7 +604,7 @@ public class LEMSCollector extends Collector{
   }
 
   @SuppressWarnings("unused")//used in the template
-  public Map<String, String> getAttachments() {
+  public List<Attachment> getAttachments() {
     return this.attachments;
   }
 
@@ -657,10 +658,8 @@ public class LEMSCollector extends Collector{
     }
   }
 
-  public void addAttachment(String name, String type) {
-    if (!this.attachments.containsKey(name)) {
-      this.attachments.put(name, type);
-    }
+  public void addAttachment(Attachment elem) {
+    this.attachments.add(elem);
   }
 
   public LEMSSyntaxContainer getSyntaxContainer(){
@@ -671,6 +670,7 @@ public class LEMSCollector extends Collector{
    * This method is used to parse a handed over string representing of an element which has to be added to the model.
    * @param elem The element as a string.
    */
+  /*
   private void adaptElementFromString(String elem) {
     String segmentTemp[] = elem.split("=|\"|\\s|\\t");//split in order to get each parameter
     segmentTemp[0] = segmentTemp[0].replaceAll("<", "");//format a little
@@ -692,7 +692,7 @@ public class LEMSCollector extends Collector{
       System.err.println("External artifact has wrong format and is therefore not included!");
     }
   }
-
+*/
   /**
    * Formats a handed over array and deletes all occurrences of empty entries.
    * This method is only used in "adaptElementFromString" in order to include an external artifact.

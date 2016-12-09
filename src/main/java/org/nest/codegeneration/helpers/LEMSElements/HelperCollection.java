@@ -62,7 +62,7 @@ public class HelperCollection {
    * @return the name of the dimension as String
    */
   public String typeToDimensionConverter(TypeSymbol input) {
-    if (input.getName().equals("boolean") || input.getName().equals("void")) {
+    if (input.getName().equals("boolean") || input.getName().equals("void")||input.getName().equals("string") ) {
       return "not_supported";
     }
     if (input.getType() == TypeSymbol.Type.PRIMITIVE) {
@@ -141,7 +141,7 @@ public class HelperCollection {
   /**
    * Checks whether a given function call name is supported by the target modeling language or not.
    * If new concepts are supported, add here.
-   *
+   * TODO:there are actually many more supported function
    * @param expr The function call name which will be checked.
    * @return true, if supported
    */

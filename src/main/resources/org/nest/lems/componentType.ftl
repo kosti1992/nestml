@@ -39,8 +39,8 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
         <EventPort name="${port.getName()}" direction="${port.getDirection()}"/>
     </#list>
 
-    <#list container.getAttachments()?keys as att>
-        <Attachments name="${att}" type="${container.getAttachments()[att]}"/>
+    <#list container.getAttachments() as att>
+        <Attachments name="${att.getBindName()}" type="${att.getBindType()}"/>
     </#list>
 
     <#if container.getDynamicElementsArePresent()>
@@ -57,7 +57,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
                                                             select="${derivedVariable.getDerivationInstruction().print()}"
-                                                            reduce="add"</@compress>/>
+                                                            reduce="${derivedVariable.getReduce()}"</@compress>/>
             </#if>
           </#list>
 

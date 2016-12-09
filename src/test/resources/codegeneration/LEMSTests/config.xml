@@ -1,0 +1,4 @@
+<Target name="izhikevich_nestml">
+	<Attachments name="pulseGeneratorDL" type="pulseGeneratorDL"/>
+	<DerivedVariable name="I" dimension="none" select="pulseGeneratorDL[*]/I" reduce="add"/>
+</Target>	
