@@ -25,7 +25,9 @@ import java.util.Scanner;
 public class SimulationConfiguration {
 	//indicates whether units and dimensions have to be generated externally
 	private boolean unitsExternal = true;
+	//stores the length of single simulation step in ms
 	private double simSteps;
+	//the path to a configuration file
 	private Path configPath;
 
 	public SimulationConfiguration() {}
@@ -45,7 +47,6 @@ public class SimulationConfiguration {
 		if(configPath==null){
 			return;
 		}
-
 		try {
 			File inputFile = new File(configPath.toAbsolutePath().toString());
 			DocumentBuilderFactory dbFactory

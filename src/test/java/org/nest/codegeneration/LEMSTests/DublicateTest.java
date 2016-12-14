@@ -31,19 +31,15 @@ public class DublicateTest extends ModelbasedTest {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
     final LEMSGenerator testant = new LEMSGenerator();
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"),false,0.1);
-    //TODO: this test has to be modified to the current version of the handling
     if(false) {
       //add two constants and check whether duplicates have been recognized
-      //testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),"test",true));
+      testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),true));
       varCount = testant.getListOfNeurons().get(0).getConstantsList().size();
       //testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),"test",true));
       Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getConstantsList().size());
       //add two derived elements and check whether duplicates have been recognized
-      //testant.getListOfNeurons().get(0).addDerivedElement(new DerivedElement("test",
-      //    Dimension.DimensionName.current,"test",false,false));
+      testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),true));
       varCount = testant.getListOfNeurons().get(0).getDerivedParametersList().size();
-      //testant.getListOfNeurons().get(0).addDerivedElement(new DerivedElement("test",
-      //    Dimension.DimensionName.current,"test",false,false));
       Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getDerivedParametersList().size());
       //add two units and check whether duplicates have been recognized
       Unit tempUnit = new Unit(new TypeSymbol("mV", TypeSymbol.Type.UNIT));
@@ -55,11 +51,7 @@ public class DublicateTest extends ModelbasedTest {
       Assert.assertTrue(dimCount == testant.getListOfNeurons().get(0).getDimensionsSet().size());
       //dimensions are made implicitly -> check whether two dimensions are equal
       //add two units and check whether duplicates have been recognized
-      //testant.getListOfNeurons().get(0).addStateVariable(
-      //    new StateVariable("test", Dimension.DimensionName.none,"0","mV",testant.getListOfNeurons().get(0)));
       varCount = testant.getListOfNeurons().get(0).getStateVariablesList().size();
-      //testant.getListOfNeurons().get(0).addStateVariable(
-      //    new StateVariable("test", Dimension.DimensionName.none,"0","mV",testant.getListOfNeurons().get(0)));
       Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getStateVariablesList().size());
     }
   }

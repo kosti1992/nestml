@@ -11,13 +11,13 @@ import org.nest.frontend.NestmlFrontend;
  * @author perun
  */
 public class LEMSGeneratorTest extends ModelbasedTest {
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests";
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/izhikevich.nestml";
   NestmlFrontend fe = new NestmlFrontend();
 
   @Test
   public void testGenerateLEMS() throws Exception {
     String args[] = {INPUT_DIRECTORY,"-lems","-target build",
         "-config"+INPUT_DIRECTORY+"/config","-units_external","-simSteps0.1"};
-    //fe.start(args);
+    fe.start(args);
   }
 }

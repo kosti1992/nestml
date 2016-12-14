@@ -2,7 +2,7 @@ package org.nest.codegeneration.helpers.Expressions;
 
 /**
  * This class represent an abstract precursor for syntax container which
- * indicate how to print certain elements in certain target languages.
+ * indicates how to print certain elements in certain target languages.
  * @author perun
  */
 interface SyntaxContainer {

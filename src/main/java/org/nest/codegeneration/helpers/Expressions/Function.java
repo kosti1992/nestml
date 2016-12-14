@@ -41,7 +41,7 @@ public class Function extends Expression {
 	 * The print method as utilized in the template to print the function.
 	 *
 	 * @param container determines which syntax shall be used.
-	 * @return
+	 * @return a string representation of the function call
 	 */
 	public String print(SyntaxContainer container) {
 		return container.print(this);

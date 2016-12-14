@@ -46,7 +46,7 @@ neuron izhikevich_nestml:
 			V_m /=0
 			V_m -=getSteps(d)
 			V_m -= 0
-			integrate()
+			integrate(V_m)
 		end
 	end
 	

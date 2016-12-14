@@ -409,7 +409,7 @@ public class DynamicRoutine {
   /**
    * There is currently a bug with jLEMS which requires that each output port has to be stated with a
    * corresponding EventOut directive. This method adds a new block which is never invoked but provides
-   * such a EventOut directive.
+   * such an EventOut directive.
    */
   public void addPortActivator(LEMSCollector container) {
     FunctionCall functionCall = new FunctionCall("emit_spike",null);
@@ -430,7 +430,7 @@ public class DynamicRoutine {
   /**
    * Returns a list of all instructions in all blocks.
    *
-   * @return a list of instrcution objects
+   * @return a list of instruction objects
    */
   public List<Instruction> getAllInstructions() {
     ArrayList<Instruction> ret = new ArrayList<>();
@@ -496,6 +496,7 @@ public class DynamicRoutine {
     public Expression getAssignedValue() {
       return this.assignedValue;
     }
+
     @SuppressWarnings("unused")//used in the template
     public String printAssignedValue(){
       return this.assignedValue.print(new LEMSSyntaxContainer());
