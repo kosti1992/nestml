@@ -5,7 +5,6 @@
  */
 package org.nest.nestml._cocos;
 
-import org.nest.nestml._ast.ASTBody;
 import org.nest.nestml._ast.ASTComponent;
 
 import static de.se_rwth.commons.logging.Log.error;
@@ -13,25 +12,18 @@ import static de.se_rwth.commons.logging.Log.error;
 /**
  * Components are not allowed to have dynamics, only neurons are.
  *
- * @author (last commit) ippen, plotnikov
- * @since 0.0.1
+ * @author ippen, plotnikov
  */
 public class ComponentHasNoDynamics implements NESTMLASTComponentCoCo {
 
+  public void check(final ASTComponent comp) {
 
-  public static final String ERROR_CODE = "NESTML_COMPONENT_HAS_NO_DYNAMICS";
+    if (!comp.getBody().getDynamics().isEmpty()) {
 
-  public void check(ASTComponent comp) {
-    ASTBody bodyDecorator = (comp.getBody());
-
-    if (!bodyDecorator.getDynamics().isEmpty()) {
-      CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
-      final String msg = errorStrings.getErrorMsg(this);
-
+      final String msg = NestmlErrorStrings.message(this, comp.getName(), comp.get_SourcePositionStart());
       error(msg, comp.get_SourcePositionStart());
     }
 
   }
-
 
 }

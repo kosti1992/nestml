@@ -17,7 +17,7 @@ public class LEMSGeneratorTest extends ModelbasedTest {
   @Test
   public void testGenerateLEMS() throws Exception {
     String args[] = {INPUT_DIRECTORY,"-lems","-target build",
-        "-config"+INPUT_DIRECTORY+"/config","-units_external","-simSteps0.1"};
+        "-config"+INPUT_DIRECTORY+"/config.xml","-units_external","-simSteps0.1"};
     fe.start(args);
   }
 }

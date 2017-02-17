@@ -1,30 +1,30 @@
-neuron iaf_psc_alpha_nestml:
+neuron iaf_psc_alpha_neuron:
 
   state:
     V_abs mV
-    alias V_m mV = V_abs + E_L # Membrane potential.
+    function V_m mV = V_abs + E_L # Membrane potential.
   end
 
   equations:
       shape I_shape_in = (e/tau_syn_in) * t * exp(-1/tau_syn_in*t)
       shape I_shape_ex = (e/tau_syn_ex) * t * exp(-1/tau_syn_ex*t)
 
-      V_abs' = -1/Tau * V_abs + 1/C_m * (I_sum(I_shape_in, in_spikes) + I_sum(I_shape_ex, ex_spikes) + I_e + currents)
+      V_abs' = -1/Tau * V_abs + 1/C_m * (curr_sum(I_shape_in, in_spikes) + curr_sum(I_shape_ex, ex_spikes) + I_e + currents)
   end
 
-  parameter:
+  parameters:
     C_m     pF = 250   # Capacity of the membrane
     Tau     ms = 10    # Membrane time constant.
     tau_syn_in ms = 2     # Time constant of synaptic current.
     tau_syn_ex ms = 2     # Time constant of synaptic current.
     t_ref   ms = 2     # Refractory period.
     E_L     mV = -70  # Resting potential.
-    alias V_reset mV = -70 - E_L
-    alias Theta   mV = -55 - E_L
+    function V_reset mV = -70 - E_L
+    function Theta   mV = -55 - E_L
     I_e     pA = 0     # External current.
   end
 
-  internal:
+  internals:
     r  integer
     RefractoryCounts integer = steps(t_ref)
   end
@@ -39,15 +39,15 @@ neuron iaf_psc_alpha_nestml:
 
   update:
     if r == 0: # not refractory
-        integrate(V_abs)
+      integrate_odes()
     else:
-        r = r - 1
+      r = r - 1
     end
 
     if V_abs >= Theta: # threshold crossing
-        r = RefractoryCounts
-        V_abs = V_reset
-        emit_spike()
+      r = RefractoryCounts
+      V_abs = V_reset
+      emit_spike()
     end
 
   end

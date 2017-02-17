@@ -24,33 +24,33 @@ neuron iaf_psc_exp_multisynapse_neuron:
 
   state:
     V_abs mV # membrane potential
-    alias V_m mV = V_abs + E_L # Relative membrane potential.
+    function V_m mV = V_abs + E_L # Relative membrane potential.
                                # I.e. the real threshold is (V_m-E_L).
   end
 
   equations:
       shape I_shape = exp(-1/tau_syn*t)
-      I_syn pA = (I_sum(I_shape, spikes) + I_e + currents)
+      function I_syn pA = (curr_sum(I_shape, spikes) + I_e + currents)
       V_abs' = -1/tau_m * V_abs + 1/C_m * I_syn
   end
 
-  parameter:
+  parameters:
     receptors integer  = 100
     C_m     pF = 250pF  # Capacity of the membrane
     tau_m     ms = 10ms # Membrane time constant.
     tau_syn ms[receptors] = 2ms     # Time constant of synaptic current.
     t_ref   ms = 2ms    # Refractory period.
     E_L     mV = 0mV    # Resting potential.
-    alias V_reset mV = -55.0mV - E_L # Reset value of the membrane potential
+    function V_reset mV = -55.0mV - E_L # Reset value of the membrane potential
                                      # RELATIVE TO RESTING POTENTIAL(!).
                                      # I.e. the real threshold is (V_reset + E_L).
-    alias V_th   mV = -70.0mV - E_L # Threshold, RELATIVE TO RESTING POTENTIAL(!).
+    function V_th   mV = -70.0mV - E_L # Threshold, RELATIVE TO RESTING POTENTIAL(!).
                                     # I.e. the real threshold is (E_L+V_th).
     I_e     pA = 0pA     # External current.
   end
 
 
-  internal:
+  internals:
     # refractory time in steps
     RefractoryCounts integer = steps(t_ref)
     # counts number of tick during the refractory period
@@ -66,15 +66,15 @@ neuron iaf_psc_exp_multisynapse_neuron:
 
   update:
     if r == 0: # neuron not refractory, so evolve V_abs
-      integrate(V_abs)
+      integrate_odes()
     else:
       r = r - 1 # neuron is absolute refractory
     end
 
     if V_abs >= V_th: # threshold crossing
-        r = RefractoryCounts
-        V_abs = V_reset
-        emit_spike()
+      r = RefractoryCounts
+      V_abs = V_reset
+      emit_spike()
     end
 
   end

@@ -14,7 +14,7 @@ import de.se_rwth.commons.logging.Log;
 import org.nest.nestml._ast.*;
 import org.nest.nestml._visitor.NESTMLVisitor;
 import org.nest.ode._ast.ASTEquation;
-import org.nest.ode._ast.ASTODEAlias;
+import org.nest.ode._ast.ASTOdeFunction;
 import org.nest.ode._ast.ASTOdeDeclaration;
 import org.nest.ode._ast.ASTShape;
 import org.nest.spl._ast.ASTCompound_Stmt;
@@ -23,6 +23,7 @@ import org.nest.symboltable.predefined.PredefinedTypes;
 import org.nest.symboltable.symbols.*;
 import org.nest.symboltable.symbols.references.NeuronSymbolReference;
 import org.nest.units._visitor.UnitsSIVisitor;
+import org.nest.units.unitrepresentation.UnitRepresentation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,13 +36,12 @@ import static de.se_rwth.commons.logging.Log.trace;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.nest.codegeneration.sympy.ODETransformer.getCondSumFunctionCall;
+import static org.nest.codegeneration.sympy.OdeTransformer.getCondSumFunctionCall;
 import static org.nest.symboltable.symbols.NeuronSymbol.Type.COMPONENT;
 import static org.nest.symboltable.symbols.NeuronSymbol.Type.NEURON;
-import static org.nest.symboltable.symbols.VariableSymbol.BlockType.LOCAL;
 import static org.nest.symboltable.symbols.VariableSymbol.BlockType.STATE;
-import static org.nest.utils.ASTUtils.computeTypeName;
-import static org.nest.utils.ASTUtils.getNameOfLHS;
+import static org.nest.utils.AstUtils.computeTypeName;
+import static org.nest.utils.AstUtils.getNameOfLHS;
 
 /**
  * Creates NESTML symbols.
@@ -132,13 +132,13 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
     }
 
     // new variable from the ODE block could be added. Check, whether they don't clutter with existing one
-    NESTMLCoCosManager nestmlCoCosManager = new NESTMLCoCosManager();
-    final List<Finding> findings = nestmlCoCosManager.checkVariableUniqueness(astNeuron);
+    final NestmlCoCosManager nestmlCoCosManager = new NestmlCoCosManager();
+    final List<Finding> findings = nestmlCoCosManager.checkStateVariables(astNeuron);
     if (findings.isEmpty()) {
       if (astNeuron.getBody().getODEBlock().isPresent()) {
         addVariablesFromODEBlock(astNeuron.getBody().getODEBlock().get());
 
-        final List<Finding> afterAddingDerivedVariables = nestmlCoCosManager.checkVariableUniqueness(astNeuron);
+        final List<Finding> afterAddingDerivedVariables = nestmlCoCosManager.checkStateVariables(astNeuron);
         if (afterAddingDerivedVariables.isEmpty()) {
           assignOdeToVariables(astNeuron.getBody().getODEBlock().get());
           markConductanceBasedBuffers(astNeuron.getBody().getODEBlock().get(), astNeuron.getBody().getInputLines());
@@ -184,13 +184,13 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
   /**
    * Analyzes the ode block and add all aliases. E.g.:
    *   equations:
-   *      I_syn pA = I_exc - I_inh # <- inplace alias
+   *      I_syn pA = I_exc - I_inh # <- inplace function
    *      V_m mV = I_syn / 1 ms
    *   end
    * Results in an additional variable for G' (first equations G''). For the sake of the simplicity
    */
   private void addAliasesFromODEBlock(final ASTOdeDeclaration astOdeDeclaration) {
-    for (final ASTODEAlias astOdeAlias:astOdeDeclaration.getODEAliass()) {
+    for (final ASTOdeFunction astOdeAlias:astOdeDeclaration.getOdeFunctions()) {
       final VariableSymbol var = new VariableSymbol(astOdeAlias.getVariableName());
       var.setAstNode(astOdeAlias);
       final String typeName =  computeTypeName(astOdeAlias.getDatatype());
@@ -198,7 +198,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
 
       var.setType(type.get());
       var.setDeclaringType(currentTypeSymbol.get());
-      var.setLoggable(astOdeAlias.isRecord());
+      var.setRecordable(astOdeAlias.isRecordable());
       var.setAlias(true);
       var.setDeclaringExpression(astOdeAlias.getExpr());
 
@@ -217,13 +217,22 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
    */
   private void addDerivedVariable(final ASTEquation ode) {
     final String variableName = getNameOfLHS(ode);
-    final TypeSymbol type = PredefinedTypes.getRealType();
+    final String originalVarName = ode.getLhs().getName().toString(); //name of the original variable e.g. no trailing '
+
+    checkState(currentScope().isPresent());
+    final Optional<VariableSymbol> originalSymbol = currentScope().get().resolve(originalVarName,VariableSymbol.KIND);
+    checkState(originalSymbol.isPresent());//symbol must exist here
+    final TypeSymbol originalType = originalSymbol.get().getType();
+    UnitRepresentation derivedUnit = UnitRepresentation.getBuilder().serialization(originalType.getName()).
+        ignoreMagnitude(true).build().deriveT(ode.getLhs().getDifferentialOrder().size()-1);
+    final TypeSymbol derivedType = PredefinedTypes.getType(derivedUnit.serialize());
+
     final VariableSymbol var = new VariableSymbol(variableName);
 
     var.setAstNode(ode.getLhs());
-    var.setType(type);
+    var.setType(derivedType);
     var.setDeclaringType(currentTypeSymbol.get());
-    var.setLoggable(true);
+    var.setRecordable(true);
     var.setAlias(false);
 
     var.setBlockType(VariableSymbol.BlockType.STATE);
@@ -285,7 +294,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
           .collect(Collectors.toList());
       final List<ASTNode> equations = Lists.newArrayList();
       equations.addAll(astOdeDeclaration.getODEs());
-      equations.addAll(astOdeDeclaration.getODEAliass());
+      equations.addAll(astOdeDeclaration.getOdeFunctions());
 
       for (VariableSymbol spikeBuffer:spikeBuffers) {
         final Optional<?> bufferInCondSumCall = equations
@@ -296,9 +305,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
             .filter(variable -> variable.getName().toString().equals(spikeBuffer.getName()))
             .findAny();
 
-        if (bufferInCondSumCall.isPresent()) {
-          spikeBuffer.setConductanceBased(true);
-        }
+        bufferInCondSumCall.ifPresent(o -> spikeBuffer.setConductanceBased(true));
 
       }
 
@@ -324,7 +331,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
    *
    * {@code
    * Grammar
-   * USE_Stmt implements BodyElement = "use" name:QualifiedName "as" alias:Name;
+   * USE_Stmt implements BodyElement = "use" name:QualifiedName "as" function:Name;
    *
    * Model:
    * ...
@@ -357,7 +364,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
   /**
    * {@code
    * Grammar:
-   * AliasDecl = ([hide:"-"])? ([alias:"alias"])? Declaration;}
+   * AliasDecl = ([hide:"-"])? ([function:"function"])? Declaration;}
    * Declaration = vars:Name ("," vars:Name)* (type:QualifiedName | primitiveType:PrimitiveType) ( "=" Expression )?;
    *
    * Model:
@@ -366,7 +373,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
     checkState(this.currentScope().isPresent());
 
     astAliasDeclaration = Optional.of(aliasDeclAst);
-    final String msg = "Sets parent alias at the position: " + aliasDeclAst.get_SourcePositionStart();
+    final String msg = "Sets parent function at the position: " + aliasDeclAst.get_SourcePositionStart();
     trace(msg, LOGGER_NAME);
 
   }
@@ -385,7 +392,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
    *   (["spike"] | ["current"]);
    *
    * Model:
-   * alias V_m mV[testSize] = y3 + E_L
+   * function V_m mV[testSize] = y3 + E_L
    * }
    */
   public void visit(final ASTInputLine inputLineAst) {
@@ -528,7 +535,6 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
       checkState(astVariableBlockType.isPresent(), "Declaration is not inside a block.");
       ASTVar_Block blockAst = astVariableBlockType.get();
 
-
       if (blockAst.isState()) {
         addVariablesFromDeclaration(
             astDeclaration,
@@ -536,19 +542,19 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
             astAliasDeclaration.orElse(null),
             STATE);
       }
-      else if (blockAst.isParameter()) {
+      else if (blockAst.isParameters ()) {
         addVariablesFromDeclaration(
             astDeclaration,
             currentTypeSymbol.get(),
             astAliasDeclaration.orElse(null),
-            VariableSymbol.BlockType.PARAMETER);
+            VariableSymbol.BlockType.PARAMETERS);
       }
-      else if (blockAst.isInternal()) {
+      else if (blockAst.isInternals()) {
         addVariablesFromDeclaration(
             astDeclaration,
             currentTypeSymbol.get(),
             astAliasDeclaration.orElse(null),
-            VariableSymbol.BlockType.INTERNAL);
+            VariableSymbol.BlockType.INTERNALS);
       }
       else {
         addVariablesFromDeclaration(
@@ -592,15 +598,15 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
       var.setType(type.get());
       var.setDeclaringType(currentTypeSymbol);
 
-      boolean isLoggableStateVariable = blockType == STATE && !aliasDeclAst.isSuppress();
-      boolean isLoggableNonStateVariable = blockType != LOCAL && blockType != STATE && aliasDeclAst.isRecord();
-      if (isLoggableStateVariable || isLoggableNonStateVariable) {
+      boolean isRecordableVariable = blockType == STATE || (aliasDeclAst != null  && aliasDeclAst.isRecordable());
+
+      if (isRecordableVariable) {
         // otherwise is set to false.
-        var.setLoggable(true);
+        var.setRecordable(true);
       }
 
       if (aliasDeclAst != null) {
-        if (aliasDeclAst.isAlias()) {
+        if (aliasDeclAst.isFunction()) {
           var.setAlias(true);
         }
 
@@ -631,7 +637,7 @@ public class NESTMLSymbolTableCreator extends CommonSymbolTableCreator implement
     var.setAstNode(astShape);
     var.setType(type);
     var.setDeclaringType(currentTypeSymbol.get());
-    var.setLoggable(true);
+    var.setRecordable(true);
     var.setAlias(false);
     var.setDeclaringExpression(astShape.getRhs());
     var.setBlockType(VariableSymbol.BlockType.SHAPE);

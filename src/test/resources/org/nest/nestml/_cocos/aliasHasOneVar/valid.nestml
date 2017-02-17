@@ -1,7 +1,0 @@
-component AliasSetter:
-    parameter:
-        x integer = 5
-        alias y integer = -x
-        alias z real = x * y
-    end
-end

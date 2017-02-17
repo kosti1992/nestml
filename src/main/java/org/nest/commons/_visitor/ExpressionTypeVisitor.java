@@ -1,35 +1,10 @@
 package org.nest.commons._visitor;
 
-import de.monticore.literals.literals._ast.ASTIntLiteral;
-import org.nest.commons._ast.ASTExpr;
-import org.nest.spl.symboltable.typechecking.Either;
-import org.nest.symboltable.symbols.TypeSymbol;
-
-import static org.nest.symboltable.predefined.PredefinedTypes.getIntegerType;
-import static org.nest.symboltable.predefined.PredefinedTypes.getRealType;
 
 /**
  * @author ptraeder, plotnikov
  */
 public class ExpressionTypeVisitor implements CommonsVisitor {
-
- /* static final Stack<CommonsVisitor> callStack = new Stack<>();
-
-  public Optional<CommonsVisitor> getCaller() {
-    if (!callStack.isEmpty()) {
-      CommonsVisitor topElement = (CommonsVisitor) callStack.peek();
-      return Optional.of(topElement);
-    }
-    // no parent, return an absent value
-    return Optional.empty();
-  }
-
-  public void endVisit(ASTExpr node){
-    //restore previous realthis pointer
-    if(!callStack.isEmpty())
-      setRealThis(callStack.pop());
-  }*/
-
   private CommonsVisitor realThis=this;
 
   private static UnaryVisitor unaryVisitor = new UnaryVisitor();
@@ -68,7 +43,6 @@ public class ExpressionTypeVisitor implements CommonsVisitor {
 
 
   public void traverse(org.nest.commons._ast.ASTExpr node) {
-   // callStack.push(getRealThis());
 
     //Expr = <rightassoc> base:Expr pow:["**"] exponent:Expr
     if (node.getBase().isPresent() && node.getExponent().isPresent()) {
@@ -197,39 +171,9 @@ public class ExpressionTypeVisitor implements CommonsVisitor {
   //Helper functions:
 
 
-  public static Either<Integer, String> calculateNumericValue(ASTExpr expr) {
-    if (expr.isLeftParentheses()) {
-      return calculateNumericValue(expr.getExpr().get());
-    }
-    else if (expr.getNESTMLNumericLiteral().isPresent()) {
-      if (expr.getNESTMLNumericLiteral().get().getNumericLiteral() instanceof ASTIntLiteral) {
-        ASTIntLiteral literal = (ASTIntLiteral) expr.getNESTMLNumericLiteral().get().getNumericLiteral();
-        return Either.value(literal.getValue());
-      }
-      else {
-        return Either.error("No floating point values allowed in the exponent to a UNIT base");
-      }
-    }
-    else if (expr.isUnaryMinus()) {
-      Either<Integer, String> term = calculateNumericValue(expr.getTerm().get());
-      if (term.isError()) {
-        return term;
-      }
-      return Either.value(-term.getValue());
-    }
 
-    return Either.error("Cannot calculate value of exponent. Must be a static value!");
-  }
 
-  /**
-   * Checks if the type is a numeric type, e.g. Integer or Real.
-   */
-  public static boolean isNumeric(final TypeSymbol type) {
-    return type.equals(getIntegerType()) ||
-        type.equals(getRealType()) ||
-        type.getType().equals(TypeSymbol.Type.UNIT);
 
-  }
 
 
 }

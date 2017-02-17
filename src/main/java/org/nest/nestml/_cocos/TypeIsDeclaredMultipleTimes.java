@@ -17,8 +17,7 @@ import static de.se_rwth.commons.logging.Log.error;
 /**
  * Neuron or component is defined several times.
  *
- * @author (last commit) ippen, plotnikov
- * @since 0.0.1
+ * @author ippen, plotnikov
  */
 public class TypeIsDeclaredMultipleTimes implements NESTMLASTComponentCoCo, NESTMLASTNeuronCoCo {
 
@@ -43,7 +42,7 @@ public class TypeIsDeclaredMultipleTimes implements NESTMLASTComponentCoCo, NEST
       node.getEnclosingScope().get().resolve(name, NeuronSymbol.KIND);
     }
     catch (ResolvedSeveralEntriesException e) {
-      CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
+      NestmlErrorStrings errorStrings = NestmlErrorStrings.getInstance();
       final String msg = errorStrings.getErrorMsg(this, name);
 
      error(msg, node.get_SourcePositionEnd());

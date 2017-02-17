@@ -65,11 +65,21 @@ public class NestmlFrontendIntegrationTest {
   }
 
   @Test
-  public void testManually() {
+  public void manually() {
     final String[] args = new String[] {
-        "models/iaf_psc_alpha_multisynapse.nestml",
+        "models/ht_neuron.nestml",
         "--target", outputPath.toString()};
 
     new NestmlFrontend().start(args);
   }
+
+  @Test
+  public void debug() {
+    final String[] args = new String[] {
+        "debug",
+        "--target", outputPath.toString()};
+
+    new NestmlFrontend().start(args);
+  }
+
 }

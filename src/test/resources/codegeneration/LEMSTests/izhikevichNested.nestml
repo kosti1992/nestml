@@ -13,7 +13,7 @@ neuron izhikevich_nestml:
     u' = a*(b*V_m/1mV-u)
   end
 
-  parameter:
+  parameters:
     a real
     b real
     c real

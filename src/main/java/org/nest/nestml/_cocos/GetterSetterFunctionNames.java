@@ -8,10 +8,10 @@ package org.nest.nestml._cocos;
 import de.monticore.symboltable.Scope;
 import de.se_rwth.commons.logging.Log;
 import org.nest.nestml._ast.ASTFunction;
+import org.nest.symboltable.NestmlSymbols;
 import org.nest.symboltable.symbols.MethodSymbol;
 import org.nest.symboltable.symbols.NeuronSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
-import org.nest.symboltable.NESTMLSymbols;
 
 import java.util.Optional;
 
@@ -26,7 +26,7 @@ import static de.se_rwth.commons.logging.Log.error;
 public class GetterSetterFunctionNames implements NESTMLASTFunctionCoCo {
 
   public static final String ERROR_CODE = "NESTML_GETTER_SETTER_FUNCTION_NAMES";
-  CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
+  NestmlErrorStrings errorStrings = NestmlErrorStrings.getInstance();
 
   public void check(final ASTFunction fun) {
     String funName = fun.getName();
@@ -35,7 +35,7 @@ public class GetterSetterFunctionNames implements NESTMLASTFunctionCoCo {
     checkState(enclosingScope.isPresent(),
         "There is no scope assigned to the AST node: " + fun.getName());
 
-    Optional<MethodSymbol> methodSymbol = NESTMLSymbols.resolveMethod(fun);
+    Optional<MethodSymbol> methodSymbol = NestmlSymbols.resolveMethod(fun);
 
     if (methodSymbol.isPresent()) {
       if (methodSymbol.get().getDeclaringNeuron().getType() == NeuronSymbol.Type.COMPONENT

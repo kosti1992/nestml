@@ -1,134 +1,142 @@
 /*
-Name: aeif_cond_alpha -  Conductance based exponential integrate-and-fire neuron
-                         model according to Brette and Gerstner (2005).
+Name: iaf_psc_alpha - Leaky integrate-and-fire neuron model.
 
 Description:
-aeif_cond_alpha is the adaptive exponential integrate and fire neuron according
-to Brette and Gerstner (2005).
-Synaptic conductances are modelled as alpha-functions.
 
-This implementation uses the embedded 4th order Runge-Kutta-Fehlberg solver with
-adaptive step size to integrate the differential equation.
+  iaf_psc_alpha is an implementation of a leaky integrate-and-fire model
+  with alpha-function shaped synaptic currents. Thus, synaptic currents
+  and the resulting post-synaptic potentials have a finite rise time.
 
-The membrane potential is given by the following differential equation:
-C dV/dt= -g_L(V-E_L)+g_L*Delta_T*exp((V-V_T)/Delta_T)-g_e(t)(V-E_e)
-                                                     -g_i(t)(V-E_i)-w +I_e
+  The threshold crossing is followed by an absolute refractory period
+  during which the membrane potential is clamped to the resting potential.
 
-and
+  The linear subthresold dynamics is integrated by the Exact
+  Integration scheme [1]. The neuron dynamics is solved on the time
+  grid given by the computation step size. Incoming as well as emitted
+  spikes are forced to that grid.
 
-tau_w * dw/dt= a(V-E_L) -W
+  An additional state variable and the corresponding differential
+  equation represents a piecewise constant external current.
 
-Integration parameters
-  gsl_error_tol  double - This parameter controls the admissible error of the
-                          GSL integrator. Reduce it if NEST complains about
-                          numerical instabilities.
+  The general framework for the consistent formulation of systems with
+  neuron like dynamics interacting by point events is described in
+  [1].  A flow chart can be found in [2].
 
-Author: Marc-Oliver Gewaltig
+  Critical tests for the formulation of the neuron model are the
+  comparisons of simulation results for different computation step
+  sizes. sli/testsuite/nest contains a number of such tests.
+
+  The iaf_psc_alpha is the standard model used to check the consistency
+  of the nest simulation kernel because it is at the same time complex
+  enough to exhibit non-trivial dynamics and simple enough compute
+  relevant measures analytically.
+
+Remarks:
+
+  The present implementation uses individual variables for the
+  components of the state vector and the non-zero matrix elements of
+  the propagator.  Because the propagator is a lower triangular matrix
+  no full matrix multiplication needs to be carried out and the
+  computation can be done "in place" i.e. no temporary state vector
+  object is required.
+
+  The template support of recent C++ compilers enables a more succinct
+  formulation without loss of runtime performance already at minimal
+  optimization levels. A future version of iaf_psc_alpha will probably
+  address the problem of efficient usage of appropriate vector and
+  matrix objects.
+
+Remarks:
+
+  If tau_m is very close to tau_syn_ex or tau_syn_in, the model
+  will numerically behave as if tau_m is equal to tau_syn_ex or
+  tau_syn_in, respectively, to avoid numerical instabilities.
+  For details, please see IAF_Neruons_Singularity.ipynb in
+  the NEST source code (docs/model_details).
+
+References:
+  [1] Rotter S & Diesmann M (1999) Exact simulation of time-invariant linear
+      systems with applications to neuronal modeling. Biologial Cybernetics
+      81:381-402.
+  [2] Diesmann M, Gewaltig M-O, Rotter S, & Aertsen A (2001) State space
+      analysis of synchronous spiking in cortical neural networks.
+      Neurocomputing 38-40:565-571.
+  [3] Morrison A, Straube S, Plesser H E, & Diesmann M (2006) Exact subthreshold
+      integration with continuous spike times in discrete time neural network
+      simulations. Neural Computation, in press
 
 Sends: SpikeEvent
 
 Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
-
-References: Brette R and Gerstner W (2005) Adaptive Exponential
-            Integrate-and-Fire Model as an Effective Description of Neuronal
-            Activity. J Neurophysiol 94:3637-3642
-
-SeeAlso: iaf_cond_alpha, aeif_cond_exp
+FirstVersion: September 1999
+Author:  Diesmann, Gewaltig
+SeeAlso: iaf_psc_delta, iaf_psc_exp, iaf_cond_exp
 */
-neuron aeif_cond_alpha_neuron:
+neuron iaf_psc_alpha_neuron:
 
   state:
+<<<<<<< HEAD
     V_m cd = 10mV+10mV      # Membrane potential
     w pA = 0          # Spike-adaptation current
 	test real = -10
 	test2 mV = -steps(V)
+=======
+    V_abs mV
+    function V_m mV = V_abs + E_L # Membrane potential.
+>>>>>>> 2e69fd2d206336c55c0ba3f4d9fe79da8544e28f
   end
+
+
 
   equations:
-    shape g_in = (e/tau_syn_in) * t * exp(-1/tau_syn_in*t) # Excitatory synaptic conductance in nS
-    shape g_ex = (e/tau_syn_ex) * t * exp(-1/tau_syn_ex*t) # Inhibitory synaptic conductance in nS
+    shape I_shape_in = (e/tau_syn_in) * t * exp(-1/tau_syn_in*t)
+    shape I_shape_ex = (e/tau_syn_ex) * t * exp(-1/tau_syn_ex*t)
 
-    # Add aliases to simplify the equation definition of V_m
-    exp_arg real = (V_m-V_th)/delta_T
-    I_spike pA = delta_T*exp(exp_arg)
-    I_syn_exc pA =   Cond_sum(g_ex, spikesExc) * ( V_m - E_ex )
-    I_syn_inh pA =   Cond_sum(g_in, spikesInh) * ( V_m - E_in )
-
-    V_m' = ( -g_L * ( ( V_m - E_L ) - I_spike ) - I_syn_exc - I_syn_inh - w + I_e + I_stim ) / C_m
-
-    w' = (a*(V_m - E_L) - w)/tau_w
+    V_abs' = -1/Tau * V_abs + 1/C_m * (curr_sum(I_shape_in, in_spikes) + curr_sum(I_shape_ex, ex_spikes) + I_e + currents)
   end
 
-  parameter:
-    # membrane parameters
-    C_m   pF = 281.0pF       # Membrane Capacitance in pF
-    t_ref ms = 0.0ms         # Refractory period in ms
-    V_reset mV = -60.0mV     # Reset Potential in mV
-    g_L nS = 30.0nS          # Leak Conductance in nS
-    E_L mV = -70.6mV         # Leak reversal Potential (aka resting potential) in mV
-    I_e pA = 0pA             # Constant Current in pA
-
-    # spike adaptation parameters
-    a nS = 4nS               # Subthreshold adaptation
-    b pA = 80.5pA            # pike-triggered adaptation
-    delta_T mV = 2.0mV       # Slope factor
-    tau_w ms = 144.0ms       # Adaptation time constant
-    V_th mV = -50.4mV        # Threshold Potential in mV
-    V_peak mV = 0mV          # Spike detection threshold
-
-    # synaptic parameters
-    E_ex mV = 0mV            # Excitatory reversal Potential in mV
-    tau_syn_ex ms = 0.2ms    # Synaptic Time Constant Excitatory Synapse in ms
-    E_in mV = -85.0mV        # Inhibitory reversal Potential in mV
-    tau_syn_in ms = 2.0ms    # Synaptic Time Constant for Inhibitory Synapse in ms
-
-    # Input current injected by CurrentEvent.
-    # This variable is used to transport the current applied into the
-    # _dynamics function computing the derivative of the state vector.
-    I_stim pA = 0pA
+  parameters:
+    C_m     pF = 250pF   # Capacity of the membrane
+    Tau     ms = 10ms    # Membrane time constant.
+    tau_syn_in ms = 2ms  # Time constant of synaptic current.
+    tau_syn_ex ms = 2ms  # Time constant of synaptic current.
+    t_ref   ms = 2ms     # Duration of refractory period in ms.
+    E_L     mV = -70mV   # Resting potential.
+    function V_reset mV = -70mV - E_L # Reset potential of the membrane in mV.
+    function Theta   mV = -55mV - E_L # Spike threshold in mV.
+    I_e     pA = 0pA     # Constant external input current in pA.
   end
 
-  internal:
-    # Impulse to add to DG_EXC on spike arrival to evoke unit-amplitude
-    # conductance excursion.
-    PSConInit_E real = 1.0 * e / tau_syn_ex
-
-    # Impulse to add to DG_INH on spike arrival to evoke unit-amplitude
-    # conductance excursion.
-    PSConInit_I real = 1.0 * e / tau_syn_in
-
-    # refractory time in steps
-    RefractoryCounts integer = steps(t_ref)
-    # counts number of tick during the refractory period
-    r integer
+  internals:
+    RefractoryCounts integer = steps(t_ref) # refractory time in steps
+    r integer                               # counts number of tick during the refractory period
   end
 
   input:
-    spikesInh   <- inhibitory spike
-    spikesExc   <- excitatory spike
-    currents <- current
+    ex_spikes   <- excitatory spike
+    in_spikes   <- inhibitory spike
+    currents    <- current
   end
 
   output: spike
 
   update:
-    integrate(V_m)
-
-    if r > 0: # refractory
+    if r == 0: # neuron not refractory
+      integrate_odes()
+    else: # neuron is absolute refractory
       r = r - 1
     end
 
-    if r > 0: # not refractory
-      V_m = V_reset # clamp potential
-    elif V_m >= V_peak:
+    if V_abs >= Theta: # threshold crossing
+      # A supra-threshold membrane potential should never be observable.
+      # The reset at the time of threshold crossing enables accurate
+      # integration independent of the computation step size, see [2,3] for
+      # details.
       r = RefractoryCounts
-      V_m = V_reset # clamp potential
-      w += b
+      V_abs = V_reset
       emit_spike()
     end
 
-    # Update with initial values must be added after the model analysis
-    I_stim = currents.get_sum()
   end
 
 end

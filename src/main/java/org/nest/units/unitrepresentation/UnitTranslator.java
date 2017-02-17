@@ -38,7 +38,12 @@ public class UnitTranslator {
 
     }
     if(node.isDivOp()) {
-      final Optional<UnitRepresentation> left = getRecursive(node.getLeft().get());
+      final Optional<UnitRepresentation> left;
+      if(node.unitlessLiteralIsPresent()){
+        left = Optional.of(UnitRepresentation.getBuilder().build());
+      }else{
+        left = getRecursive(node.getLeft().get());
+      }
       final Optional<UnitRepresentation> right = getRecursive(node.getRight().get());
       if (left.isPresent() && right.isPresent()) {
         return Optional.of(left.get().divideBy(right.get()));

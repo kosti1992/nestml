@@ -9,16 +9,18 @@ import de.monticore.symboltable.CommonSymbol;
 import de.monticore.symboltable.Scope;
 import de.monticore.symboltable.SymbolKind;
 import org.nest.codegeneration.helpers.ASTBuffers;
+import org.nest.codegeneration.sympy.OdeTransformer;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.ASTInputLine;
-import org.nest.utils.ASTUtils;
+import org.nest.utils.AstUtils;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.*;
-import static org.nest.utils.ASTUtils.getVectorizedVariable;
-import static org.nest.symboltable.NESTMLSymbols.isSetterPresent;
+import static org.nest.symboltable.NestmlSymbols.isGetterPresent;
+import static org.nest.symboltable.NestmlSymbols.isSetterPresent;
+import static org.nest.utils.AstUtils.getVectorizedVariable;
 
 /**
  * Represents variables defined in e.g. variable blocks, functions, etc..
@@ -34,7 +36,7 @@ public class VariableSymbol extends CommonSymbol {
   private TypeSymbol type;
   private NeuronSymbol declaringType;
   private boolean isAlias;
-  private boolean isLoggable;
+  private boolean isRecordable;
   private BlockType blockType;
   private String arraySizeParameter = null;
   private boolean conductanceBased = false;
@@ -44,10 +46,10 @@ public class VariableSymbol extends CommonSymbol {
   }
 
   @SuppressWarnings({"unused"}) // used in templates
-  public boolean isLoggable() {
+  public boolean isRecordable() {
     // TODO: check whether the logic is correct. At the moment, the vector datatypes are not supported by the code
     // generator.
-    return isLoggable && !isVector();
+    return isRecordable && !isVector();
   }
   public Optional<ASTExpr> getOdeDeclaration() {
     return Optional.ofNullable(odeDeclaration);
@@ -61,8 +63,8 @@ public class VariableSymbol extends CommonSymbol {
     return odeDeclaration != null;
   }
 
-  public void setLoggable(boolean loggable) {
-    isLoggable = loggable;
+  public void setRecordable(boolean loggable) {
+    isRecordable = loggable;
   }
 
   public void setDeclaringExpression(final ASTExpr declaringExpression) {
@@ -84,7 +86,8 @@ public class VariableSymbol extends CommonSymbol {
   @Override
   public String toString() {
     return "VariableSymbol(" + getName() + ", " + getType() + ", "
-        + getBlockType() + "," + "array parameter: " + arraySizeParameter + ")";
+           + getBlockType() + "," + "array parameter: " + arraySizeParameter
+           + (getAstNode().isPresent()?getAstNode().get().get_SourcePositionStart():"") + ")";
   }
 
   public TypeSymbol getType() {
@@ -142,19 +145,20 @@ public class VariableSymbol extends CommonSymbol {
   public boolean isInhAndExc() {
     if (getAstNode().isPresent() && getAstNode().get() instanceof ASTInputLine) {
       final ASTInputLine astInputLine = (ASTInputLine) getAstNode().get();
-      return ASTUtils.isInhExc(astInputLine);
+      return AstUtils.isInhExc(astInputLine);
     }
     return false;
   }
 
   public boolean isVector() {
-    if (blockType != BlockType.SHAPE) {
-      return getVectorParameter().isPresent();
-    }
-    else {
+    if (blockType == BlockType.SHAPE) {
+
       // declaring expression exists by construction from symbol table creator
       // there no shape without declaring expression
       return getVectorizedVariable(getDeclaringExpression().get(), getEnclosingScope()).isPresent();
+    }
+    else {
+      return getVectorParameter().isPresent();
     }
 
   }
@@ -184,12 +188,20 @@ public class VariableSymbol extends CommonSymbol {
     return blockType == BlockType.STATE;
   }
 
+  public boolean isInternal() {
+    return blockType == BlockType.INTERNALS;
+  }
+
   public boolean isInEquation() {
     return blockType == BlockType.EQUATION;
   }
 
+  public boolean containsSumCall() {
+    return declaringExpression != null && OdeTransformer.containsSumFunctionCall(declaringExpression);
+  }
+
   public boolean isParameter() {
-    return blockType == BlockType.PARAMETER;
+    return blockType == BlockType.PARAMETERS;
   }
 
   public void setAlias(boolean isAlias) {
@@ -210,6 +222,14 @@ public class VariableSymbol extends CommonSymbol {
     checkArgument(getAstNode().get().getEnclosingScope().isPresent(), "Run symboltable creator.");
 
     return isSetterPresent(getName(), getType().getName(), getAstNode().get().getEnclosingScope().get());
+  }
+
+  @SuppressWarnings({"unused"}) // used in templates
+  public boolean hasGetter() {
+    checkState(getAstNode().isPresent(), "Symbol table must set the AST node.");
+    checkArgument(getAstNode().get().getEnclosingScope().isPresent(), "Run symboltable creator.");
+
+    return isGetterPresent(getName(), getType().getName(), getAstNode().get().getEnclosingScope().get());
   }
 
   @SuppressWarnings({"unused"}) // used in templates
@@ -253,8 +273,8 @@ public class VariableSymbol extends CommonSymbol {
 
   public enum BlockType {
     STATE,
-    PARAMETER,
-    INTERNAL,
+    PARAMETERS,
+    INTERNALS,
     EQUATION,
     LOCAL,
     INPUT_BUFFER_CURRENT,

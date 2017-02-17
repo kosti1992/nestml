@@ -3,22 +3,23 @@ package org.nest.commons._visitor;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.utils.AstUtils;
 
-import static com.google.common.base.Preconditions.checkState;
-import static org.nest.commons._visitor.ExpressionTypeVisitor.isNumeric;
+import static de.se_rwth.commons.logging.Log.error;
 import static org.nest.spl.symboltable.typechecking.TypeChecker.isInteger;
-
+import static org.nest.spl.symboltable.typechecking.TypeChecker.isNumeric;
 
 /**
  * @author ptraeder
  */
 public class UnaryVisitor implements CommonsVisitor {
+  final String ERROR_CODE = "SPL_UNARY_VISITOR";
+
   //Expr = (unaryPlus:["+"] | unaryMinus:["-"] | unaryTilde:["~"]) term:Expr
 
   @Override
   public void visit(ASTExpr expr){
-    checkState(expr.getTerm().get().getType().isPresent());
-    final Either<TypeSymbol, String> termType  = expr.getTerm().get().getType().get();
+    final Either<TypeSymbol, String> termType  = expr.getTerm().get().getType();
 
     if(termType.isError()){
       expr.setType(termType);
@@ -31,8 +32,10 @@ public class UnaryVisitor implements CommonsVisitor {
         return;
       }
       else {
-        String errorMsg = "Cannot perform a math operation on the not numeric type";
+        final String errorMsg = ERROR_CODE+ " " + AstUtils.print(expr.get_SourcePositionStart()) + " : " +
+            "Cannot perform an arithmetic operation on a non-numeric type";
         expr.setType(Either.error(errorMsg));
+        error(errorMsg,expr.get_SourcePositionStart());
         return;
       }
     }
@@ -42,15 +45,18 @@ public class UnaryVisitor implements CommonsVisitor {
           return;
         }
         else {
-          String errorMsg = "Cannot perform a math operation on the not numeric type";
+          final String errorMsg = ERROR_CODE+ " " + AstUtils.print(expr.get_SourcePositionStart()) + " : " +
+              "Cannot perform an arithmetic operation on a non-numeric type";
           expr.setType(Either.error(errorMsg));
+          error(errorMsg,expr.get_SourcePositionStart());
           return;
         }
     }
     //Catch-all if no case has matched
-    String msg = "Cannot determine the type of the Expression-Node @<"
-        + expr.get_SourcePositionStart() + ", " + expr.get_SourcePositionEnd();
-    expr.setType(Either.error(msg));
+    final String errorMsg = ERROR_CODE+ " " + AstUtils.print(expr.get_SourcePositionStart()) + " : " +
+        "Cannot determine the type of the expression: " + AstUtils.toString(expr);
+    error(errorMsg,expr.get_SourcePositionStart());
+    expr.setType(Either.error(errorMsg));
   }
 }
 

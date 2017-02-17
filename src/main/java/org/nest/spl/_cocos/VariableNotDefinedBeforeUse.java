@@ -10,14 +10,17 @@ import de.monticore.ast.ASTNode;
 import de.monticore.symboltable.Scope;
 import de.monticore.utils.ASTNodes;
 import de.se_rwth.commons.logging.Log;
+import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.commons._ast.ASTVariable;
+import org.nest.commons._cocos.CommonsASTFunctionCallCoCo;
 import org.nest.spl._ast.ASTAssignment;
 import org.nest.spl._ast.ASTDeclaration;
 import org.nest.spl._ast.ASTFOR_Stmt;
+import org.nest.spl._ast.ASTWHILE_Stmt;
+import org.nest.symboltable.predefined.PredefinedVariables;
 import org.nest.symboltable.symbols.VariableSymbol;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static de.se_rwth.commons.logging.Log.error;
@@ -30,15 +33,17 @@ import static de.se_rwth.commons.logging.Log.error;
 public class VariableNotDefinedBeforeUse implements
     SPLASTAssignmentCoCo,
     SPLASTDeclarationCoCo,
-    SPLASTFOR_StmtCoCo {
-
-  public static final String ERROR_CODE = "SPL_VARIABLE_NOT_DEFINED_BEFORE_USE";
-  private static final String ERROR_MSG_FORMAT = "Variable '%s' not defined yet. It is defined at line '%d'";
+    SPLASTFOR_StmtCoCo,
+    SPLASTWHILE_StmtCoCo,
+    CommonsASTFunctionCallCoCo {
 
   @Override
   public void check(final ASTFOR_Stmt forstmt) {
     String fullName = forstmt.getVar();
     check(fullName, forstmt);
+    final List<ASTVariable> variables = ASTNodes.getSuccessors(forstmt.getFrom(), ASTVariable.class);
+    variables.addAll(ASTNodes.getSuccessors(forstmt.getTo(), ASTVariable.class));
+    variables.forEach(variable -> check(variable.toString(), forstmt));
   }
 
   @Override
@@ -52,25 +57,32 @@ public class VariableNotDefinedBeforeUse implements
     final Scope scope = decl.getEnclosingScope().get();
 
     if (decl.getExpr().isPresent()) {
-      final List<String> varsOfCurrentDecl = Lists.newArrayList(decl.getVars());
-      final List<ASTVariable> variablesNamesRHS = ASTNodes.getSuccessors(decl.getExpr().get(), ASTVariable.class);;
-      // check, if variable of the left side is used in the right side, e.g. in decl-vars
 
+      final List<String> varsOfCurrentDecl = Lists.newArrayList(decl.getVars());
+      final List<ASTVariable> variablesNamesRHS = ASTNodes.getSuccessors(decl.getExpr().get(), ASTVariable.class);
+      // check if it is variable block or dynamics- or user-defined function. if yes, skip the check. It will be
+      // checked through MemberVariablesInitialisedInCorrectOrder coco
+      final VariableSymbol declarationSymbol = VariableSymbol.resolve(varsOfCurrentDecl.get(0), scope);
+      if (!declarationSymbol.getBlockType().equals(VariableSymbol.BlockType.LOCAL)) {
+        return;
+      }
+      // check, if variable of the left side is used in the right side, e.g. in decl-vars
       for (final ASTVariable variable: variablesNamesRHS) {
         final String varRHS = variable.toString();
         final VariableSymbol variableSymbol =VariableSymbol.resolve(varRHS, scope);
+        if (PredefinedVariables.gerVariables().contains(variableSymbol)) {
+          continue;
+        }
         // e.g. x real = 2 * x
         if (varsOfCurrentDecl.contains(varRHS)) {
-          final String logMsg = "Cannot use variable '%s' in the assignment of its own declaration.";
-          error(ERROR_CODE + ":" + String.format(logMsg, varRHS),
-              decl.get_SourcePositionStart());
+          final String logMsg = SplErrorStrings.messageOwnAssignment(this, varRHS, decl.get_SourcePositionStart());
+          error(logMsg, decl.get_SourcePositionStart());
         }
         else if (variable.get_SourcePositionStart().compareTo(variableSymbol.getAstNode().get().get_SourcePositionStart()) < 0) {
           // y real = 5 * x
           // x integer = 1
-          final String logMsg = "Cannot use variable '%s' before its usage.";
-          error(ERROR_CODE + ":" + String.format(logMsg, variable),
-              decl.get_SourcePositionStart());
+          final String logMsg = SplErrorStrings.messageDefinedBeforeUse(this, variable.toString(), decl.get_SourcePositionStart());
+          error(logMsg, decl.get_SourcePositionStart());
         }
 
       }
@@ -83,21 +95,32 @@ public class VariableNotDefinedBeforeUse implements
     checkArgument(node.getEnclosingScope().isPresent(), "No scope assigned. Please, run symboltable creator.");
     final Scope scope = node.getEnclosingScope().get();
 
-    Optional<VariableSymbol> varOptional = scope.resolve(varName, VariableSymbol.KIND);
+    VariableSymbol varOptional = VariableSymbol.resolve(varName, scope);
 
-    if(varOptional.isPresent()) {
-      // exists
-      if (node.get_SourcePositionStart().compareTo(varOptional.get().getSourcePosition()) < 0) {
-        Log.error(ERROR_CODE + ":" +
-                String
-                    .format(ERROR_MSG_FORMAT, varName, varOptional.get().getSourcePosition().getLine()),
-            node.get_SourcePositionEnd());
-      }
-    }
-    else {
-      Log.warn(ERROR_CODE +  "Variable " + varName + " couldn't be resolved.");
+    // exists
+    if (varOptional.getBlockType().equals(VariableSymbol.BlockType.LOCAL) &&
+        node.get_SourcePositionStart().compareTo(varOptional.getSourcePosition()) < 0) {
+      final String msg = SplErrorStrings.messageDefinedBeforeUse(
+          this,
+          varName,
+          node.get_SourcePositionStart(),
+          varOptional.getSourcePosition());
+      Log.error(msg, node.get_SourcePositionEnd());
     }
 
+  }
+
+  @Override
+  public void check(final ASTWHILE_Stmt astWhileStmt) {
+    final List<ASTVariable> variables = ASTNodes.getSuccessors(astWhileStmt.getExpr(), ASTVariable.class);
+    variables.forEach(variable -> check(variable.toString(), astWhileStmt));
+  }
+
+  @Override
+  public void check(ASTFunctionCall astFunctionCall) {
+    final List<ASTVariable> variables = Lists.newArrayList();
+    astFunctionCall.getArgs().forEach(argExpr -> variables.addAll(ASTNodes.getSuccessors(argExpr, ASTVariable.class)));
+    variables.forEach(variable -> check(variable.toString(), astFunctionCall));
   }
 
 }

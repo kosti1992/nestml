@@ -27,7 +27,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.nest.codegeneration.sympy.NESTMLASTCreator.createAlias;
 import static org.nest.symboltable.symbols.VariableSymbol.resolve;
-import static org.nest.utils.ASTUtils.getVectorizedVariable;
+import static org.nest.utils.AstUtils.getVectorizedVariable;
 
 /**
  * Takes SymPy result with the linear solution of the ODE and the source AST.
@@ -53,7 +53,7 @@ public class LinearSolutionTransformer extends TransformerBase {
 
   public ASTNeuron addExactSolution(
       final ASTNeuron astNeuron,
-      final Path P00File,
+      final Path P30File,
       final Path PSCInitialValueFile,
       final Path stateVariablesFile,
       final Path propagatorMatrixFile,
@@ -61,9 +61,9 @@ public class LinearSolutionTransformer extends TransformerBase {
       final Path stateVectorTmpDeclarationsFile,
       final Path stateVectorUpdateStepsFile,
       final Path stateVectorTmpBackAssignmentsFile) {
-    ASTNeuron workingVersion = addAliasToInternals(astNeuron, P00File);
+    ASTNeuron workingVersion = astNeuron;
     workingVersion.getBody().addToInternalBlock(createAlias("__h__ ms = resolution()"));
-
+    workingVersion = addAliasToInternals(astNeuron, P30File);
     workingVersion = addDeclarationsToInternals(workingVersion, PSCInitialValueFile);
     workingVersion = addDeclarationsToInternals(workingVersion, propagatorMatrixFile);
 

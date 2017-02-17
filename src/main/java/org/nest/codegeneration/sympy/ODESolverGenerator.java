@@ -17,7 +17,7 @@ import org.nest.ode._ast.ASTOdeDeclaration;
 import org.nest.spl.prettyprinter.ExpressionsPrettyPrinter;
 import org.nest.symboltable.predefined.PredefinedVariables;
 import org.nest.symboltable.symbols.VariableSymbol;
-import org.nest.utils.ASTUtils;
+import org.nest.utils.AstUtils;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static de.se_rwth.commons.logging.Log.info;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.nest.utils.ASTUtils.getVariableSymbols;
+import static org.nest.utils.AstUtils.getVariableSymbols;
 
 /**
  * Wrapps the logic how to extract and generate SymPy script..
@@ -63,7 +63,7 @@ public class ODESolverGenerator {
     if (odeDefinition.isPresent()) {
       final Path generatedScriptFile = generateSympyScript(
           createGLEXConfiguration(),
-          neuron.deepClone(), // is necessary because the model is altered inplace, e.g replacing I_sum(Buffer, Shape)
+          neuron, // TODO is necessary because the model is altered inplace, e.g replacing I_sum(Buffer, Shape)
           ODE_SOLVER_GENERATOR_TEMPLATE,
           odeDefinition.get(),
           setup);
@@ -93,7 +93,7 @@ public class ODESolverGenerator {
    * @param outputDirectory Base directory for the output
    * @return Path to the generated script of @code{empty()} if there is no ODE definition.
    */
-  public static Optional<Path> generateODEAnalyserForDeltaShape(
+  static Optional<Path> generateODEAnalyserForDeltaShape(
       final ASTNeuron neuron,
       final Path outputDirectory) {
     final GeneratorSetup setup = new GeneratorSetup(new File(outputDirectory.toString()));
@@ -104,7 +104,7 @@ public class ODESolverGenerator {
     if (odeDefinition.isPresent()) {
       final Path generatedScriptFile = generateSympyScript(
           createGLEXConfiguration(),
-          neuron.deepClone(), // is necessary because the model is altered inplace, e.g replacing I_sum(Buffer, Shape)
+          neuron, // TODO DeepClone is necessary because the model is altered inplace, e.g replacing I_sum(Buffer, Shape)
           DELTA_SHAPE_SOLVER_GENERATOR_TEMPLATE,
           odeDefinition.get(),
           setup);
@@ -149,22 +149,23 @@ public class ODESolverGenerator {
     setup.setCommentEnd(Optional.empty());
 
     final Set<VariableSymbol> variables = new HashSet<>(getVariableSymbols(astOdeDeclaration));
-    final List<VariableSymbol> aliases =  astOdeDeclaration.getODEAliass()
+    final List<VariableSymbol> aliases =  astOdeDeclaration.getOdeFunctions()
         .stream()
         .map(alias -> VariableSymbol.resolve(alias.getVariableName(), scope))
         .collect(Collectors.toList());
 
     for (final ASTEquation ode:astOdeDeclaration.getODEs()) {
-      final VariableSymbol lhsSymbol = VariableSymbol.resolve(ASTUtils.getNameOfLHS(ode.getLhs()), scope);
+      final VariableSymbol lhsSymbol = VariableSymbol.resolve(AstUtils.getNameOfLHS(ode.getLhs()), scope);
       variables.add(lhsSymbol);
     }
 
     glex.setGlobalValue("variables", variables);
     glex.setGlobalValue("aliases", aliases);
+    glex.setGlobalValue("neuronName", neuron.getName());
 
     final ExpressionsPrettyPrinter expressionsPrinter  = new ExpressionsPrettyPrinter();
     glex.setGlobalValue("printer", expressionsPrinter);
-    glex.setGlobalValue("odeTransformer", new ODETransformer());
+    glex.setGlobalValue("odeTransformer", new OdeTransformer());
 
     final GeneratorEngine generator = new GeneratorEngine(setup);
     final Path solverSubPath = Paths.get( neuron.getName() + "Solver.py");

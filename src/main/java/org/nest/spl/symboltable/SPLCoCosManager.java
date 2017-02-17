@@ -34,20 +34,19 @@ public class SPLCoCosManager {
     splCoCoChecker.addCoCo((CommonsASTFunctionCallCoCo) variableExists);
     splCoCoChecker.addCoCo((SPLASTReturnStmtCoCo) variableExists);
 
-    final VariableDefinedMultipleTimes variableDefinedMultipleTimes = new VariableDefinedMultipleTimes();
-    splCoCoChecker.addCoCo(variableDefinedMultipleTimes);
+    final SPLVariableDefinedMultipleTimes SPLVariableDefinedMultipleTimes = new SPLVariableDefinedMultipleTimes();
+    splCoCoChecker.addCoCo(SPLVariableDefinedMultipleTimes);
 
-    final VarHasTypeName varHasTypeName = new VarHasTypeName();
-    splCoCoChecker.addCoCo(varHasTypeName);
+    final VariableHasTypeName variableHasTypeName = new VariableHasTypeName();
+    splCoCoChecker.addCoCo(variableHasTypeName);
 
     final VariableNotDefinedBeforeUse variableNotDefinedBeforeUse = new VariableNotDefinedBeforeUse();
 
     splCoCoChecker.addCoCo((SPLASTAssignmentCoCo) variableNotDefinedBeforeUse);
     splCoCoChecker.addCoCo((SPLASTDeclarationCoCo) variableNotDefinedBeforeUse);
     splCoCoChecker.addCoCo((SPLASTFOR_StmtCoCo) variableNotDefinedBeforeUse);
-
-    final IllegalVarInFor illegalVarInFor = new IllegalVarInFor();
-    splCoCoChecker.addCoCo(illegalVarInFor);
+    splCoCoChecker.addCoCo((CommonsASTFunctionCallCoCo) variableNotDefinedBeforeUse);
+    splCoCoChecker.addCoCo((SPLASTWHILE_StmtCoCo) variableNotDefinedBeforeUse);
 
     final IllegalExpression illegalExpression = new IllegalExpression();
     splCoCoChecker.addCoCo((SPLASTAssignmentCoCo) illegalExpression);
@@ -67,14 +66,17 @@ public class SPLCoCosManager {
 
   public void addSPLCocosToNESTMLChecker(final NESTMLCoCoChecker nestmlCoCoChecker) {
 
-    final VariableDefinedMultipleTimes variableDefinedMultipleTimes = new VariableDefinedMultipleTimes();
-    nestmlCoCoChecker.addCoCo(variableDefinedMultipleTimes);
+    final VariableNotDefinedBeforeUse variableNotDefinedBeforeUse = new VariableNotDefinedBeforeUse();
 
-    final VarHasTypeName varHasTypeName = new VarHasTypeName();
-    nestmlCoCoChecker.addCoCo(varHasTypeName);
+    nestmlCoCoChecker.addCoCo((SPLASTAssignmentCoCo) variableNotDefinedBeforeUse);
+    nestmlCoCoChecker.addCoCo((SPLASTDeclarationCoCo) variableNotDefinedBeforeUse);
+    nestmlCoCoChecker.addCoCo((SPLASTFOR_StmtCoCo) variableNotDefinedBeforeUse);
 
-    final IllegalVarInFor illegalVarInFor = new IllegalVarInFor();
-    nestmlCoCoChecker.addCoCo(illegalVarInFor);
+    final SPLVariableDefinedMultipleTimes SPLVariableDefinedMultipleTimes = new SPLVariableDefinedMultipleTimes();
+    nestmlCoCoChecker.addCoCo(SPLVariableDefinedMultipleTimes);
+
+    final VariableHasTypeName variableHasTypeName = new VariableHasTypeName();
+    nestmlCoCoChecker.addCoCo(variableHasTypeName);
 
     final IllegalExpression illegalExpression = new IllegalExpression();
     nestmlCoCoChecker.addCoCo((SPLASTAssignmentCoCo) illegalExpression);
@@ -92,7 +94,7 @@ public class SPLCoCosManager {
 
   }
 
-  public void addVariableExistenceCheck(final NESTMLCoCoChecker nestmlCoCoChecker) {
+  public static void addVariableExistenceCheck(final NESTMLCoCoChecker nestmlCoCoChecker) {
     final VariableDoesNotExist variableExists = new VariableDoesNotExist();
     nestmlCoCoChecker.addCoCo((SPLASTCompound_StmtCoCo) variableExists);
     nestmlCoCoChecker.addCoCo((SPLASTAssignmentCoCo) variableExists);

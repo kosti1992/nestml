@@ -8,7 +8,7 @@ neuron NeuronInTest:
     g_z'' = t
   end
 
-  parameter:
+  parameters:
     y real
   end
 
@@ -17,7 +17,7 @@ neuron NeuronInTest:
   end
 
   equations:
-    g real = 12
+    function g real = 12
   end
 end
 

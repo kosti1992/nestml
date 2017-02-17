@@ -15,12 +15,13 @@ import org.nest.commons._cocos.CommonsASTFunctionCallCoCo;
 import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.MethodSymbol;
 import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.utils.AstUtils;
 
 import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.nest.symboltable.NESTMLSymbols.resolveMethod;
+import static org.nest.symboltable.NestmlSymbols.resolveMethod;
 
 /**
  * Checks that methods are defined and used with correct types.
@@ -28,8 +29,6 @@ import static org.nest.symboltable.NESTMLSymbols.resolveMethod;
  * @author ippen, plotnikov
  */
 public class FunctionDoesNotExist implements CommonsASTFunctionCallCoCo {
-  public static final String ERROR_CODE = "SPL_FUNCTION_DOES_NOT_EXIST";
-  private static final String ERROR_MSG_FORMAT = "The function '%s' is not defined";
 
   @Override
   public void check(final ASTFunctionCall astFunctionCall) {
@@ -42,15 +41,14 @@ public class FunctionDoesNotExist implements CommonsASTFunctionCallCoCo {
     final List<String> argTypeNames = Lists.newArrayList();
     final List<String> prettyArgTypeNames = Lists.newArrayList();
 
-    for (int i = 0; i < astFunctionCall.getArgs().size(); ++i) {
-      final ASTExpr arg = astFunctionCall.getArgs().get(i);
-      final Either<TypeSymbol, String> argType = arg.getType().get();
+    for (ASTExpr arg :  astFunctionCall.getArgs()) {
+      final Either<TypeSymbol, String> argType = arg.getType();
       if (argType.isValue()) {
         prettyArgTypeNames.add(argType.getValue().prettyPrint());
         argTypeNames.add(argType.getValue().getName());
       }
       else {
-        Log.warn(ERROR_CODE + ": Cannot compute the type: " + arg);
+        Log.warn(SplErrorStrings.code(this) + ": Cannot compute the type: " + AstUtils.toString(arg) + " : " + arg.get_SourcePositionStart());
         return;
       }
 
@@ -60,8 +58,11 @@ public class FunctionDoesNotExist implements CommonsASTFunctionCallCoCo {
 
     if (!method.isPresent()) {
       Log.error(
-          ERROR_CODE + ":" + String.format(ERROR_MSG_FORMAT, methodName)
-              + " with the signature '" + Joiner.on(",").join(prettyArgTypeNames) + "'",
+          SplErrorStrings.message(
+              this,
+              methodName,
+              Joiner.on(",").join(prettyArgTypeNames),
+              astFunctionCall.get_SourcePositionStart()),
           astFunctionCall.get_SourcePositionStart());
     }
 

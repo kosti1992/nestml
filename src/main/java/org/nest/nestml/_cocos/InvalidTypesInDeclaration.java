@@ -21,11 +21,11 @@ import org.nest.symboltable.symbols.TypeSymbol;
 import java.util.Optional;
 
 import static org.abego.treelayout.internal.util.Contract.checkState;
-import static org.nest.utils.ASTUtils.computeTypeName;
+import static org.nest.utils.AstUtils.computeTypeName;
 
 /**
  * Only predefined types must be used in a declaration.
- *
+ * TODO remove me!
  * @author ippen, plotnikov
  */
 public class InvalidTypesInDeclaration implements
@@ -78,7 +78,7 @@ public class InvalidTypesInDeclaration implements
 
   private void checkIfValidType(ASTNode astNode, String typeName, Optional<TypeSymbol> type) {
     if (!type.isPresent() || type.isPresent() && type.get().getName().endsWith("Logger")) {
-      CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
+      NestmlErrorStrings errorStrings = NestmlErrorStrings.getInstance();
       String msg = errorStrings.getErrorMsg(this,typeName);
 
       Log.error(msg, astNode.get_SourcePositionStart());
@@ -94,7 +94,7 @@ public class InvalidTypesInDeclaration implements
     final Optional<NeuronSymbol> type = enclosingScope.get().resolve(typeName, NeuronSymbol.KIND);
 
     if (!type.isPresent()) {
-      CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
+      NestmlErrorStrings errorStrings = NestmlErrorStrings.getInstance();
       final String msg = errorStrings.getErrorMsg(this,typeName);
 
       Log.error(msg, astUseStmt.get_SourcePositionStart());

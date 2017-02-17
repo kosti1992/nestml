@@ -8,15 +8,12 @@ package org.nest.codegeneration;
 import de.monticore.generating.GeneratorEngine;
 import de.monticore.generating.GeneratorSetup;
 import de.monticore.generating.templateengine.GlobalExtensionManagement;
-import org.nest.codegeneration.helpers.ASTAssignments;
-import org.nest.codegeneration.helpers.ASTDeclarations;
-import org.nest.codegeneration.helpers.ASTForNodes;
-import org.nest.codegeneration.helpers.SPLFunctionCalls;
+import org.nest.codegeneration.helpers.*;
 import org.nest.spl._ast.ASTAssignment;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTDeclaration;
 import org.nest.spl.prettyprinter.ExpressionsPrettyPrinter;
-import org.nest.utils.ASTUtils;
+import org.nest.utils.AstUtils;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -26,8 +23,8 @@ import java.nio.file.Path;
  * @author plotnikov
  */
 public class Spl2NestCodeGenerator {
-  private static final String DECLARATION_TEMPLATE = "org.nest.spl.Declaration";
-  private static final String ASSIGNMENT_TEMPLATE = "org.nest.spl.Assignment";
+  private static final String DECLARATION_TEMPLATE = "org.nest.spl.small_statement.Declaration";
+  private static final String ASSIGNMENT_TEMPLATE = "org.nest.spl.small_statement.Assignment";
   private static final String BLOCK_TEMPLATE = "org.nest.spl.Block";
 
   private final GeneratorEngine generator;
@@ -43,7 +40,9 @@ public class Spl2NestCodeGenerator {
     glex.setGlobalValue("expressionsPrinter", prettyPrinter);
     glex.setGlobalValue("forDeclarationHelper", new ASTForNodes());
     glex.setGlobalValue("functions", new SPLFunctionCalls());
-    glex.setGlobalValue("astUtils", new ASTUtils());
+    glex.setGlobalValue("astUtils", new AstUtils());
+    glex.setGlobalValue("variableHelper", new VariableHelper());
+    glex.setGlobalValue("names", new Names());
 
     setup.setGlex(glex);
     generator = new GeneratorEngine(setup);

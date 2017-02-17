@@ -98,11 +98,11 @@ neuron iaf_tum_2000_neuron:
   equations:
     shape I_shape_in = exp(-1/tau_syn_in*t)
     shape I_shape_ex = exp(-1/tau_syn_ex*t)
-    I_syn pA = (I_sum(I_shape_in, in_spikes) + I_sum(I_shape_ex, ex_spikes) + I_e + currents)
+    function I_syn pA = (curr_sum(I_shape_in, in_spikes) + curr_sum(I_shape_ex, ex_spikes) + I_e + currents)
     V_m' = -1/tau_m * V_m + 1/C_m * I_syn
   end
 
-  parameter:
+  parameters:
     C_m  pF = 250pF     # Capacity of the membrane
     tau_m  ms = 10ms    # Membrane time constant.
     tau_syn_in ms = 2ms  # Time constant of synaptic current.
@@ -111,15 +111,15 @@ neuron iaf_tum_2000_neuron:
     # total refractory period
     t_ref_tot   ms = 2ms     [[t_ref_tot >= t_ref_abs]] # if t_ref_abs == t_ref_tot iaf_tum_2000 equivalent to iaf_psc_exp
     E_L     mV = -70mV  # Resting potential.
-    alias V_reset mV = -70.0mV - E_L # Reset value of the membrane potential
+    function V_reset mV = -70.0mV - E_L # Reset value of the membrane potential
                                      # RELATIVE TO RESTING POTENTIAL(!).
                                      # I.e. the real threshold is (V_reset + E_L).
-    alias V_th mV = -55.0mV - E_L # Threshold, RELATIVE TO RESTING POTENTIAL(!).
+    function V_th mV = -55.0mV - E_L # Threshold, RELATIVE TO RESTING POTENTIAL(!).
                                   # I.e. the real threshold is (E_L+V_th).
     I_e     pA = 0pA     # External current.
   end
 
-  internal:
+  internals:
     # TauR specifies the length of the absolute refractory period as
     # a double_t in ms. The grid based iaf_tum_2000 can only handle refractory
     # periods that are integer multiples of the computation step size (h).
@@ -153,9 +153,9 @@ neuron iaf_tum_2000_neuron:
 
   update:
     if r_abs == 0: # neuron not absolute refractory, so evolve V
-        integrate(V_m)
+      integrate_odes()
     else:
-        r_abs -= 1 # neuron is absolute refractory
+      r_abs -= 1 # neuron is absolute refractory
     end
 
     if r_tot == 0:

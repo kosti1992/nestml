@@ -5,7 +5,6 @@ import de.se_rwth.commons.logging.Log;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
-import org.nest.nestml._symboltable.NESTMLScopeCreator;
 import org.nest.utils.LogHelper;
 
 import java.io.IOException;
@@ -83,9 +82,6 @@ public class NESTMLParserTest extends ModelbasedTest {
    */
   @Test
   public void testFasleArtifactHandling() throws IOException {
-    final Optional<ASTNESTMLCompilationUnit> withoutExtension
-        = parser.parse(Paths.get("test","falseFileExtension.tmp").toString());
-    assertFalse(withoutExtension.isPresent());
 
     final Optional<ASTNESTMLCompilationUnit> wrongFolderStructure
         = parser.parse("falseFileExtension.nestml");

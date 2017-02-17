@@ -75,30 +75,30 @@ neuron iaf_neuron_neuron:
   # Captures the dynamic state of the neuron
   state:
     V_abs mV
-    alias V_m mV = V_abs + E_L # Membrane potential.
+    function V_m mV = V_abs + E_L # Membrane potential.
   end
 
   # Declarative description of the updates rules
   equations:
       shape G = (e/tau_syn) * t * exp(-1/tau_syn*t)
-      V_abs' = -1/Tau * V_abs + 1/C_m * (I_sum(G, spikes) + I_e + currents)
+      V_abs' = -1/Tau * V_abs + 1/C_m * (curr_sum(G, spikes) + I_e + currents)
   end
 
   # these parameter are adjusted from outside
-  parameter:
+  parameters:
     C_m     pF = 250 pF [[C_m > 0 pF]]   # ERROR: pf is wrong
     Tau     ms = 10 ms    #
     Tau     ms = 10 ms    #
     tau_syn ms = 2 ms     # Time constant of synaptic current.
     t_ref   ms = 2 ms    # Refractory period.
     E_L     mV = -70 mV  # Resting potential.
-    alias V_reset mV = -70 mV - E_L
-    alias Theta   mV = -55 mV- E_L
+    function V_reset mV = -70 mV - E_L
+    function Theta   mV = -55 mV- E_L
     I_e     pA = 0 pA     # External current.
   end
 
   # helper calculations
-  internal:
+  internals:
     RefractoryCounts integer = steps(t_ref) # refractory time in steps
     r integer                               # counts number of tick during the refractory period
   end
@@ -115,7 +115,7 @@ neuron iaf_neuron_neuron:
   # Describes how the state evolves in the time
   update:
     if r == 0: # not refractory
-        integrate(V_abs)
+        integrate_odes()
         if V_abs >= Theta: # threshold crossing
           r = RefractoryCounts
           V_abs = V_reset

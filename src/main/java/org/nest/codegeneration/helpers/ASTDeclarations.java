@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.nest.utils.ASTUtils.computeTypeName;
+import static org.nest.utils.AstUtils.computeTypeName;
 
 /**
  * This class is used in the code generator to convert NESTML types to the NEST types
@@ -51,6 +51,16 @@ public class ASTDeclarations {
     }
     else {
       return nestml2NESTTypeConverter.convert(variableSymbol.getType());
+    }
+  }
+
+  public String initialValue(final VariableSymbol variableSymbol) {
+
+    if (variableSymbol.getVectorParameter().isPresent()) {
+      return "std::vector< " + nestml2NESTTypeConverter.convert(variableSymbol.getType()) + " > ()";
+    }
+    else {
+      return "0"; // TODO map it based on its type
     }
   }
 

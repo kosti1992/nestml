@@ -8,12 +8,11 @@ package org.nest.nestml._cocos;
 import com.google.common.collect.Maps;
 import de.monticore.ast.ASTNode;
 import de.se_rwth.commons.SourcePosition;
-import groovyjarjarantlr.collections.AST;
 import org.nest.nestml._ast.ASTBody;
 import org.nest.nestml._ast.ASTComponent;
 import org.nest.nestml._ast.ASTNeuron;
 import org.nest.spl._ast.ASTDeclaration;
-import org.nest.utils.ASTUtils;
+import org.nest.utils.AstUtils;
 
 import java.util.Map;
 
@@ -26,7 +25,7 @@ import static de.se_rwth.commons.logging.Log.error;
  * E.g. in the following case x defined twice and results in an error
  * neuron NeuronInTest:
  *   state: x mV end
- *   parameter: x real end
+ *   parameters: x real end
  * end
  *
  * @author ippen, plotnikov
@@ -59,8 +58,8 @@ public class MemberVariableDefinedMultipleTimes implements
     body.getEquations()
         .stream()
         .filter(astEquation -> astEquation.getLhs().getDifferentialOrder().size() > 1)
-        .forEach(astEquation -> addVariable(ASTUtils.getNameOfLHS(astEquation), varNames, astEquation));
-    body.getShapes().forEach(astShape -> addVariable(ASTUtils.getNameOfLHS(astShape), varNames, astShape));
+        .forEach(astEquation -> addVariable(AstUtils.getNameOfLHS(astEquation), varNames, astEquation));
+    body.getShapes().forEach(astShape -> addVariable(AstUtils.getNameOfLHS(astShape), varNames, astShape));
   }
 
   private void addNames(
@@ -85,7 +84,7 @@ public class MemberVariableDefinedMultipleTimes implements
       final Map<String, SourcePosition> names,
       final ASTNode astNode) {
     if (names.containsKey(var)) {
-      CocoErrorStrings errorStrings = CocoErrorStrings.getInstance();
+      NestmlErrorStrings errorStrings = NestmlErrorStrings.getInstance();
       final String msg = errorStrings.getErrorMsg(this,var,
               names.get(var).getLine(),
               names.get(var).getColumn());
@@ -96,5 +95,7 @@ public class MemberVariableDefinedMultipleTimes implements
     else {
       names.put(var, astNode.get_SourcePositionStart());
     }
+
   }
+
 }

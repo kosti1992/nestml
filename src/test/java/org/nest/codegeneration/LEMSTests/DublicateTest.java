@@ -24,7 +24,7 @@ public class DublicateTest extends ModelbasedTest {
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
 
   private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevichNested.nestml";
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/config";
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/config.xml";
   @Test
   public void testGenerateLEMS() throws Exception {
     int varCount = 0;

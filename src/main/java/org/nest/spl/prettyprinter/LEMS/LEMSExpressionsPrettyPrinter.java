@@ -62,8 +62,8 @@ public class LEMSExpressionsPrettyPrinter {
       //now check whether a unit is present
 
       if(expr.getNESTMLNumericLiteral().get().getType().isPresent()) {
-        container.addUnit(new Unit(expr.getType().get().getValue()));
-        temp = temp + expr.getType().get().getValue().prettyPrint();
+        container.addUnit(new Unit(expr.getType().getValue()));
+        temp = temp + expr.getType().getValue().prettyPrint();
       }
       return temp;
     }

@@ -5,31 +5,29 @@
  */
 package org.nest.codegeneration;
 
+import com.google.common.io.Files;
 import de.monticore.generating.GeneratorEngine;
 import de.monticore.generating.GeneratorSetup;
 import de.monticore.generating.templateengine.GlobalExtensionManagement;
-import org.apache.commons.io.FileUtils;
-import org.nest.codegeneration.converters.GSLReferenceConverter;
-import org.nest.codegeneration.converters.NESTParameterBlockReferenceConverter;
-import org.nest.codegeneration.converters.NESTReferenceConverter;
-import org.nest.codegeneration.converters.NESTStateBlockReferenceConverter;
+import de.se_rwth.commons.logging.Log;
+import org.nest.codegeneration.converters.*;
 import org.nest.codegeneration.helpers.*;
-import org.nest.codegeneration.sympy.ODEProcessor;
-import org.nest.codegeneration.sympy.ODETransformer;
+import org.nest.codegeneration.sympy.OdeTransformer;
+import org.nest.codegeneration.sympy.OdeProcessor;
+import org.nest.codegeneration.sympy.TransformerBase;
 import org.nest.nestml._ast.ASTBody;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 import org.nest.nestml._ast.ASTNeuron;
-import org.nest.nestml._parser.NESTMLParser;
 import org.nest.nestml._symboltable.NESTMLScopeCreator;
-import org.nest.nestml.prettyprinter.NESTMLPrettyPrinter;
 import org.nest.ode._ast.ASTOdeDeclaration;
 import org.nest.spl.prettyprinter.ExpressionsPrettyPrinter;
 import org.nest.spl.prettyprinter.IReferenceConverter;
-import org.nest.utils.ASTUtils;
-import org.nest.symboltable.NESTMLSymbols;
+import org.nest.symboltable.NestmlSymbols;
+import org.nest.utils.AstUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -37,7 +35,8 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static de.se_rwth.commons.logging.Log.info;
-import static org.nest.utils.ASTUtils.getAllNeurons;
+import static org.nest.utils.AstUtils.deepClone;
+import static org.nest.utils.AstUtils.getAllNeurons;
 
 /**
  * Generates C++ implementation and model integration code for NEST.
@@ -46,18 +45,23 @@ import static org.nest.utils.ASTUtils.getAllNeurons;
  */
 public class NestCodeGenerator {
   private final String LOG_NAME = NestCodeGenerator.class.getName();
-  private final ODEProcessor odeProcessor;
-
+  private final OdeProcessor odeProcessor;
   private final NESTMLScopeCreator scopeCreator;
+  private final Boolean enableTracing ;
 
-  public NestCodeGenerator(final NESTMLScopeCreator scopeCreator, final ODEProcessor odeProcessor) {
+  public NestCodeGenerator(final NESTMLScopeCreator scopeCreator,
+                           final OdeProcessor odeProcessor,
+                           boolean enableTracing) {
     this.scopeCreator = scopeCreator;
     this.odeProcessor= odeProcessor;
+    this.enableTracing = enableTracing;
   }
 
-  public NestCodeGenerator(final NESTMLScopeCreator scopeCreator) {
+  public NestCodeGenerator(final NESTMLScopeCreator scopeCreator,
+                           boolean enableTracing) {
     this.scopeCreator = scopeCreator;
-    this.odeProcessor= new ODEProcessor();
+    this.odeProcessor= new OdeProcessor();
+    this.enableTracing = enableTracing;
   }
 
   public void analyseAndGenerate(
@@ -67,12 +71,11 @@ public class NestCodeGenerator {
 
     ASTNESTMLCompilationUnit workingVersion = root;
     for (int i = 0; i < root.getNeurons().size(); ++i) {
-      final ASTNeuron solvedNeuron = solveODESInNeuron(root.getNeurons().get(i), outputBase);
+      final ASTNeuron solvedNeuron = solveODESInNeuron(root.getNeurons().get(i), root, outputBase);
       root.getNeurons().set(i, solvedNeuron);
     }
 
-    workingVersion = printAndReadModel(outputBase, workingVersion);
-
+    workingVersion = deepClone(workingVersion, scopeCreator, outputBase);
     workingVersion
         .getNeurons()
         .forEach(astNeuron -> generateNestCode(astNeuron, outputBase));
@@ -84,17 +87,19 @@ public class NestCodeGenerator {
 
   private ASTNeuron solveODESInNeuron(
       final ASTNeuron astNeuron,
+      final ASTNESTMLCompilationUnit artifactRoot,
       final Path outputBase) {
     final ASTBody astBody = astNeuron.getBody();
     final Optional<ASTOdeDeclaration> odesBlock = astBody.getODEBlock();
     if (odesBlock.isPresent()) {
       if (odesBlock.get().getShapes().size() == 0) {
         info("The model will be solved numerically with GSL solver.", LOG_NAME);
+        markNumericSolver(astNeuron.getName(), outputBase);
         return astNeuron;
       }
       else {
         info("The model will be analysed.", LOG_NAME);
-        return odeProcessor.solveODE(astNeuron, outputBase);
+        return odeProcessor.solveODE(astNeuron, artifactRoot, outputBase);
       }
 
     }
@@ -102,6 +107,17 @@ public class NestCodeGenerator {
       return astNeuron;
     }
 
+  }
+
+  private void markNumericSolver(final String neuronName, final Path outputBase) {
+    try {
+      Files.write("numeric",
+                  Paths.get(outputBase.toString(), neuronName + "." + TransformerBase.SOLVER_TYPE).toFile(),
+                  Charset.defaultCharset());
+    }
+    catch (IOException e) {
+      Log.error("Cannot write status file. Check you permissions.", e);
+    }
   }
 
   private void generateNestCode(
@@ -120,7 +136,7 @@ public class NestCodeGenerator {
       final GlobalExtensionManagement glex) {
     final GeneratorSetup setup = new GeneratorSetup(new File(outputFolder.toString()));
     setup.setGlex(glex);
-
+    setup.setTracing(enableTracing);
     final GeneratorEngine generator = new GeneratorEngine(setup);
     final Path outputFile = Paths.get(astNeuron.getName() + ".h");
     generator.generate("org.nest.nestml.neuron.NeuronHeader", outputFile, astNeuron);
@@ -132,6 +148,7 @@ public class NestCodeGenerator {
       final GlobalExtensionManagement glex) {
     final GeneratorSetup setup = new GeneratorSetup(new File(outputFolder.toString()));
     setup.setGlex(glex);
+    setup.setTracing(enableTracing);
     final GeneratorEngine generator = new GeneratorEngine(setup);
 
     final Path classImplementationFile = Paths.get(astNeuron.getName() + ".cpp");
@@ -140,36 +157,6 @@ public class NestCodeGenerator {
         classImplementationFile,
         astNeuron);
 
-  }
-
-  /**
-   * Model is printed and read again due 2 reasons:
-   * a) Technically it is necessary to build a new symbol table
-   * b) The model developer can view how the solution was computed.
-   * @return New root node of the altered model with an initialized symbol table
-   */
-  private ASTNESTMLCompilationUnit printAndReadModel(
-      final Path modulePath,
-      final ASTNESTMLCompilationUnit root) {
-    try {
-      final Path outputTmpPath = Paths.get(modulePath.toString(), root.getFullName() + ".nestml");
-      printModelToFile(root, outputTmpPath.toString());
-      info("Transformed model in printed into: " + outputTmpPath, LOG_NAME);
-      final NESTMLParser parser = new NESTMLParser(modulePath);
-
-      final ASTNESTMLCompilationUnit withSolvedOde = parser.parseNESTMLCompilationUnit(outputTmpPath.toString()).get();
-      withSolvedOde.setArtifactName(root.getArtifactName());
-
-      if (root.getPackageName().isPresent()) {
-        withSolvedOde.setPackageName(root.getPackageName().get());
-      }
-
-      scopeCreator.runSymbolTableCreator(withSolvedOde);
-      return withSolvedOde;
-    }
-    catch (IOException e) {
-      throw  new RuntimeException(e);
-    }
   }
 
   /**
@@ -191,7 +178,7 @@ public class NestCodeGenerator {
     glex.setGlobalValue("moduleName", moduleName);
 
     setup.setGlex(glex);
-
+    setup.setTracing(false); // must be disabled
     final GeneratorEngine generator = new GeneratorEngine(setup);
 
     final Path cmakeLists = Paths.get("CMakeLists.txt");
@@ -202,13 +189,13 @@ public class NestCodeGenerator {
 
     final Path cmakeModuleHeader = Paths.get(moduleName + ".h");
     generator.generate(
-        "org.nest.nestml.module.ModuleHeaderCMake",
+        "org.nest.nestml.module.ModuleHeader",
         cmakeModuleHeader,
         neurons.get(0)); // an arbitrary AST to match the signature
 
     final Path cmakeModuleClass = Paths.get(moduleName + ".cpp");
     generator.generate(
-        "org.nest.nestml.module.ModuleClassCMake",
+        "org.nest.nestml.module.ModuleClass",
         cmakeModuleClass,
         neurons.get(0)); // an arbitrary AST to match the signature
 
@@ -219,23 +206,6 @@ public class NestCodeGenerator {
         neurons.get(0)); // an arbitrary AST to match the signature
 
     info("Successfully generated NEST module code in " + outputDirectory, LOG_NAME);
-  }
-
-  private void printModelToFile(
-      final ASTNESTMLCompilationUnit root,
-      final String outputFile) {
-    final NESTMLPrettyPrinter prettyPrinter = NESTMLPrettyPrinter.Builder.build();
-    root.accept(prettyPrinter);
-
-    final File prettyPrintedModelFile = new File(outputFile);
-    try {
-      FileUtils.write(prettyPrintedModelFile, prettyPrinter.result());
-    }
-    catch (IOException e) {
-      final String msg = "Cannot write the prettyprinted model to the file: " + outputFile;
-      throw new RuntimeException(msg, e);
-    }
-
   }
 
   private GlobalExtensionManagement getGlexConfiguration() {
@@ -264,12 +234,13 @@ public class NestCodeGenerator {
       final GlobalExtensionManagement glex,
       final ASTNeuron neuron) {
     checkArgument(neuron.getSymbol().isPresent());
-    defineSolverType(glex, neuron);
+    glex.setGlobalValue("names", new Names());
+    glex.setGlobalValue("statusNames", new Names());
+    defineSolverType(glex, neuron); // potentially, overrides names with gsl name provider. the order is important
 
     final String guard = (neuron.getName()).replace(".", "_");
     glex.setGlobalValue("guard", guard);
-    glex.setGlobalValue("names", new Names());
-    glex.setGlobalValue("simpleNeuronName", neuron.getName());
+    glex.setGlobalValue("neuronName", neuron.getName());
     glex.setGlobalValue("neuronSymbol", neuron.getSymbol().get());
 
     final NESTFunctionPrinter functionPrinter = new NESTFunctionPrinter();
@@ -279,7 +250,7 @@ public class NestCodeGenerator {
     glex.setGlobalValue("functions", new SPLFunctionCalls());
     glex.setGlobalValue("bufferHelper", new ASTBuffers());
     glex.setGlobalValue("variableHelper", new VariableHelper());
-    glex.setGlobalValue("odeTransformer", new ODETransformer());
+    glex.setGlobalValue("odeTransformer", new OdeTransformer());
 
     glex.setGlobalValue("outputEvent", ASTOutputs.printOutputEvent(neuron.getBody()));
     glex.setGlobalValue("isOutputEventPresent", ASTOutputs.isOutputEventPresent(neuron.getBody()));
@@ -287,23 +258,26 @@ public class NestCodeGenerator {
     glex.setGlobalValue("isCurrentInput", ASTInputs.isCurrentInput(neuron));
     glex.setGlobalValue("body", neuron.getBody());
 
-    final GSLReferenceConverter converter = new GSLReferenceConverter();
+    final GslReferenceConverter converter = new GslReferenceConverter();
     final ExpressionsPrettyPrinter expressionsPrinter = new ExpressionsPrettyPrinter(converter);
     glex.setGlobalValue("expressionsPrinterForGSL", expressionsPrinter);
-    glex.setGlobalValue("nestmlSymbols", new NESTMLSymbols());
-    glex.setGlobalValue("astUtils", new ASTUtils());
-    glex.setGlobalValue("aliasInverter", new AliasInverter());
-
+    glex.setGlobalValue("nestmlSymbols", new NestmlSymbols());
+    glex.setGlobalValue("astUtils", new AstUtils());
   }
 
 
   private void defineSolverType(final GlobalExtensionManagement glex, final ASTNeuron neuron) {
     final ASTBody astBody = neuron.getBody();
     glex.setGlobalValue("useGSL", false);
+
     if (astBody.getODEBlock().isPresent()) {
       if (astBody.getODEBlock().get().getShapes().size() == 0) {
+        glex.setGlobalValue("names", new GslNames());
         glex.setGlobalValue("useGSL", true);
-        glex.setGlobalValue("ODEs", astBody.getODEBlock().get().getODEs());
+
+        final IReferenceConverter converter = new NESTArrayStateReferenceConverter();
+        final ExpressionsPrettyPrinter expressionsPrinter = new ExpressionsPrettyPrinter(converter);
+        glex.setGlobalValue("expressionsPrinter", expressionsPrinter);
       }
 
     }
