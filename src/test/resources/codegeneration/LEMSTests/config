@@ -1,6 +1,0 @@
-# this file is an artifact added during during the transformation to the generator engine. In the implemented version, only attachments and externall derived 
-# variables can be added, since these are the only elements which can not be derived from a model itself.
-
-izhikevich_nestml:# to which model shall the following components be added
-	<Attachments name="pulseGeneratorDL" type="pulseGeneratorDL"/>#add an attachment	
-	<DerivedVariable name="I" dimension="none" select="pulseGeneratorDL[*]/I" reduce="add"/>#add a derived variable with external source

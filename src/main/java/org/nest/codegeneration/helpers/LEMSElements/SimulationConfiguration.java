@@ -24,17 +24,16 @@ import java.util.Scanner;
  */
 public class SimulationConfiguration {
 	//indicates whether units and dimensions have to be generated externally
-	private boolean unitsExternal = true;
+	private boolean unitsExternal = false;
 	//stores the length of single simulation step in ms
-	private double simSteps;
+	private double simulation_steps_length;
+	private String simulation_steps_unit;
 	//the path to a configuration file
-	private Path configPath;
+	private Path configPath = null;
 
 	public SimulationConfiguration() {}
 
-	public SimulationConfiguration(Path configPath, boolean ext, double simSteps) {
-		this.unitsExternal = ext;
-		this.simSteps = simSteps;
+	public SimulationConfiguration(Path configPath) {
 		this.configPath = configPath;
 	}
 
@@ -61,7 +60,10 @@ public class SimulationConfiguration {
 			for (int i = 0; i < outerList.getLength(); i++) {
 				outerNode = outerList.item(i);
 				//first check if the object we are looking for is in the list
-				if (outerNode.getAttributes().getNamedItem("name").getNodeValue().equals(container.getNeuronName())) {
+				if (outerNode.getAttributes().getNamedItem("specification")!=null&&
+						outerNode.getAttributes().getNamedItem("specification").getNodeValue().equals("LEMS")&&
+						outerNode.getAttributes().getNamedItem("name")!=null&&
+						outerNode.getAttributes().getNamedItem("name").getNodeValue().equals(container.getNeuronName())) {
 					//if so, start to extract
 					innerList = outerNode.getChildNodes();
 					for (int j = 0; j < innerList.getLength(); j++) {
@@ -87,7 +89,13 @@ public class SimulationConfiguration {
 						}
 
 					}
-
+					if(outerNode.getAttributes().getNamedItem("units_external").getNodeValue()!=null){
+						this.unitsExternal =
+								outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
+					}
+					if(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue()!=null){
+						//TODO: extract the unit and the value
+					}
 
 				}
 			}
@@ -105,7 +113,11 @@ public class SimulationConfiguration {
 		return unitsExternal;
 	}
 
-	public double getSimSteps() {
-		return this.simSteps;
+	public double getSimulation_steps_length() {
+		return simulation_steps_length;
+	}
+
+	public String getSimulation_steps_unit() {
+		return simulation_steps_unit;
 	}
 }

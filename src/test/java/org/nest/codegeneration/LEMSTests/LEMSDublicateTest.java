@@ -20,7 +20,7 @@ import org.nest.symboltable.symbols.TypeSymbol;
  * This test checks whether duplicate elements are correctly recognized and not added to the corresponding list.
  * @author perun
  */
-public class DublicateTest extends ModelbasedTest {
+public class LEMSDublicateTest extends ModelbasedTest {
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
 
   private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevichNested.nestml";

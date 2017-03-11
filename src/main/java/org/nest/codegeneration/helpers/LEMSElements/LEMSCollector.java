@@ -347,13 +347,13 @@ public class LEMSCollector extends Collector {
 						//the steps function is a special case, here we have derive the value by hand
 						ASTUnitType tempType = new ASTUnitType();
 						tempType.setUnit("ms");
-						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimSteps(), tempType);
-						this.addConstant(new Constant("CON" + config.getSimSteps() + "ms", "DimensionOfms", tempNumerical, false));
+						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
+						this.addConstant(new Constant("CON" + config.getSimulation_steps_length() + "ms", "DimensionOfms", tempNumerical, false));
 						//search for the constant to which steps refer
 						for (Constant v : this.getConstantsList()) {
 							if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
 								//create a new derived parameter for this expression
-								Variable tempVar = new Variable(v.getName() + "/CON" + config.getSimSteps() + "ms");
+								Variable tempVar = new Variable(v.getName() + "/CON" + config.getSimulation_steps_length() + "ms");
 								this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
 										tempVar, false, false));
 							}

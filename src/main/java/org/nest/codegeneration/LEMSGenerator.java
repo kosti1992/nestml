@@ -80,7 +80,7 @@ public class LEMSGenerator {
     Set<Unit> collectedUnits = new HashSet<>();//store units in order to print them to one file if required
     Set<Dimension> collectedDimension = new HashSet<>();//store dimensions in order to print them to one file if required
 
-    SimulationConfiguration config = new SimulationConfiguration(configPath,unitsExternal,simSteps);
+    SimulationConfiguration config = new SimulationConfiguration(configPath);
 
     LEMSCollector collect;
     //transform each given neuron

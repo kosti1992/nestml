@@ -43,8 +43,6 @@ public class NestmlFrontend {
   private static final String PYTHON_INTERPRETER = "python ";
   private static final String LEMS_ARGUMENT = "lems";
   private static final String CONFIG_ARGUMENT = "config";
-  private static final String UNITS_EXTERNAL = "units_external";
-  private static final String SIM_STEPS = "simSteps";
 
   private boolean GENERATE_LEMS = false;
 
@@ -83,20 +81,6 @@ public class NestmlFrontend {
         .hasArgs()
         .numberOfArgs(1)
         .build());
-
-    options.addOption(Option.builder(UNITS_EXTERNAL)
-        .longOpt(UNITS_EXTERNAL)
-        .desc("Optional: Indicate whether units and dimensions should be generated to each file individually or to a single file. Standard: false")
-        .build());
-
-    options.addOption(Option.builder(SIM_STEPS)
-        .longOpt(SIM_STEPS)
-        .desc("Optional: Indicate the length of each step in simulation. Standard: 0.1ms / step. Caution: Only"
-            + "the numerical value in ms shall be entered! Used in case of the \"steps\" function call.")
-        .hasArgs()
-        .numberOfArgs(1)
-        .build());
-
   }
 
   public static void main(final String[] args) {
@@ -146,8 +130,6 @@ public class NestmlFrontend {
         .withInputBasePath(args[0])
         .withTargetPath(targetPath)
         .withConfigPath(configPath)
-        .withUnitsExternal(interpretUnitsExternal(commandLineParameters))
-        .withSimSteps(interpretSimSteps(commandLineParameters))
         .build();
   }
 
@@ -349,20 +331,4 @@ public class NestmlFrontend {
   String interpretConfigPathArgument(final CommandLine cmd){
     return interpretPathArgument(cmd,CONFIG_ARGUMENT).orElse("");
   }
-
-  boolean interpretUnitsExternal(final CommandLine cmd){
-    return cmd.hasOption(UNITS_EXTERNAL);
-  }
-
-  double interpretSimSteps(final CommandLine cmd){
-    try{
-      return Double.parseDouble(cmd.getOptionValue(SIM_STEPS));
-    }
-    catch(Exception exp){
-      System.err.println("SimSteps argument not handed over! Set to standard 0.1ms / step.");
-    }
-    return 0.1;
-  }
-
-
 }

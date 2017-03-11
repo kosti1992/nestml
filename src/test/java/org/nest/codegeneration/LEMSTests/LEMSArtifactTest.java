@@ -15,7 +15,7 @@ import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
  * Tests whether an external artifact is read-in correctly and without any errors.
  * @author perun
  */
-public class ArtifactTest extends ModelbasedTest{
+public class LEMSArtifactTest extends ModelbasedTest{
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
   private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevich.nestml";
   private static final String CONFIG_PATH = "src/test/resources/codegeneration/LEMSTests/artifact.xml";
