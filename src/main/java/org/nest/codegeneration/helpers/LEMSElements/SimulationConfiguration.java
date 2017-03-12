@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -31,7 +32,8 @@ public class SimulationConfiguration {
 	//the path to a configuration file
 	private Path configPath = null;
 
-	public SimulationConfiguration() {}
+	public SimulationConfiguration() {
+	}
 
 	public SimulationConfiguration(Path configPath) {
 		this.configPath = configPath;
@@ -43,7 +45,7 @@ public class SimulationConfiguration {
 	 * @throws IOException thrown if non file is given.
 	 */
 	public void adaptSettings(LEMSCollector container) {
-		if(configPath==null){
+		if (configPath == null) {
 			return;
 		}
 		try {
@@ -60,51 +62,57 @@ public class SimulationConfiguration {
 			for (int i = 0; i < outerList.getLength(); i++) {
 				outerNode = outerList.item(i);
 				//first check if the object we are looking for is in the list
-				if (outerNode.getAttributes().getNamedItem("specification")!=null&&
-						outerNode.getAttributes().getNamedItem("specification").getNodeValue().equals("LEMS")&&
-						outerNode.getAttributes().getNamedItem("name")!=null&&
-						outerNode.getAttributes().getNamedItem("name").getNodeValue().equals(container.getNeuronName())) {
-					//if so, start to extract
-					innerList = outerNode.getChildNodes();
-					for (int j = 0; j < innerList.getLength(); j++) {
-						innerNode = innerList.item(j);
-						if (innerNode.getNodeName().equals("Attachments")) {
-							container.addAttachment(new Attachment(innerNode));
-						}
-						if (innerNode.getNodeName().equals("Parameter") || innerNode.getNodeName().equals("Constant")) {
-							container.addConstant(new Constant(innerNode));
-						}
-						if (innerNode.getNodeName().equals("DerivedParameter") || innerNode.getNodeName().equals("DerivedVariable")) {
-							container.addDerivedElement(new DerivedElement(innerNode));
-						}
-						if (innerNode.getNodeName().equals("EventPort")) {
-							container.addEventPort(new EventPort(innerNode));
-						}
-						if (innerNode.getNodeName().equals("StateVariable")) {
-							container.addStateVariable(new StateVariable(innerNode));
-						}
-						if (innerNode.getNodeName().equals("TimeDerivative")) {
-							container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
-									, new Expression(innerNode.getAttributes().getNamedItem("value").getNodeValue()));
-						}
+				if (outerNode.getAttributes().getNamedItem("specification") != null &&
+						outerNode.getAttributes().getNamedItem("specification").getNodeValue().equals("LEMS") &&
+						outerNode.getAttributes().getNamedItem("name") != null) {
+					List target_models =
+							Arrays.asList(outerNode.getAttributes().getNamedItem("name").getNodeValue().split(";"));
+					if (target_models.contains(container.getNeuronName())) {
+						//now check if the name list contains the name of the current neuron
+						//if so, start to extract
+						innerList = outerNode.getChildNodes();
+						for (int j = 0; j < innerList.getLength(); j++) {
+							innerNode = innerList.item(j);
+							if (innerNode.getNodeName().equals("Attachments")) {
+								container.addAttachment(new Attachment(innerNode));
+							}
+							if (innerNode.getNodeName().equals("Parameter") || innerNode.getNodeName().equals("Constant")) {
+								container.addConstant(new Constant(innerNode));
+							}
+							if (innerNode.getNodeName().equals("DerivedParameter") || innerNode.getNodeName().equals("DerivedVariable")) {
+								container.addDerivedElement(new DerivedElement(innerNode));
+							}
+							if (innerNode.getNodeName().equals("EventPort")) {
+								container.addEventPort(new EventPort(innerNode));
+							}
+							if (innerNode.getNodeName().equals("StateVariable")) {
+								container.addStateVariable(new StateVariable(innerNode));
+							}
+							if (innerNode.getNodeName().equals("TimeDerivative")) {
+								container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
+										, new Expression(innerNode.getAttributes().getNamedItem("value").getNodeValue()));
+							}
 
+						}
+						if (outerNode.getAttributes().getNamedItem("units_external").getNodeValue() != null) {
+							this.unitsExternal =
+									outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
+						}
+						if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue() != null) {
+							//TODO: extract the unit and the value
+						}
 					}
-					if(outerNode.getAttributes().getNamedItem("units_external").getNodeValue()!=null){
-						this.unitsExternal =
-								outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
-					}
-					if(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue()!=null){
-						//TODO: extract the unit and the value
-					}
-
 				}
 			}
 
 		} catch (SAXException e) {
+			System.err.println("Invalid artifact skipped: "+ configPath);
 			return;
 		} catch (ParserConfigurationException e) {
+			System.err.println("Invalid artifact skipped: "+ configPath);
 			return;
 		} catch (IOException e) {
+			System.err.println("Invalid artifact skipped: "+ configPath);
 			return;
 		}
 	}
