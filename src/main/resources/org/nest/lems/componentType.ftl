@@ -4,7 +4,6 @@
 <!-- Generated on ${.now} from  NESTML-model "${container.getNeuronName()}".-->
 
 <Lems>
-
 <#if (container.getConfig().isUnitsExternal())==false>
 ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),container.getDimensionsSet()])}
 <#else>
