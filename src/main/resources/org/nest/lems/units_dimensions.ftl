@@ -6,6 +6,9 @@
 <#attempt>
 <#if global==true>
 <Lems>
+    <!-- Generated on ${.now}".-->
+    <!-- Units and dimensions of:-->
+    <!--<#list namesOfNeurons as neuronName> ${neuronName} <#if neuronName_has_next>;</#if></#list>.-->
 </#if>
 <#recover>
 </#attempt>

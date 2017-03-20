@@ -1,9 +1,8 @@
 <#--This template generates a LEMS model from the internal representation of a NESTML model stored in the -->
 <#--glex global-value "container".-->
 <#--@author perun -->
-<!-- Generated on ${.now} from  NESTML-model "${container.getNeuronName()}".-->
-
 <Lems>
+    <!-- Generated on ${.now} from  NESTML-model "${container.getNeuronName()}".-->
 <#if (container.getConfig().isUnitsExternal())==false>
 ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),container.getDimensionsSet()])}
 <#else>

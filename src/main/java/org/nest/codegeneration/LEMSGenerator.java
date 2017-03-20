@@ -119,10 +119,15 @@ public class LEMSGenerator {
 		}
 		//print units and dimensions externally if required
 		if (config.isUnitsExternal()) {
+			ArrayList<String> listOfNeuronsNames = new ArrayList<>();
+			for(int i=0;i<neurons.size();i++){
+				listOfNeuronsNames.add(neurons.get(i).getName());
+			}
 			makefileFile = Paths.get("units_dimensions.xml");
 			glex.setGlobalValue("units", collectedUnits);
 			glex.setGlobalValue("dimensions", collectedDimension);
 			glex.setGlobalValue("global", true);
+			glex.setGlobalValue("namesOfNeurons",listOfNeuronsNames);
 			generator.generate(
 					"org.nest.lems.units_dimensions",
 					makefileFile,
@@ -142,6 +147,11 @@ public class LEMSGenerator {
 		return this.listOfNeurons;
 	}
 
+
+	/**
+	 * This class implements a pretty printer for LEMS models, used to provide a more readable format of the
+	 * generated file.
+	 */
 	private class LEMSModelPrettyPrinter {
 		DocumentBuilderFactory dbFactory;
 		DocumentBuilder dBuilder;
@@ -159,8 +169,6 @@ public class LEMSGenerator {
 				info("Could not create pretty print instance (LEMS)", LOG_NAME);
 				e.printStackTrace();
 			}
-			stringWriter = new StringWriter();
-			xmlOutput = new StreamResult(stringWriter);
 			tf = TransformerFactory.newInstance();
 			try {
 				transformer = tf.newTransformer();
@@ -176,16 +184,19 @@ public class LEMSGenerator {
 		}
 
 		/**
-		 * This model reads in the file, normalizes and pretty prints it, and finally writes it back.
+		 * Reads in the file, normalizes and pretty prints it, and finally writes it back.
 		 *
 		 * @param modelPath a path to the LEMS model which shall be pretty printed.
 		 */
 		public void prettyPrintModel(Path modelPath, Path outPutDir) {
 			try {
+				stringWriter = new StringWriter();
+				xmlOutput = new StreamResult(stringWriter);
 				original = dBuilder.parse(new InputSource(new InputStreamReader(
 						new FileInputStream(outPutDir.toAbsolutePath().toString() + "/" + modelPath.toString()))));
 				original.getDocumentElement().normalize();
-				XPathExpression xpath = XPathFactory.newInstance().newXPath().compile("//text()[normalize-space(.) = '']");
+				XPathExpression xpath = XPathFactory.newInstance().//delete all "white" but ignore comments
+						newXPath().compile("//text()[normalize-space(.) = '' and not(comment())]");
 				NodeList blankTextNodes = (NodeList) xpath.evaluate(original, XPathConstants.NODESET);
 
 				for (int i = 0; i < blankTextNodes.getLength(); i++) {
@@ -196,7 +207,6 @@ public class LEMSGenerator {
 				PrintWriter out = new PrintWriter(outPutDir.toAbsolutePath().toString() + "/" + modelPath.toString());
 				out.println(xmlOutput.getWriter().toString());
 				out.close();
-
 			} catch (Exception ex) {
 				info("Could not pretty print model (LEMS)", LOG_NAME);
 				throw new RuntimeException("Error converting to String", ex);
