@@ -1,10 +1,13 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
+import org.nest.codegeneration.LEMSGenerator;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import static de.se_rwth.commons.logging.Log.info;
+
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -12,11 +15,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * This class stores all configuration of the simulation as handed over it the simulation script.
@@ -106,13 +106,13 @@ public class SimulationConfiguration {
 			}
 
 		} catch (SAXException e) {
-			System.err.println("Invalid artifact skipped: "+ configPath);
+			System.err.println("Artifact skipped (invalid): "+ configPath);
 			return;
 		} catch (ParserConfigurationException e) {
-			System.err.println("Invalid artifact skipped: "+ configPath);
+			System.err.println("Artifact skipped (invalid): "+ configPath);
 			return;
 		} catch (IOException e) {
-			System.err.println("Invalid artifact skipped: "+ configPath);
+			System.err.println("Artifact skipped (not found): "+ configPath);
 			return;
 		}
 	}

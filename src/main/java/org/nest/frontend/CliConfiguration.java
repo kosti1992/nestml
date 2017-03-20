@@ -21,8 +21,6 @@ public class CliConfiguration {
 
   //the following attributes are part of the NESTML2LEMS framework
   private final Path configPath;
-  private final boolean printUnitsExternal;
-  private final double simSteps;
 
   public CliConfiguration(final Builder builder) {
     this.checkCoCos = builder.checkCoCos;
@@ -31,8 +29,6 @@ public class CliConfiguration {
     this.isTracing = builder.isTracing;
 
     this.configPath = builder.configFile;//Part of the NESTML2LEMS framework
-    this.printUnitsExternal = builder.printUnitsExternal;//Part of the NESTML2LEMS framework
-    this.simSteps = builder.simSteps;//Part of the NESTML2LEMS framework
 }
 
   boolean isCheckCoCos() {
@@ -42,12 +38,6 @@ public class CliConfiguration {
   Path getConfigPath(){
     return  configPath;
   }
-
-  boolean isPrintUnitsExternal(){
-    return this.printUnitsExternal;
-  }
-
-  double getSimSteps(){return this.simSteps;}
 
   Path getInputBase() {
 

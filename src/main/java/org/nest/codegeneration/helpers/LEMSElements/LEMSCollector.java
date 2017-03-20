@@ -587,11 +587,6 @@ public class LEMSCollector extends Collector {
 		return derivedElementList;
 	}
 
-	@SuppressWarnings("unused")//used in the template
-	public List<String> getNotConverted() {
-		return notConverted;
-	}
-
 	public LEMSExpressionsPrettyPrinter getLEMSExpressionsPrettyPrinter() {
 		return this.prettyPrint;
 	}

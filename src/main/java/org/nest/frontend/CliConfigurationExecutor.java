@@ -82,7 +82,7 @@ public class CliConfigurationExecutor {
     modelRoots.forEach(scopeCreator::runSymbolTableCreator);
     LEMSGenerator generator = new LEMSGenerator();
     for(ASTNESTMLCompilationUnit elem :modelRoots){
-      generator.generateLEMS(elem,config.getTargetPath(),config.getConfigPath(),config.isPrintUnitsExternal(),config.getSimSteps());
+      generator.generateLEMS(elem,config.getTargetPath(),config.getConfigPath());
     }
   }
 

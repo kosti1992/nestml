@@ -22,7 +22,6 @@ import org.nest.symboltable.symbols.TypeSymbol;
  */
 public class LEMSDublicateTest extends ModelbasedTest {
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
-
   private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevichNested.nestml";
   private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/config.xml";
   @Test
@@ -30,7 +29,7 @@ public class LEMSDublicateTest extends ModelbasedTest {
     int varCount = 0;
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
     final LEMSGenerator testant = new LEMSGenerator();
-    testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"),false,0.1);
+    testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"));
     if(false) {
       //add two constants and check whether duplicates have been recognized
       testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),true));

@@ -47,7 +47,7 @@ import javax.xml.xpath.XPathFactory;
  * @author perun
  */
 public class LEMSGenerator {
-	private final String LOG_NAME = LEMSGenerator.class.getName();
+	public static final String LOG_NAME = LEMSGenerator.class.getName();
 
 	private List<LEMSCollector> listOfNeurons = new ArrayList<>();//used for tests and debug
 
@@ -61,10 +61,8 @@ public class LEMSGenerator {
 	public void generateLEMS(
 			final ASTNESTMLCompilationUnit root,
 			final Path outputDirectory,
-			final Path configPath,
-			final boolean unitsExternal,
-			final double simSteps) {
-		generateLEMSForNeurons(root.getNeurons(), outputDirectory, configPath, unitsExternal, simSteps);
+			final Path configPath) {
+		generateLEMSForNeurons(root.getNeurons(), outputDirectory, configPath);
 	}
 
 	/**
@@ -77,9 +75,7 @@ public class LEMSGenerator {
 	private void generateLEMSForNeurons(
 			final List<ASTNeuron> neurons,
 			final Path outputDirectory,
-			final Path configPath,
-			final boolean unitsExternal,
-			final double simSteps) {
+			final Path configPath) {
 		checkArgument(!neurons.isEmpty());
 		//set the system language to english in order to avoid problems with "," instead of "."
 		Locale.setDefault(Locale.ENGLISH);

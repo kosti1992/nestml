@@ -23,7 +23,7 @@ public class LEMSArtifactTest extends ModelbasedTest{
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
     final LEMSGenerator testant = new LEMSGenerator();
-    testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(CONFIG_PATH), false, 0.1);
+    testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(CONFIG_PATH));
     //check if Attachments are read in correctly
     Assert.assertEquals("testAttachment",testant.getListOfNeurons().get(0).getAttachments().get(0).getBindName());
     Assert.assertEquals("testAttachmentType",testant.getListOfNeurons().get(0).getAttachments().get(0).getBindType());
