@@ -192,7 +192,7 @@ public class LEMSGenerator {
 						new FileInputStream(outPutDir.toAbsolutePath().toString() + "/" + modelPath.toString()))));
 				original.getDocumentElement().normalize();
 				XPathExpression xpath = XPathFactory.newInstance().//delete all "white" but ignore comments
-						newXPath().compile("//text()[normalize-space(.) = '' and not(comment())]");
+						newXPath().compile("//text()[normalize-space(.) = ''] ");
 				NodeList blankTextNodes = (NodeList) xpath.evaluate(original, XPathConstants.NODESET);
 
 				for (int i = 0; i < blankTextNodes.getLength(); i++) {

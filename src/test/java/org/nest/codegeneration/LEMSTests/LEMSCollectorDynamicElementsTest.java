@@ -2,6 +2,7 @@ package org.nest.codegeneration.LEMSTests;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,22 +24,21 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
     final LEMSGenerator testant = new LEMSGenerator();
-    //TODO: this test has to be modified to the current version of the handling
-    if(false){
+    if(true){
       System.out.println("This test is not provided with an external artifact, message can be ignored!");
-      testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(INPUT_DIRECTORY), false, 0.1);
+      testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(INPUT_DIRECTORY));
       //test state variables
-      Assert.assertEquals(4, testant.getListOfNeurons().get(0).getStateVariablesList().size());
+      Assert.assertEquals(3, testant.getListOfNeurons().get(0).getStateVariablesList().size());
       Assert.assertEquals("V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
       Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
-      Assert.assertEquals("INITV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue());
-      //test default values
-      Assert.assertTrue(testant.getListOfNeurons().get(0).getConstantsList().get(0).getName().equals("INITV"));
-      Assert.assertTrue(testant.getListOfNeurons().get(0).getConstantsList().get(0).getValue().equals("0"));
+      Assert.assertEquals("INITV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue().get().print());
       //test time derivative
-      Assert.assertEquals(3, testant.getListOfNeurons().get(0).getEquations().size());
-      Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains("I_shape_ex"));
-      Assert.assertEquals("((exp(1)/tau_syn_ex)*t*exp(-1/tau_syn_ex*t))/CON1ms", testant.getListOfNeurons().get(0).getEquations().get("I_shape_ex"));
+      //only time derivative represent equations, shapes are stored as derived variables
+      Assert.assertEquals(1, testant.getListOfNeurons().get(0).getEquations().size());
+      Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains("V"));
+      //Assert.assertEquals("-1/Tau * V + 1/C_m",testant.getListOfNeurons().get(0).getEquations().get("V"));
+      //shapes test
+      Assert.assertTrue(testant.getListOfNeurons().get(0).getDerivedElementList().get(1).getName().equals("I_shape_in"));
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().get("V").startsWith("not_supported"));
       //test conditional blocks
       Assert.assertTrue(testant.getListOfNeurons().get(0).getAutomaton().getConditionalBlocks().size() == 3);

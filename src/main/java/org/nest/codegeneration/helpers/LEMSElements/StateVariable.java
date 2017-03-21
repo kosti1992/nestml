@@ -61,6 +61,11 @@ public class StateVariable {
 			Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
 			tempExpression=LEMSCollector.helper.replaceConstantsWithReferences(container,tempExpression);
 			this.defaultValue = Optional.of(tempExpression);
+		} else if(!variable.getDeclaringExpression().isPresent() &&
+				!this.dimension.equals("none") && !this.dimension.equals("not_supported")){
+			Constant temp = new Constant(variable,true,false, container);
+			container.addConstant(temp);
+			this.defaultValue = Optional.of(new Variable(temp.getName()));
 		}
 		if (!this.dimension.equals("none") && !this.dimension.equals("not_supported")) {
 			//state variables are often generated outside the main routine, thus a processing of units has to be triggered

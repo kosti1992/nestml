@@ -31,7 +31,7 @@ neuron izhikevich_neuron:
   output: spike
 
   update:
-    #integrate_odes()#by Kosti: du willst also alles in equation aufintegrieren?dann einfach weglassen, wird implizit angenommen
+    #integrate_odes()#by KPerun if you want to integrate everthing (variables provided with a derivation instruction), just skip this method
     # TODO: Implement threshold crossing check
 
     # use an if-conditional block. The NESTML systax looks like:

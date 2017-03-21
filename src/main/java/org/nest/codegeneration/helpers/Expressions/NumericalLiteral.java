@@ -30,6 +30,7 @@ public class NumericalLiteral extends Expression {
 		}
 	}
 
+
 	public double getValue() {
 		return value;
 	}

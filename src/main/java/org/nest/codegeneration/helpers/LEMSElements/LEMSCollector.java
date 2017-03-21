@@ -106,7 +106,7 @@ public class LEMSCollector extends Collector {
 	private void handleNeuron(ASTNeuron neuron) {
 		neuronName = neuron.getName();
 	/*
-     * checks whether the model extends an other model
+	 * checks whether the model extends an other model
      */
 		if (neuron.getBase().isPresent()) {
 			extendedModel = neuron.getBase().get();//store the name of the extended model
@@ -427,7 +427,7 @@ public class LEMSCollector extends Collector {
 
 	@SuppressWarnings("unused")//Used in the template
 	public String getNeuronName() {
-		return this.neuronName;
+		return this.neuronName.replace("_nestml","");
 	}
 
 	@SuppressWarnings("unused")//Used in the template

@@ -3,7 +3,10 @@ package org.nest.codegeneration.helpers.LEMSElements;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
 import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTUnitType;
 import org.w3c.dom.Node;
 
 /**
@@ -32,16 +35,28 @@ public class Constant {
 			this.name = "INIT" + this.name;//init values are extended by a label in order to indicate as such
 		}
 		if (!parameter) {//a parameter does not have a unit or a value, thus should not be checked
+			//if a declaring expression is present, convert it
 			if (variable.getDeclaringExpression().isPresent()) {
 				this.value = new Expression(variable);
+			}else{//otherwise this is an initialization, thus create a new numerical literal or variable
+				if(variable.getType().getType()== TypeSymbol.Type.UNIT){
+					ASTUnitType tempType = new ASTUnitType();
+					tempType.setUnit(variable.getType().prettyPrint());
+					NumericalLiteral literal = new NumericalLiteral(0,tempType);
+					this.value = literal;
+				}else{//var does not have unit, a variable with value 0 is sufficient
+					this.value = new Variable("0");
+				}
+
 			}
-			if (!parameter && this.dimension.equals("not_supported")) {
+			if ( this.dimension.equals("not_supported")) {
 				//store an adequate message if the data type is not supported
 				container.getHelper().printNotSupportedDataType(variable);
 			}
 			//check whether the variable has a function call
 			//TODO:this case should be dealt with at a different please
-			if (variable.getDeclaringExpression().get().functionCallIsPresent()) {
+			if (variable.getDeclaringExpression().isPresent()&&
+					variable.getDeclaringExpression().get().functionCallIsPresent()) {
 				container.getHelper().printNotSupportedDataType(variable);
 			}
 		}

@@ -94,11 +94,13 @@ public class SimulationConfiguration {
 							}
 
 						}
-						if (outerNode.getAttributes().getNamedItem("units_external").getNodeValue() != null) {
+						if (outerNode.getAttributes().getNamedItem("units_external")!=null&&
+								outerNode.getAttributes().getNamedItem("units_external").getNodeValue() != null) {
 							this.unitsExternal =
 									outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
 						}
-						if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue() != null) {
+						if (outerNode.getAttributes().getNamedItem("simulation_steps")!=null&&
+								outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue() != null) {
 							//TODO: extract the unit and the value
 						}
 					}
