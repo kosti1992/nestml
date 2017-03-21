@@ -184,7 +184,11 @@ public class Expression {
 		return ret;
 	}
 
-	//TODO:a temporal solution
+	/**
+	 * Prints the whole expression in LEMS syntax. This method is required since it is not possible
+	 * to generate new objects from within the template.
+	 * @return a string representation of the expression
+	 */
 	public String print() {
 		return this.print(new LEMSSyntaxContainer());
 	}
@@ -226,7 +230,7 @@ public class Expression {
 	}
 
 	/**
-	 * Negates the logical expression located in this expresion.
+	 * Negates the logical expression located in this expression.
 	 */
 	public void negateLogic() {
 		if (this.lhs.isPresent()) {
