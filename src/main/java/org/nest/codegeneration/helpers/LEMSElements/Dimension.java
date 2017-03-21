@@ -26,7 +26,7 @@ public class Dimension {
 			LUMINOUS_INTENSITY;
 
 	protected Dimension(TypeSymbol input) {
-		this.name = LEMSCollector.helper.typeToDimensionConverter(input);
+		this.name = this.dimensionFormatter(LEMSCollector.helper.typeToDimensionConverter(input));
 		int[] definition = LEMSCollector.helper.convertTypeDeclToArray(input.toString());
 		this.THERMODYNAMIC_TEMPERATURE = definition[0];
 		this.TIME = definition[1];
@@ -150,6 +150,16 @@ public class Dimension {
 				this.getTIME() == ((Dimension) other).getTIME() &&
 				this.getLUMINOUS_INTENSITY() == ((Dimension) other).getLUMINOUS_INTENSITY() &&
 				this.getMASS() == ((Dimension) other).getMASS();
+	}
+
+	/**
+	 * Inspects a given dimension and transforms it to a LEMS near representation, e.g.  A / s => DimensionOf_A_per_s
+	 *
+	 * @param unformattedDimension the string representation of a yet unformatted dimension
+	 * @return a formatted string
+	 */
+	private String dimensionFormatter(String unformattedDimension) {
+		return unformattedDimension.replaceAll("\\*", "_times_").replaceAll("/", "_per_").replaceAll(" ", "");
 	}
 
 }
