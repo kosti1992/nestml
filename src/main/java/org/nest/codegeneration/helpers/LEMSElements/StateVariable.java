@@ -26,21 +26,23 @@ public class StateVariable {
 
 		//check whether data type is supported or not
 		if (LEMSCollector.helper.dataTypeNotSupported(variable.getType())) {
-			this.dimension = "not_supported";
+			this.dimension = container.getHelper().NOT_SUPPORTED;
 			container.getHelper().printNotSupportedDataType(variable);
 		} else {
 			this.dimension = container.getHelper().typeToDimensionConverter(variable.getType());
 		}
 
 		//check if a standard value is set and an actual dimension is used
-		if ((!this.dimension.equals("none") && !this.dimension.equals("not_supported")) && variable.getDeclaringExpression().isPresent()) {
+		if ((!this.dimension.equals(container.getHelper().DIMENSION_NONE)
+				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED))
+				&& variable.getDeclaringExpression().isPresent()) {
 			//in case it is a reference just set it as it is
 			if (variable.getDeclaringExpression().get().variableIsPresent()) {
 				this.defaultValue = Optional.of(new Variable(variable.getDeclaringExpression().get().getVariable().get()));
 				//this.defaultValue = variable.getDeclaringExpression().get().getVariable().get().toString();
 			}
 	  /*
-      * now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
+	  * now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
       * reference to it.
       */
 			else if (variable.getDeclaringExpression().get().getNESTMLNumericLiteral().isPresent()) {
@@ -59,20 +61,26 @@ public class StateVariable {
 		} else if (variable.getDeclaringExpression().isPresent()) {
 			//otherwise just copy the value, but first replace the constants with references
 			Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
-			tempExpression=LEMSCollector.helper.replaceConstantsWithReferences(container,tempExpression);
+			tempExpression = LEMSCollector.helper.replaceConstantsWithReferences(container, tempExpression);
 			this.defaultValue = Optional.of(tempExpression);
-		} else if(!variable.getDeclaringExpression().isPresent() &&
-				!this.dimension.equals("none") && !this.dimension.equals("not_supported")){
-			Constant temp = new Constant(variable,true,false, container);
+		} else if (!variable.getDeclaringExpression().isPresent() &&
+				!this.dimension.equals(container.getHelper().DIMENSION_NONE)
+				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
+			Constant temp = new Constant(variable, true, false, container);
 			container.addConstant(temp);
 			this.defaultValue = Optional.of(new Variable(temp.getName()));
 		}
-		if (!this.dimension.equals("none") && !this.dimension.equals("not_supported")) {
+		if (!this.dimension.equals(container.getHelper().DIMENSION_NONE)
+				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
 			//state variables are often generated outside the main routine, thus a processing of units has to be triggered
 			this.unit = (new Unit(variable.getType())).getSymbol();
 		}
 	}
 
+	/**
+	 * This constructor can be used to generate new StateVariables from an external artifact stored as an xml file
+	 * @param xmlNode the xml node of a state varaibel artifact
+	 */
 	public StateVariable(Node xmlNode) {
 		this.name = xmlNode.getAttributes().getNamedItem("name").getNodeValue();
 		this.dimension = xmlNode.getAttributes().getNamedItem("dimension").getNodeValue();

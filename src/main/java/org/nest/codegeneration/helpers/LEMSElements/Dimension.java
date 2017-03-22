@@ -9,16 +9,11 @@ import org.nest.symboltable.symbols.TypeSymbol;
  * @author perun
  */
 public class Dimension {
-	private String name;
-	/**
-	 * The name of the dimension
-	 */
+	private String name;//The name of the dimension
 
 	@SuppressWarnings("unused")
-	private int LENGTH, /**
-	 * The exponents of the seven base units
-	 */
-	MASS,
+	private int LENGTH, //The exponents of the seven base units
+			MASS,
 			TIME,
 			ELECTRIC_CURRENT,
 			THERMODYNAMIC_TEMPERATURE,

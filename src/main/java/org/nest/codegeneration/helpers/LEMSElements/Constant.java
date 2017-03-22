@@ -16,30 +16,32 @@ import org.w3c.dom.Node;
  * @author perun
  */
 public class Constant {
-	private String name;
-	/**
-	 * The name of the constant, e.g "V_ref"
-	 */
-	private String dimension;
-	/**
-	 * Name of the dimension of the constant, e.g "voltage"
-	 */
+	private String name;/*The name of the constant, e.g "V_ref" */
+	private String dimension;/* Name of the dimension of the constant, e.g "voltage"*/
 	private Expression value;
-	private boolean parameter = false;
+	private boolean parameter = false;//indicates whether this constant is a parameter or a real constant
+
+	/**
+	 * This constructor can be used to create a new Constant object representing either a constant or a parameter.
+	 * @param variable a symbol from which a constant will be created
+	 * @param init indicates whether this value represents a init value of variable or not
+	 * @param par indicates whether it is a parameter or not
+	 * @param container the container in which the new object will be stored and whose prettyPrinter shall be used
+	 */
 
 	public Constant(VariableSymbol variable, boolean init, boolean par, LEMSCollector container) {
 		this.name = variable.getName();
 		this.dimension = container.getHelper().typeToDimensionConverter(variable.getType());
 		this.parameter = par;
 		if (init) {
-			this.name = "INIT" + this.name;//init values are extended by a label in order to indicate as such
+			this.name = container.getHelper().PREFIX_INIT + this.name;//init values are extended by a label in order to indicate as such
 		}
 		if (!parameter) {//a parameter does not have a unit or a value, thus should not be checked
 			//if a declaring expression is present, convert it
 			if (variable.getDeclaringExpression().isPresent()) {
 				this.value = new Expression(variable);
 			}else{//otherwise this is an initialization, thus create a new numerical literal or variable
-				if(variable.getType().getType()== TypeSymbol.Type.UNIT){
+				if(variable.getType().getType()== TypeSymbol.Type.UNIT){// in case a unit is used, we have to create num
 					ASTUnitType tempType = new ASTUnitType();
 					tempType.setUnit(variable.getType().prettyPrint());
 					NumericalLiteral literal = new NumericalLiteral(0,tempType);
@@ -49,7 +51,7 @@ public class Constant {
 				}
 
 			}
-			if ( this.dimension.equals("not_supported")) {
+			if ( this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
 				//store an adequate message if the data type is not supported
 				container.getHelper().printNotSupportedDataType(variable);
 			}

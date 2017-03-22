@@ -70,7 +70,7 @@ public class DynamicRoutine {
       SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
       tempPrettyPrinter.print(input);
       String rawCodeTemp = this.buildHeader(input,tempPrettyPrinter.result());
-      if (tempList.size() > 0) {//generate a new block which shall be allway executed, thus cond=TRUE
+      if (tempList.size() > 0) {//generate a new block which shall be always executed, thus cond=TRUE
         this.blocks.add(new ConditionalBlock(tempList,Expression.generateTrue(), rawCodeTemp));
       }
     }
@@ -83,7 +83,7 @@ public class DynamicRoutine {
   }
 
   /**
-   * Handles a given compound statement and converts to a corresponding regime.
+   * Handles a given compound statement and converts it to a corresponding regime.
    *
    * @param input a compound statement, i.e a block
    */
@@ -317,7 +317,7 @@ public class DynamicRoutine {
    */
   private List<Instruction> deactivateIntegration(List<Instruction> list) {
     if(list.isEmpty()){
-      return list;//in order to avoid cond blocks which only consists of the deactivate directve
+      return list;//in order to avoid cond blocks which only consists of the deactivate directive
     }
     boolean temp;
     //check all local dime derivatives
@@ -347,7 +347,7 @@ public class DynamicRoutine {
   private Instruction handleIntegrate(ASTFunctionCall functionCall) {
     //add a new state variable which symbolize that integration should be activated in necessary
     if (functionCall.getArgs().size() != 1) {
-      System.err.println("Integrate is wrongly declared, >1 arguments provided!");
+      System.err.println("Integrate is wrongly declared, <>1 arguments provided!");
       return null;
     }
     else {
@@ -411,7 +411,7 @@ public class DynamicRoutine {
    * corresponding EventOut directive. This method adds a new block which is never invoked but provides
    * such an EventOut directive.
    */
-  public void addPortActivator(LEMSCollector container) {
+  public void addPortActivator() {
     FunctionCall functionCall = new FunctionCall("emit_spike",null);
     ArrayList<Instruction> instructionArrayList = new ArrayList<>();
     instructionArrayList.add(functionCall);

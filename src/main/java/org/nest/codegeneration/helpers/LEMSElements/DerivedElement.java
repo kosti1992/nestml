@@ -21,16 +21,16 @@ public class DerivedElement {
 
 	public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {
 		if (init) {
-			this.name = "INIT" + variable.getName();
+			this.name = container.getHelper().PREFIX_INIT + variable.getName();
 		} else {
 			this.name = variable.getName();
 		}
 		this.dynamic = dynamic;
 		//data types boolean and void are not supported by lems
-		if (LEMSCollector.helper.dataTypeNotSupported(variable.getType())) {
-			dimension = "not_supported";
+		if (container.getHelper().dataTypeNotSupported(variable.getType())) {
+			dimension = LEMSCollector.helper.NOT_SUPPORTED;
 			//print an adequate error message
-			LEMSCollector.helper.printNotSupportedDataType(variable);
+			container.getHelper().printNotSupportedDataType(variable);
 		} else {
 			dimension = container.getHelper().typeToDimensionConverter(variable.getType());
 		}

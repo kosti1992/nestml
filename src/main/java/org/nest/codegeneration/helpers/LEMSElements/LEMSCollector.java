@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.ecore.xmi.impl.EMOFHandler;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
@@ -150,8 +151,8 @@ public class LEMSCollector extends Collector {
 			//create a new constant in order to achieve a correct dimension of the equation:
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit("ms");
-			this.addConstant(new Constant("CON1ms", "DimensionOf_ms", new NumericalLiteral(1, tempType), false));
-			Dimension msDimension = new Dimension("DimensionOf_ms", 0, 0, 1, 0, 0, 0, 0);
+			this.addConstant(new Constant("CON1ms", helper.PREFIX_DIMENSION+"ms", new NumericalLiteral(1, tempType), false));
+			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION+"ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", msDimension));
       /*
@@ -214,7 +215,7 @@ public class LEMSCollector extends Collector {
 						//only ode, i.e. integrate directives have to be manipulated
 						equation.put(eq.getLhs().toString().replaceAll("'", ""), expr);
 						//now generate the corresponding activator
-						this.stateVariablesList.add(new StateVariable("ACT" + eq.getLhs().toString().replaceAll("'", ""), "none", new NumericalLiteral(1, null), "", this));
+						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().toString().replaceAll("'", ""), "none", new NumericalLiteral(1, null), "", this));
 						this.localTimeDerivative.add(eq.getLhs().toString().replaceAll("'", ""));
 					} else {
 						//otherwise the integration is global, no further steps required
@@ -301,7 +302,7 @@ public class LEMSCollector extends Collector {
 				//now, in order to avoid constants which are not used, delete them
 				int tempIndex = -1;
 				for (Constant v : constantsList) {//search for the index
-					if (v.getName().equals("INIT" + varName)) {
+					if (v.getName().equals(helper.PREFIX_INIT + varName)) {
 						tempIndex = constantsList.indexOf(v);
 					}
 				}//delete the the element
@@ -348,12 +349,12 @@ public class LEMSCollector extends Collector {
 						ASTUnitType tempType = new ASTUnitType();
 						tempType.setUnit("ms");
 						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-						this.addConstant(new Constant("CON" + config.getSimulation_steps_length() + "ms", "DimensionOfms", tempNumerical, false));
+						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + "ms", "DimensionOfms", tempNumerical, false));
 						//search for the constant to which steps refer
 						for (Constant v : this.getConstantsList()) {
 							if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
 								//create a new derived parameter for this expression
-								Variable tempVar = new Variable(v.getName() + "/CON" + config.getSimulation_steps_length() + "ms");
+								Variable tempVar = new Variable(v.getName() + "/"+helper.PREFIX_CONSTANT+ config.getSimulation_steps_length() + "ms");
 								this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
 										tempVar, false, false));
 							}
@@ -405,7 +406,7 @@ public class LEMSCollector extends Collector {
 		}
 		//if there is no event out
 		if (outputPortDefined() && !helper.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
-			automaton.addPortActivator(this);
+			automaton.addPortActivator();
 		}
 	}
 

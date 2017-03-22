@@ -1,4 +1,4 @@
-<Target specification="LEMS" name="izhikevich_nestml" units_external="true" simulation_steps="20ms">
+<Target specification="LEMS" name="izhikevich" units_external="true" simulation_steps="20ms">
 	<Attachments name="testAttachment" type="testAttachmentType"/>
 	<DerivedVariable name="testDerivedVariable" dimension="testDimension" select="testSelect" reduce="testReduce"/>
 	<Parameter name="testParameter" dimension="testDimension"/>
