@@ -1,11 +1,11 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
-import org.nest.codegeneration.LEMSGenerator;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
 import static de.se_rwth.commons.logging.Log.info;
 
 
@@ -28,7 +28,7 @@ public class SimulationConfiguration {
 	private boolean unitsExternal = false;
 	//stores the length of single simulation step in ms
 	private double simulation_steps_length;
-	private String simulation_steps_unit;
+	private Unit simulation_steps_unit;
 	//the path to a configuration file
 	private Path configPath = null;
 
@@ -94,27 +94,34 @@ public class SimulationConfiguration {
 							}
 
 						}
-						if (outerNode.getAttributes().getNamedItem("units_external")!=null&&
+						if (outerNode.getAttributes().getNamedItem("units_external") != null &&
 								outerNode.getAttributes().getNamedItem("units_external").getNodeValue() != null) {
 							this.unitsExternal =
 									outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
 						}
-						if (outerNode.getAttributes().getNamedItem("simulation_steps")!=null&&
+						if (outerNode.getAttributes().getNamedItem("simulation_steps") != null &&
 								outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue() != null) {
-							//TODO: extract the unit and the value
+							//if it matches a value declaration, e.g. 10ms (value:unit)
+							if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().matches("[0-9]+[a-zA-Z]+")) {
+								String unit = outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[0-9]", "");
+								simulation_steps_unit=new Unit(unit, new Dimension(container.getHelper().PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
+								simulation_steps_length = Double.parseDouble(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[a-zA-Z]", ""));
+								container.addUnit(simulation_steps_unit);
+								container.addDimension(simulation_steps_unit.getDimension());
+							}
 						}
 					}
 				}
 			}
 
 		} catch (SAXException e) {
-			System.err.println("Artifact skipped (invalid): "+ configPath);
+			System.err.println("Artifact skipped (invalid): " + configPath);
 			return;
 		} catch (ParserConfigurationException e) {
-			System.err.println("Artifact skipped (invalid): "+ configPath);
+			System.err.println("Artifact skipped (invalid): " + configPath);
 			return;
 		} catch (IOException e) {
-			System.err.println("Artifact skipped (not found): "+ configPath);
+			System.err.println("Artifact skipped (not found): " + configPath);
 			return;
 		}
 	}
@@ -127,7 +134,7 @@ public class SimulationConfiguration {
 		return simulation_steps_length;
 	}
 
-	public String getSimulation_steps_unit() {
+	public Unit getSimulation_steps_unit() {
 		return simulation_steps_unit;
 	}
 }

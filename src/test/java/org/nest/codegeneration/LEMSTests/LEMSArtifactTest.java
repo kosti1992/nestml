@@ -6,8 +6,7 @@ import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
-import org.nest.codegeneration.LEMSGenerator;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.codegeneration.helpers.LEMSElements.EventPort;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
@@ -22,7 +21,7 @@ public class LEMSArtifactTest extends ModelbasedTest{
   @Test
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
-    final LEMSGenerator testant = new LEMSGenerator();
+    final LEMSCodeGenerator testant = new LEMSCodeGenerator();
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(CONFIG_PATH));
     //check if Attachments are read in correctly
     Assert.assertEquals("testAttachment",testant.getListOfNeurons().get(0).getAttachments().get(0).getBindName());

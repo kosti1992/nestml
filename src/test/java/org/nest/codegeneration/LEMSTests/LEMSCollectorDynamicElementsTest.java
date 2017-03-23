@@ -2,13 +2,11 @@ package org.nest.codegeneration.LEMSTests;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
-import org.nest.codegeneration.LEMSGenerator;
-import org.nest.codegeneration.helpers.LEMSElements.Dimension;
+import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
 /**
@@ -23,7 +21,7 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
   @Test
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
-    final LEMSGenerator testant = new LEMSGenerator();
+    final LEMSCodeGenerator testant = new LEMSCodeGenerator();
     if(true){
       System.out.println("This test is not provided with an external artifact, message can be ignored!");
       testant.generateLEMS(testModel, OUTPUT_DIRECTORY, Paths.get(INPUT_DIRECTORY));

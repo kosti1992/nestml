@@ -113,12 +113,12 @@ public class LEMSCollector extends Collector {
 			extendedModel = neuron.getBase().get();//store the name of the extended model
 		}
 		ASTBody neuronBody = neuron.getBody();
-    /*
-     * processes all non-alias elements of the state block
+	/*
+	 * processes all non-alias elements of the state block
      */
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
-				System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
+				helper.printArrayNotSupportedMessage(var);
 				this.addNotConverted("Not supported array-declaration found: " + var.getName()
 						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to " + var.getAstNode().get()
 						.get_SourcePositionEnd() + ".");
@@ -128,8 +128,8 @@ public class LEMSCollector extends Collector {
 				handleType(var.getType());//handle the type of the variable
 			}
 		}
-    /*
-     * processes all alias elements of the state block
+	/*
+	 * processes all alias elements of the state block
      */
 		for (VariableSymbol var : neuronBody.getStateAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, true, false));
@@ -151,8 +151,8 @@ public class LEMSCollector extends Collector {
 			//create a new constant in order to achieve a correct dimension of the equation:
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit("ms");
-			this.addConstant(new Constant("CON1ms", helper.PREFIX_DIMENSION+"ms", new NumericalLiteral(1, tempType), false));
-			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION+"ms", 0, 0, 1, 0, 0, 0, 0);
+			this.addConstant(new Constant(helper.PREFIX_CONSTANT+"1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", msDimension));
       /*
@@ -166,7 +166,7 @@ public class LEMSCollector extends Collector {
 					equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 				} else {
 					Expression tempExpression = new Expression(eq.getRhs());
-					DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), "none", tempExpression, true, false);
+					DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
 					//store the shape
 					this.addDerivedElement(shapeVariable);
 				}
@@ -199,13 +199,12 @@ public class LEMSCollector extends Collector {
 			for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 				ASTEquation eq = neuronBody.getEquations().get(i);
 				if (helper.containsFunctionCall(eq.getRhs(), true)) {
-					System.err.println("Not supported function call in expression found: " + prettyPrint.print(eq.getRhs(), false));
+					helper.printNotSupportedFunctionCallFoundMessage(eq,prettyPrint);
 					this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 					equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
 				} else {
 					List<String> tempList = new ArrayList<>();
-					//TODO: the deletion of tilde is hardcoded, some kind or workaround is required
-					tempList.add(eq.getLhs().toString().replaceAll("'", ""));// a list is required, since method blockContains requires lists of args.
+					tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
 					//check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
 					if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
 						Expression expr = new Expression(eq.getRhs());
@@ -213,16 +212,17 @@ public class LEMSCollector extends Collector {
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
 						//only ode, i.e. integrate directives have to be manipulated
-						equation.put(eq.getLhs().toString().replaceAll("'", ""), expr);
+						equation.put(eq.getLhs().getSimpleName(), expr);
 						//now generate the corresponding activator
-						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().toString().replaceAll("'", ""), "none", new NumericalLiteral(1, null), "", this));
-						this.localTimeDerivative.add(eq.getLhs().toString().replaceAll("'", ""));
+						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().toString().replaceAll("'", ""),
+								helper.DIMENSION_NONE, new NumericalLiteral(1, null), helper.NO_UNIT, this));
+						this.localTimeDerivative.add(eq.getLhs().getSimpleName());
 					} else {
 						//otherwise the integration is global, no further steps required
 						Expression expr = new Expression(eq.getRhs());
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
-						equation.put(eq.getLhs().toString().replaceAll("'", ""), expr);
+						equation.put(eq.getLhs().getSimpleName(), expr);
 					}
 				}
 			}
@@ -269,7 +269,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
-				System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
+				helper.printArrayNotSupportedMessage(var);
 				this.addNotConverted("/parameter-block/" + var.getName()
 						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to " + var.getAstNode().get()
 						.get_SourcePositionEnd() + " of type array.");
@@ -328,7 +328,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
-				System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
+				this.getHelper().printArrayNotSupportedMessage(var);
 				this.addNotConverted("/internal-block/" + var.getName()
 						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to "
 						+ var.getAstNode().get().get_SourcePositionEnd() + " of type array.");
@@ -349,12 +349,12 @@ public class LEMSCollector extends Collector {
 						ASTUnitType tempType = new ASTUnitType();
 						tempType.setUnit("ms");
 						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + "ms", "DimensionOfms", tempNumerical, false));
+						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + "ms", helper.PREFIX_DIMENSION + "ms", tempNumerical, false));
 						//search for the constant to which steps refer
 						for (Constant v : this.getConstantsList()) {
 							if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
 								//create a new derived parameter for this expression
-								Variable tempVar = new Variable(v.getName() + "/"+helper.PREFIX_CONSTANT+ config.getSimulation_steps_length() + "ms");
+								Variable tempVar = new Variable(v.getName() + "/" + helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + config.getSimulation_steps_unit().getSymbol());
 								this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
 										tempVar, false, false));
 							}
@@ -416,9 +416,8 @@ public class LEMSCollector extends Collector {
 	 * @param var The variable which will processed.
 	 */
 	public void handleType(TypeSymbol var) {
-		/**
-		 * in case that a provided variable uses a concrete unit, this unit has to be processed. otherwise, nothing happens
-		 */
+		// in case that a provided variable uses a concrete unit, this unit has to be processed.
+		// otherwise, nothing happens
 		if (var.getType() == TypeSymbol.Type.UNIT) {
 			Unit temp = new Unit(var);
 			this.addDimension(temp.getDimension());
@@ -428,7 +427,7 @@ public class LEMSCollector extends Collector {
 
 	@SuppressWarnings("unused")//Used in the template
 	public String getNeuronName() {
-		return this.neuronName.replace("_nestml","");
+		return this.neuronName.replace("_nestml", "");
 	}
 
 	@SuppressWarnings("unused")//Used in the template
@@ -604,7 +603,6 @@ public class LEMSCollector extends Collector {
 	/**
 	 * A list of functions which add elements to the corresponding lists.
 	 */
-
 	public void addUnit(Unit var) {
 		if (!this.unitsSet.contains(var)) {
 			this.unitsSet.add(var);
@@ -647,8 +645,10 @@ public class LEMSCollector extends Collector {
 		}
 	}
 
-	public void addAttachment(Attachment elem) {
-		this.attachments.add(elem);
+	public void addAttachment(Attachment var) {
+		if (!this.attachments.contains(var)) {
+			this.attachments.add(var);
+		}
 	}
 
 	public LEMSSyntaxContainer getSyntaxContainer() {

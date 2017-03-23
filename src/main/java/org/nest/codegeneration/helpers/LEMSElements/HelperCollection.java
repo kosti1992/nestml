@@ -10,10 +10,12 @@ import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.commons._ast.ASTVariable;
+import org.nest.ode._ast.ASTEquation;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
 import org.nest.spl._ast.ASTSmall_Stmt;
 import org.nest.spl._ast.ASTStmt;
+import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 
@@ -28,11 +30,13 @@ public class HelperCollection {
 
 	//this is a collection of global constants and prefixes. in case something has to be changed, this is the point where
 	public String NOT_SUPPORTED = "NOT_SUPPORTED";
+	public String NO_UNIT = "";
 	public String DIMENSION_NONE = "none";
 	public String PREFIX_INIT = "INIT";
 	public String PREFIX_DIMENSION = "DimensionOf_";
 	public String PREFIX_CONSTANT = "CON";
 	public String PREFIX_ACT = "ACT";
+
 
 	public HelperCollection(LEMSCollector collector) {
 		container = collector;
@@ -133,8 +137,6 @@ public class HelperCollection {
 	/**
 	 * Checks whether a given function call name is supported by the target modeling language or not.
 	 * If new concepts are supported, add here.
-	 * TODO:there are actually many more supported function
-	 *
 	 * @param expr The function call name which will be checked.
 	 * @return true, if supported
 	 */
@@ -145,6 +147,34 @@ public class HelperCollection {
 			case "log":
 				return true;
 			case "pow":
+				return true;
+			case "sin":
+				return true;
+			case "cos":
+				return true;
+			case "tan":
+				return true;
+			case "sinh":
+				return true;
+			case "cosh":
+				return true;
+			case "tanh":
+				return true;
+			case "sqrt":
+				return true;
+			case "ceil":
+				return true;
+			case "ln":
+				return true;
+			case "random":
+				return true;
+			case "abs":
+				return true;
+			case "factorial":
+				return true;
+			case "product":
+				return true;
+			case "sum":
 				return true;
 			default:
 				return false;
@@ -417,7 +447,7 @@ public class HelperCollection {
 		parenthesis.setRightParentheses(true);
 		leftSubExpr.replaceOp(parenthesis);
 		leftSubExpr.replaceRhs(expr);
-		Variable var = new Variable("CON1ms");
+		Variable var = new Variable(PREFIX_CONSTANT+"1ms");
 		Expression exp = new Expression();
 		Operator op = new Operator();
 		op.setDivOp(true);
@@ -426,4 +456,16 @@ public class HelperCollection {
 		exp.replaceRhs(var);
 		return exp;
 	}
+
+
+	public void printArrayNotSupportedMessage(VariableSymbol var){
+		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
+	}
+
+	public void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter){
+		System.err.println("Not supported function call in expression found: " + prettyPrinter.print(eq.getRhs(), false));
+	}
+
+
+
 }

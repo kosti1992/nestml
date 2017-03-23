@@ -1,4 +1,4 @@
-<Target specification="LEMS" name="izhikevich">
+<Target specification="LEMS" name="izhikevich" simulation_steps="10ms">
 	<Attachments name="pulseGeneratorDL" type="pulseGeneratorDL"/>
 	<DerivedVariable name="I" dimension="none" select="pulseGeneratorDL[*]/I" reduce="add"/>
 </Target>	

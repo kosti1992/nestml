@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import de.se_rwth.commons.logging.Finding;
 import de.se_rwth.commons.logging.Log;
 import org.apache.commons.io.FilenameUtils;
-import org.nest.codegeneration.LEMSGenerator;
+import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.codegeneration.NestCodeGenerator;
 import org.nest.codegeneration.sympy.TransformerBase;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
@@ -80,7 +80,7 @@ public class CliConfigurationExecutor {
     final List<ASTNESTMLCompilationUnit> modelRoots = parseModels(modelFilenames, parser);
     final NESTMLScopeCreator scopeCreator = new NESTMLScopeCreator(config.getInputBase());
     modelRoots.forEach(scopeCreator::runSymbolTableCreator);
-    LEMSGenerator generator = new LEMSGenerator();
+    LEMSCodeGenerator generator = new LEMSCodeGenerator();
     for(ASTNESTMLCompilationUnit elem :modelRoots){
       generator.generateLEMS(elem,config.getTargetPath(),config.getConfigPath());
     }

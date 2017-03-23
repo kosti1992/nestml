@@ -56,10 +56,11 @@ public class Constant {
 				container.getHelper().printNotSupportedDataType(variable);
 			}
 			//check whether the variable has a function call
-			//TODO:this case should be dealt with at a different please
 			if (variable.getDeclaringExpression().isPresent()&&
 					variable.getDeclaringExpression().get().functionCallIsPresent()) {
 				container.getHelper().printNotSupportedDataType(variable);
+				this.value = new Variable(container.getHelper().NOT_SUPPORTED
+						+":"+variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
 			}
 		}
 	}

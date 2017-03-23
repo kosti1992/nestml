@@ -293,7 +293,7 @@ public class DynamicRoutine {
         this.container.addNotConverted("Not supported function call "
                 +functionCall.getName().toString() +" in lines "
                 + functionCall.get_SourcePositionStart()+ " to "+ functionCall.get_SourcePositionEnd());
-        System.err.println("Not supported function call found.");
+        //System.err.println("Not supported function call found.");
         return null;
     }
   }
@@ -325,14 +325,15 @@ public class DynamicRoutine {
       temp = false;
       //for all elements in the list, check if an integration directive has been found
       for (Instruction call : list) {
-        if (call.getClass().equals(Assignment.class) && ((Assignment) call).printAssignedVariable().equals("ACT" + var)) {
+        if (call.getClass().equals(Assignment.class) &&
+                ((Assignment) call).printAssignedVariable().equals(container.getHelper().PREFIX_ACT + var)) {
           temp = true;
         }
       }
       //add a deactivation assignment to the list of directives if no integrate directive has been found
       if (!temp) {
         NumericalLiteral tempLiteral = new NumericalLiteral(0,null);
-        list.add(new Assignment("ACT" + var,tempLiteral));
+        list.add(new Assignment(container.getHelper().PREFIX_ACT + var,tempLiteral));
       }
     }
     return list;
@@ -352,13 +353,13 @@ public class DynamicRoutine {
     }
     else {
       for (StateVariable var : container.getStateVariablesList()) {
-        if (var.getName().equals("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
+        if (var.getName().equals(container.getHelper().PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
           ((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
         }
       }
       //integrate the corresponding variable in this block
       NumericalLiteral tempLiteral = new NumericalLiteral(1,null);
-      return new Assignment("ACT" + functionCall.getArgs().get(0).getVariable().get().getName().toString(),tempLiteral);
+      return new Assignment(container.getHelper().PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString(),tempLiteral);
     }
   }
 

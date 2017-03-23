@@ -38,4 +38,23 @@ public class Attachment {
 	public String getBindType() {
 		return bindType;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Attachment that = (Attachment) o;
+
+		if (!bindName.equals(that.bindName)) return false;
+		return bindType.equals(that.bindType);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = bindName.hashCode();
+		result = 31 * result + bindType.hashCode();
+		return result;
+	}
 }

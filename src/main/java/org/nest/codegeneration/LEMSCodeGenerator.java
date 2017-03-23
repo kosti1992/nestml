@@ -46,8 +46,8 @@ import javax.xml.xpath.XPathFactory;
  *
  * @author perun
  */
-public class LEMSGenerator {
-	public static final String LOG_NAME = LEMSGenerator.class.getName();
+public class LEMSCodeGenerator {
+	public static final String LOG_NAME = LEMSCodeGenerator.class.getName();
 
 	private List<LEMSCollector> listOfNeurons = new ArrayList<>();//used for tests and debug
 
@@ -93,7 +93,6 @@ public class LEMSGenerator {
 		SimulationConfiguration config = new SimulationConfiguration(configPath);
 
 		LEMSModelPrettyPrinter LEMSPrettyPrinterInstance = new LEMSModelPrettyPrinter();
-
 
 		LEMSCollector collector;
 		//transform each given neuron
@@ -162,7 +161,7 @@ public class LEMSGenerator {
 			try {
 				dBuilder = dbFactory.newDocumentBuilder();
 			} catch (ParserConfigurationException e) {
-				info("Could not create pretty print instance (LEMS)", LOG_NAME);
+				info("Could not create pretty printer instance (LEMS)", LOG_NAME);
 				e.printStackTrace();
 			}
 			tf = TransformerFactory.newInstance();
@@ -191,7 +190,7 @@ public class LEMSGenerator {
 				original = dBuilder.parse(new InputSource(new InputStreamReader(
 						new FileInputStream(outPutDir.toAbsolutePath().toString() + "/" + modelPath.toString()))));
 				original.getDocumentElement().normalize();
-				XPathExpression xpath = XPathFactory.newInstance().//delete all "white" but ignore comments
+				XPathExpression xpath = XPathFactory.newInstance().//delete all "white" lines but ignore comments
 						newXPath().compile("//text()[normalize-space(.) = ''] ");
 				NodeList blankTextNodes = (NodeList) xpath.evaluate(original, XPathConstants.NODESET);
 
@@ -205,7 +204,6 @@ public class LEMSGenerator {
 				out.close();
 			} catch (Exception ex) {
 				info("Could not pretty print model (LEMS)", LOG_NAME);
-				throw new RuntimeException("Error converting to String", ex);
 			}
 		}
 	}

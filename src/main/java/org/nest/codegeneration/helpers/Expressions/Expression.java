@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.nest.codegeneration.helpers.LEMSElements.LEMSCollector;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
 
@@ -253,7 +254,7 @@ public class Expression {
 	public Expression setNotSupported() {
 		Expression ret = new Expression();
 		ret.replaceRhs(this);
-		Variable var = new Variable("not_supported:");
+		Variable var = new Variable(LEMSCollector.helper.NOT_SUPPORTED);
 		ret.replaceRhs(var);
 		return ret;
 	}

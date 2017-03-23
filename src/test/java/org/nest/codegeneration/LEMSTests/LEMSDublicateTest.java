@@ -6,13 +6,9 @@ import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
-import org.nest.codegeneration.LEMSGenerator;
+import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.codegeneration.helpers.Expressions.Variable;
-import org.nest.codegeneration.helpers.LEMSElements.Constant;
-import org.nest.codegeneration.helpers.LEMSElements.DerivedElement;
-import org.nest.codegeneration.helpers.LEMSElements.Dimension;
-import org.nest.codegeneration.helpers.LEMSElements.StateVariable;
-import org.nest.codegeneration.helpers.LEMSElements.Unit;
+import org.nest.codegeneration.helpers.LEMSElements.*;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 import org.nest.symboltable.symbols.TypeSymbol;
 
@@ -26,33 +22,41 @@ public class LEMSDublicateTest extends ModelbasedTest {
   private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/config.xml";
   @Test
   public void testGenerateLEMS() throws Exception {
+    System.out.println("-----------------------------Error messages can be ignored-----------------------------");
     int varCount = 0;
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
-    final LEMSGenerator testant = new LEMSGenerator();
+    final LEMSCodeGenerator testant = new LEMSCodeGenerator();
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY+"/"));
-    if(false) {
-      System.err.println("This test is currently broken due to the update of unit handling");//TODO
+    if(true) {
+      //--------------------------------Constant+Parameter---------------------------------------
       //add two constants and check whether duplicates have been recognized
       testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),true));
       varCount = testant.getListOfNeurons().get(0).getConstantsList().size();
-      //testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),"test",true));
-      Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getConstantsList().size());
-      //add two derived elements and check whether duplicates have been recognized
       testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),true));
-      varCount = testant.getListOfNeurons().get(0).getDerivedParametersList().size();
-      Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getDerivedParametersList().size());
-      //add two units and check whether duplicates have been recognized
-      Unit tempUnit = new Unit(new TypeSymbol("mV", TypeSymbol.Type.UNIT));
-      testant.getListOfNeurons().get(0).addUnit(tempUnit);
+      Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getConstantsList().size());
+      //now add a parameter and check if it is recognized as such
+      testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),false));
+      Assert.assertTrue((varCount + 1) == testant.getListOfNeurons().get(0).getConstantsList().size() );
+      testant.getListOfNeurons().get(0).addConstant(new Constant("test", "none",new Variable("test"),false));
+      Assert.assertTrue((varCount + 1) == testant.getListOfNeurons().get(0).getConstantsList().size() );
+      //---------------------------------Attachments----------------------------------------------
+      testant.getListOfNeurons().get(0).addAttachment(new Attachment("test","test"));
+      varCount = testant.getListOfNeurons().get(0).getAttachments().size();
+      testant.getListOfNeurons().get(0).addAttachment(new Attachment("test","test"));
+      Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getAttachments().size() );
+      //-----------------------------------
+      testant.getListOfNeurons().get(0).addUnit(new Unit("test",
+              new Dimension("test",1,1,1,1,1,1,1)));
       varCount = testant.getListOfNeurons().get(0).getUnitsSet().size();
-      int dimCount = testant.getListOfNeurons().get(0).getDimensionsSet().size();
-      testant.getListOfNeurons().get(0).addUnit(new Unit(new TypeSymbol("mV", TypeSymbol.Type.UNIT)));
+      testant.getListOfNeurons().get(0).addUnit(new Unit("test",
+              new Dimension("test",1,1,1,1,1,1,1)));
       Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getUnitsSet().size());
-      Assert.assertTrue(dimCount == testant.getListOfNeurons().get(0).getDimensionsSet().size());
-      //dimensions are made implicitly -> check whether two dimensions are equal
-      //add two units and check whether duplicates have been recognized
-      varCount = testant.getListOfNeurons().get(0).getStateVariablesList().size();
-      Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getStateVariablesList().size());
+
+
+
+
+
     }
+    System.out.println("---------------------------------------------------------------------------------------");
   }
 }
