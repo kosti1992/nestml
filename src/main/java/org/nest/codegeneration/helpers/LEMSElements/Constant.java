@@ -23,9 +23,10 @@ public class Constant {
 
 	/**
 	 * This constructor can be used to create a new Constant object representing either a constant or a parameter.
-	 * @param variable a symbol from which a constant will be created
-	 * @param init indicates whether this value represents a init value of variable or not
-	 * @param par indicates whether it is a parameter or not
+	 *
+	 * @param variable  a symbol from which a constant will be created
+	 * @param init      indicates whether this value represents a init value of variable or not
+	 * @param par       indicates whether it is a parameter or not
 	 * @param container the container in which the new object will be stored and whose prettyPrinter shall be used
 	 */
 
@@ -40,27 +41,25 @@ public class Constant {
 			//if a declaring expression is present, convert it
 			if (variable.getDeclaringExpression().isPresent()) {
 				this.value = new Expression(variable);
-			}else{//otherwise this is an initialization, thus create a new numerical literal or variable
-				if(variable.getType().getType()== TypeSymbol.Type.UNIT){// in case a unit is used, we have to create num
+			} else {//otherwise this is an initialization, thus create a new numerical literal or variable
+				if (variable.getType().getType() == TypeSymbol.Type.UNIT) {// in case a unit is used, we have to create num
 					ASTUnitType tempType = new ASTUnitType();
 					tempType.setUnit(variable.getType().prettyPrint());
-					NumericalLiteral literal = new NumericalLiteral(0,tempType);
+					NumericalLiteral literal = new NumericalLiteral(0, tempType);
 					this.value = literal;
-				}else{//var does not have unit, a variable with value 0 is sufficient
+				} else {//var does not have unit, a variable with value 0 is sufficient
 					this.value = new Variable("0");
 				}
 
 			}
-			if ( this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
+			if (this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
 				//store an adequate message if the data type is not supported
 				container.getHelper().printNotSupportedDataType(variable);
 			}
 			//check whether the variable has a function call
-			if (variable.getDeclaringExpression().isPresent()&&
+			if (variable.getDeclaringExpression().isPresent() &&
 					variable.getDeclaringExpression().get().functionCallIsPresent()) {
-				container.getHelper().printNotSupportedDataType(variable);
-				this.value = new Variable(container.getHelper().NOT_SUPPORTED
-						+":"+variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
+				this.value = this.processFunctionCallInConstantDefinition(variable, container);
 			}
 		}
 	}
@@ -116,7 +115,7 @@ public class Constant {
 
 	@SuppressWarnings("unused")//used in the template
 	public String getUnit() {
-		if (value.getClass().equals(NumericalLiteral.class)&&((NumericalLiteral) value).hasType()) {
+		if (value.getClass().equals(NumericalLiteral.class) && ((NumericalLiteral) value).hasType()) {
 			return ((NumericalLiteral) value).getType().get().getUnit().get();
 		}
 		return "";
@@ -132,7 +131,7 @@ public class Constant {
 	public String getValueUnit() {
 		return this.value.print(new LEMSSyntaxContainer());
 	/*
-    if(!this.unit.equals("")){
+	if(!this.unit.equals("")){
       return this.value+this.unit;
     }
     else{
@@ -173,5 +172,17 @@ public class Constant {
 		result = 31 * result + value.hashCode();
 		result = 31 * result + (parameter ? 1 : 0);
 		return result;
+	}
+
+	private Expression processFunctionCallInConstantDefinition(VariableSymbol variable, LEMSCollector container) {
+		if (variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
+			ASTUnitType tempType = new ASTUnitType();
+			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
+			return new NumericalLiteral(container.getConfig().getSimulation_steps_length(),tempType);
+		} else {
+			container.getHelper().printNotSupportedFunctionCallInExpression(variable);
+			return new Variable(container.getHelper().NOT_SUPPORTED
+					+ ":" + variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
+		}
 	}
 }

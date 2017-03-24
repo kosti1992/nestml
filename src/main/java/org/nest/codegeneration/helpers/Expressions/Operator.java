@@ -33,86 +33,89 @@ public class Operator extends Expression{
   private boolean power;
   private boolean leftParentheses;
   private boolean rightParentheses;
-
+  private boolean non;//this operator indicates that non operator is selected, e.g. in case a negation has been negated
 
   public Operator(ASTExpr expr){
     if(expr.isInf()){
       this.inf=true;
     }
-    if(expr.isLogicalOr()){
+    else if(expr.isLogicalOr()){
       this.logicalOr = true;
     }
-    if(expr.isLogicalAnd()){
+    else if(expr.isLogicalAnd()){
       this.logicalAnd = true;
     }
-    if(expr.isLogicalNot()){
+    else if(expr.isLogicalNot()){
       this.logicalNot = true;
     }
-    if(expr.isGt()){
+    else if(expr.isGt()){
       this.gt = true;
     }
-    if(expr.isGe()){
+    else if(expr.isGe()){
       this.ge= true;
     }
-    if(expr.isNe()){
+    else if(expr.isNe()){
       this.ne = true;
     }
-    if(expr.isEq()){
+    else if(expr.isEq()){
       this.eq = true;
     }
-    if(expr.isLe()){
+    else if(expr.isLe()){
       this.le = true;
     }
-    if(expr.isLt()){
+    else  if(expr.isLt()){
       this.lt = true;
     }
-    if(expr.isBitOr()){
+    else  if(expr.isBitOr()){
       this.bitOr = true;
     }
-    if(expr.isBitXor()){
+    else if(expr.isBitXor()){
       this.bitXor = true;
     }
-    if(expr.isBitAnd()){
+    else if(expr.isBitAnd()){
       this.bitAnd = true;
     }
-    if(expr.isShiftRight()){
+    else if(expr.isShiftRight()){
       this.shiftRight = true;
     }
-    if(expr.isShiftLeft()){
+    else if(expr.isShiftLeft()){
       this.shiftLeft = true;
     }
-    if(expr.isMinusOp()){
+    else if(expr.isMinusOp()){
       this.minusOp = true;
     }
-    if(expr.isPlusOp()){
+    else if(expr.isPlusOp()){
       this.plusOp = true;
     }
-    if(expr.isModuloOp()){
+    else if(expr.isModuloOp()){
       this.moduloOp = true;
     }
-    if(expr.isDivOp()){
+    else if(expr.isDivOp()){
       this.divOp = true;
     }
-    if(expr.isTimesOp()){
+    else if(expr.isTimesOp()){
       this.timesOp = true;
     }
-    if(expr.isUnaryTilde()){
+    else if(expr.isUnaryTilde()){
       this.unaryTilde = true;
     }
-    if(expr.isUnaryPlus()){
+    else if(expr.isUnaryPlus()){
       this.unaryPlus = true;
     }
-    if(expr.isUnaryMinus()){
+    else if(expr.isUnaryMinus()){
       this.unaryMinus = true;
     }
-    if(expr.isPow()){
+    else if(expr.isPow()){
       this.power = true;
     }
-    if(expr.isLeftParentheses()){
+    else if(expr.isLeftParentheses()){
       this.leftParentheses = true;
     }
-    if(expr.isRightParentheses()){
+    else if(expr.isRightParentheses()){
       this.rightParentheses = true;
+    }
+    else{
+      this.non = true;
     }
 
   }
@@ -223,6 +226,10 @@ public class Operator extends Expression{
     return rightParentheses;
   }
 
+  public boolean isNon() {
+    return non;
+  }
+
   public void setInf(boolean inf) {
     this.inf = inf;
   }
@@ -327,6 +334,10 @@ public class Operator extends Expression{
     this.rightParentheses = rightParentheses;
   }
 
+  public void setNon(boolean non) {
+    this.non = non;
+  }
+
   public void negate(){
     if(this.logicalAnd){
       this.logicalAnd = false;
@@ -337,8 +348,8 @@ public class Operator extends Expression{
       this.logicalAnd = true;
     }
     else if(this.logicalNot){
-      //this case is quite interesting, since no log. op would be active
       this.logicalNot = false;
+      this.non = true;
     }
     else if(this.le){
       this.le = false;
@@ -359,6 +370,10 @@ public class Operator extends Expression{
     else if(this.eq){
       this.eq = false;
       this.ne = true;
+    }
+    else if(this.non){
+      this.non = false;
+      this.logicalNot = true;
     }
   }
 

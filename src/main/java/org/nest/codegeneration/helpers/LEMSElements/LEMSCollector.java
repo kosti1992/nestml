@@ -106,6 +106,13 @@ public class LEMSCollector extends Collector {
 	 */
 	private void handleNeuron(ASTNeuron neuron) {
 		neuronName = neuron.getName();
+
+		 /*
+	 * now adapt the settings according to the handed over artifact if required
+     */
+		config.adaptSettings(this);
+
+
 	/*
 	 * checks whether the model extends an other model
      */
@@ -151,7 +158,7 @@ public class LEMSCollector extends Collector {
 			//create a new constant in order to achieve a correct dimension of the equation:
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit("ms");
-			this.addConstant(new Constant(helper.PREFIX_CONSTANT+"1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+			this.addConstant(new Constant(helper.PREFIX_CONSTANT + "1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
 			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", msDimension));
@@ -199,7 +206,7 @@ public class LEMSCollector extends Collector {
 			for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 				ASTEquation eq = neuronBody.getEquations().get(i);
 				if (helper.containsFunctionCall(eq.getRhs(), true)) {
-					helper.printNotSupportedFunctionCallFoundMessage(eq,prettyPrint);
+					helper.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
 					this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 					equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
 				} else {
@@ -214,7 +221,7 @@ public class LEMSCollector extends Collector {
 						//only ode, i.e. integrate directives have to be manipulated
 						equation.put(eq.getLhs().getSimpleName(), expr);
 						//now generate the corresponding activator
-						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().toString().replaceAll("'", ""),
+						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().getSimpleName(),
 								helper.DIMENSION_NONE, new NumericalLiteral(1, null), helper.NO_UNIT, this));
 						this.localTimeDerivative.add(eq.getLhs().getSimpleName());
 					} else {
@@ -394,10 +401,7 @@ public class LEMSCollector extends Collector {
 		for (ASTOutput var : neuronBody.getOutputs()) {
 			this.addEventPort(new EventPort(var));
 		}
-    /*
-     * now adapt the settings according to the handed over artifact if required
-     */
-		config.adaptSettings(this);
+
     /*
      * check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding automaton
      */

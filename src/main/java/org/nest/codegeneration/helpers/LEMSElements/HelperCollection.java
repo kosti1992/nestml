@@ -394,9 +394,8 @@ public class HelperCollection {
 	 * @param variable the variable symbol whose declaration has a function call which is not supportd
 	 */
 	public void printNotSupportedFunctionCallInExpression(VariableSymbol variable) {
-		System.err.println("Function call found in constant/parameter declaration"
-				+ " in lines " + variable.getSourcePosition().getLine() + ". Please declare as "
-				+ "derived variable!");
+		System.err.println("Function call found in (constant|parameter) declaration"
+				+ " in lines " + variable.getSourcePosition().getLine() +".");
 	}
 
 	public void printNotSupportedFunctionCallInEquations(ASTVariable variable) {

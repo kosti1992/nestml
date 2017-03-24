@@ -331,4 +331,10 @@ public class Expression {
 		result = 31 * result + rhs.hashCode();
 		return result;
 	}
+
+	private void parseStringToExpression(String expressionAsString){
+		//TODO: write a parser+lexer for expression in string form
+	}
+
+
 }

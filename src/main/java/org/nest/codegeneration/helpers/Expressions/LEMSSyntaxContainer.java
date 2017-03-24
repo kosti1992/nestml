@@ -101,7 +101,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer{
     }
     if(expr.isPower()){
       //TODO:this is a big todo <-
-      return "TODO";
+      return "exp";
     }
     if(expr.isLeftParentheses()){
       return "(";
@@ -109,8 +109,11 @@ public class LEMSSyntaxContainer implements SyntaxContainer{
     if(expr.isRightParentheses()){
       return ")";
     }
-    else{
+    if(expr.isNon()){
       return "";
+    }
+    else{//TODO: Yet to implement more
+      return "TODO";
     }
 
   }
@@ -122,7 +125,9 @@ public class LEMSSyntaxContainer implements SyntaxContainer{
       newBuilder.append(arg.print(this));
       newBuilder.append(",");
     }
-    newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string
+    if(expr.getArguments().size()>0){
+      newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string
+    }
     return ret + newBuilder.toString() + ")";
   }
 
