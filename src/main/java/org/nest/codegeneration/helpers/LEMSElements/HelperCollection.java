@@ -1,12 +1,10 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
-import org.nest.codegeneration.helpers.Expressions.Operator;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.commons._ast.ASTVariable;
@@ -18,6 +16,7 @@ import org.nest.spl._ast.ASTStmt;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class provides a set of methods which are used during the transformation in order to retrieve or
@@ -137,6 +136,7 @@ public class HelperCollection {
 	/**
 	 * Checks whether a given function call name is supported by the target modeling language or not.
 	 * If new concepts are supported, add here.
+	 *
 	 * @param expr The function call name which will be checked.
 	 * @return true, if supported
 	 */
@@ -175,6 +175,8 @@ public class HelperCollection {
 			case "product":
 				return true;
 			case "sum":
+				return true;
+			case "resolution":
 				return true;
 			default:
 				return false;
@@ -302,8 +304,8 @@ public class HelperCollection {
 		for (ASTStmt stmt : block.getStmts()) {
 			if (stmt.compound_StmtIsPresent() &&
 					(stmt.getCompound_Stmt().get().fOR_StmtIsPresent() ||
-							stmt.getCompound_Stmt().get().wHILE_StmtIsPresent())){
-						continue;//while and fors are not supported, so just ignore them
+							stmt.getCompound_Stmt().get().wHILE_StmtIsPresent())) {
+				continue;//while and fors are not supported, so just ignore them
 			}
 			if (stmt.small_StmtIsPresent()) {
 				if (stmt.getSmall_Stmt().get().functionCallIsPresent() &&
@@ -395,7 +397,7 @@ public class HelperCollection {
 	 */
 	public void printNotSupportedFunctionCallInExpression(VariableSymbol variable) {
 		System.err.println("Function call found in (constant|parameter) declaration"
-				+ " in lines " + variable.getSourcePosition().getLine() +".");
+				+ " in lines " + variable.getSourcePosition().getLine() + ".");
 	}
 
 	public void printNotSupportedFunctionCallInEquations(ASTVariable variable) {
@@ -446,7 +448,7 @@ public class HelperCollection {
 		parenthesis.setRightParentheses(true);
 		leftSubExpr.replaceOp(parenthesis);
 		leftSubExpr.replaceRhs(expr);
-		Variable var = new Variable(PREFIX_CONSTANT+"1ms");
+		Variable var = new Variable(PREFIX_CONSTANT + "1ms");
 		Expression exp = new Expression();
 		Operator op = new Operator();
 		op.setDivOp(true);
@@ -457,14 +459,33 @@ public class HelperCollection {
 	}
 
 
-	public void printArrayNotSupportedMessage(VariableSymbol var){
+	/**
+	 * Examines a given expression and replaces all occurrences of the function call "resolution" by the corresponding
+	 * constant as provided in the artifact.
+	 * @param container the container in which the config file (i.e. artifact) has been stored.
+	 * @param expr the expression which will be modified
+	 * @return the modified expression
+	 */
+	public Expression replaceResolutionByConstant(LEMSCollector container, Expression expr) {
+		if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
+			ASTUnitType tempType = new ASTUnitType();
+			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
+			Function tempFunction = new Function("resolution", new ArrayList<>());
+			NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulation_steps_length(),
+					tempType);
+			expr.replaceElement(tempFunction, literal);
+			return expr;
+		}
+		return expr;
+	}
+
+	public void printArrayNotSupportedMessage(VariableSymbol var) {
 		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
 	}
 
-	public void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter){
+	public void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter) {
 		System.err.println("Not supported function call in expression found: " + prettyPrinter.print(eq.getRhs(), false));
 	}
-
 
 
 }

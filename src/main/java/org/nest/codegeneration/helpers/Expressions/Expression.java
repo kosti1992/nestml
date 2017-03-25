@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.nest.codegeneration.helpers.LEMSElements.DynamicRoutine;
 import org.nest.codegeneration.helpers.LEMSElements.LEMSCollector;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -26,7 +27,8 @@ public class Expression {
 		this.rhs = Optional.of(new Variable(value));
 	}
 
-	public Expression() {}
+	public Expression() {
+	}
 
 	public Expression(ASTExpr expr) {
 		checkNotNull(expr);
@@ -188,6 +190,7 @@ public class Expression {
 	/**
 	 * Prints the whole expression in LEMS syntax. This method is required since it is not possible
 	 * to generate new objects from within the template.
+	 *
 	 * @return a string representation of the expression
 	 */
 	public String print() {
@@ -291,13 +294,13 @@ public class Expression {
 		return ret;
 	}
 
-
 	/**
 	 * Encapsulates a given expression object in brackets. e.g V_m+10mV -> (V_m+10mV)
+	 *
 	 * @param expr the expression which will be encapsulated.
 	 * @return the encapsulated expression.
 	 */
-	public static Expression encapsulateInBrackets(Expression expr){
+	public static Expression encapsulateInBrackets(Expression expr) {
 		Expression ret = new Expression();
 		Operator op = new Operator();
 		op.setLeftParentheses(true);
@@ -332,7 +335,49 @@ public class Expression {
 		return result;
 	}
 
-	private void parseStringToExpression(String expressionAsString){
+	public boolean containsNamedFunction(String funcName, List<Expression> args) {
+		boolean contains = false;
+		if(this instanceof Function &&
+				((Function) this).getFunctionName().equals(funcName) &&
+				equalArgs(((Function) this).getArguments(), args)){
+			return true;
+		}
+		if (this.rhs.isPresent() && this.rhs.get() instanceof Function &&
+				((Function) this.rhs.get()).getFunctionName().equals(funcName) &&
+				equalArgs(((Function) this.rhs.get()).getArguments(), args)) {
+			return true;
+		}
+		if (this.lhs.isPresent() && this.lhs.get() instanceof Function &&
+				((Function) this.lhs.get()).getFunctionName().equals(funcName) &&
+				equalArgs(((Function) this.lhs.get()).getArguments(), args)) {
+			return true;
+		}
+		if (this.rhs.isPresent()) {
+			contains |= this.rhs.get().containsNamedFunction(funcName, args);
+		}
+		if (this.lhs.isPresent()) {
+			contains |= this.lhs.get().containsNamedFunction(funcName, args);
+		}
+		return contains;
+	}
+
+	private boolean equalArgs(List<Expression> args1, List<Expression> args2) {
+		if(args1==null && args2==null){
+			return true;
+		}
+		if (args1 == null ^ args2 == null || args1.size() != args2.size()) {
+			return false;
+		}
+		for (int i = 0; i < args1.size(); i++) {
+			if (!args1.get(i).equals(args2.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	private void parseStringToExpression(String expressionAsString) {
 		//TODO: write a parser+lexer for expression in string form
 	}
 
