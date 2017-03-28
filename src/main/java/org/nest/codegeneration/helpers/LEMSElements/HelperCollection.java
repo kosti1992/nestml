@@ -455,7 +455,7 @@ public class HelperCollection {
 		parenthesis.setRightParentheses(true);
 		leftSubExpr.replaceOp(parenthesis);
 		leftSubExpr.replaceRhs(expr);
-		Variable var = new Variable(PREFIX_CONSTANT + "1ms");
+		Variable var = new Variable(PREFIX_CONSTANT + "1.0ms");
 		Expression exp = new Expression();
 		Operator op = new Operator();
 		op.setDivOp(true);
@@ -479,14 +479,11 @@ public class HelperCollection {
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
 			Function tempFunction = new Function("resolution", new ArrayList<>());
-
 			NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulation_steps_length(),
 					tempType);
-			Constant tempConstant = new Constant(container.getHelper().PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length() + "ms",
-					container.getHelper().PREFIX_DIMENSION + "ms", literal, false);
-
+			Constant tempConstant = new Constant(container.getHelper().PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length() +
+					tempType.getUnit().get().toString(), container.getHelper().PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
 			container.addConstant(tempConstant);
-
 			expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
 			return expr;
 		}

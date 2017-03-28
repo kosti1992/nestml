@@ -16,8 +16,8 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 			}
 		}
 		if (expr.hasType() && expr.getType().isPresent() && expr.getType().get().getUnit().isPresent()) {
-			System.out.print(String.valueOf(expr.getValue())
-					+ expr.getType().get().getUnit().get().toString());
+			//System.out.print(String.valueOf(expr.getValue())
+			//		+ expr.getType().get().getUnit().get().toString());
 			return String.valueOf(expr.getValue()) + expr.getType().get().getUnit().get().toString();
 		} else {
 			return String.valueOf(expr.getValue());

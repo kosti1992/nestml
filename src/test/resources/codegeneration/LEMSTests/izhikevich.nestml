@@ -1,18 +1,18 @@
 neuron izhikevich_nestml:
 
   state:
-    V_m mV = 0.05[1/ms]#V_m_init
-    u real = V_m*b/1mV
+    V_m mV = 	10[1/ms]#V_m_init
+    u real = 	V_m*b/1mV
     I real = 0
   end
 
   equations:
-    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)*1mV
+    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)
     u' = a*(b*V_m/1mV-u)
   end
 
   parameters:
-    a real
+    a real  = resolution()
     b real
     c real
     d real
