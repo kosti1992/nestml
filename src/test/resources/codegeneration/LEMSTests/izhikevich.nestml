@@ -1,7 +1,7 @@
 neuron izhikevich_nestml:
 
   state:
-    V_m mV = V_m_init*resolution()
+    V_m mV = 0.05[1/ms]#V_m_init
     u real = V_m*b/1mV
     I real = 0
   end
@@ -12,7 +12,7 @@ neuron izhikevich_nestml:
   end
 
   parameters:
-    a real = resolution()
+    a real
     b real
     c real
     d real
@@ -31,7 +31,7 @@ neuron izhikevich_nestml:
 	integrate(V_m)	
     if V_m >= 30mV:
       V_m = c*1mV
-      u += d*resolution()
+      u += d
       emit_spike()
 	end	
   end

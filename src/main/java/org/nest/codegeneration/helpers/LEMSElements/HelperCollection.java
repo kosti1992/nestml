@@ -221,21 +221,28 @@ public class HelperCollection {
 		List<Expression> temp = expr.getNumericals();
 		for (Expression exp : temp) {
 			if (((NumericalLiteral) exp).hasType()) {
-				int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
-				//create the required units and dimensions
-				Dimension tempDimension =
-						new Dimension(PREFIX_DIMENSION + ((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
-								dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-				Unit tempUnit = new Unit(((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
-						tempDimension);
-				container.addDimension(tempDimension);
-				container.addUnit(tempUnit);
+				if (((NumericalLiteral) exp).getType().isPresent() &&
+						((NumericalLiteral) exp).getType().get()
+								.getSerializedUnit() == null) {
+					//TODO
 
-				Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
-						tempDimension.getName(), exp, false);
-				container.addConstant(tempConstant);
-				Variable var = new Variable(tempConstant.getName());
-				expr.replaceElement(exp, var);
+				} else {
+					int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
+					//create the required units and dimensions
+					Dimension tempDimension =
+							new Dimension(PREFIX_DIMENSION + ((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
+									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+					Unit tempUnit = new Unit(((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
+							tempDimension);
+					container.addDimension(tempDimension);
+					container.addUnit(tempUnit);
+
+					Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
+							tempDimension.getName(), exp, false);
+					container.addConstant(tempConstant);
+					Variable var = new Variable(tempConstant.getName());
+					expr.replaceElement(exp, var);
+				}
 			}
 		}
 		return expr;
@@ -462,18 +469,25 @@ public class HelperCollection {
 	/**
 	 * Examines a given expression and replaces all occurrences of the function call "resolution" by the corresponding
 	 * constant as provided in the artifact.
+	 *
 	 * @param container the container in which the config file (i.e. artifact) has been stored.
-	 * @param expr the expression which will be modified
+	 * @param expr      the expression which will be modified
 	 * @return the modified expression
 	 */
-	public Expression replaceResolutionByConstant(LEMSCollector container, Expression expr) {
+	public Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
 		if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
 			Function tempFunction = new Function("resolution", new ArrayList<>());
+
 			NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulation_steps_length(),
 					tempType);
-			expr.replaceElement(tempFunction, literal);
+			Constant tempConstant = new Constant(container.getHelper().PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length() + "ms",
+					container.getHelper().PREFIX_DIMENSION + "ms", literal, false);
+
+			container.addConstant(tempConstant);
+
+			expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
 			return expr;
 		}
 		return expr;

@@ -172,7 +172,7 @@ public class LEMSCollector extends Collector {
 					this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 					equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 				} else {
-					Expression tempExpression  = helper.replaceResolutionByConstant(this,new Expression(eq.getRhs()));
+					Expression tempExpression  = helper.replaceResolutionByConstantReference(this,new Expression(eq.getRhs()));
 					DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
 					//store the shape
 					this.addDerivedElement(shapeVariable);
@@ -218,7 +218,7 @@ public class LEMSCollector extends Collector {
 						expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstant(this,expr);
+						expr = helper.replaceResolutionByConstantReference(this,expr);
 						//only ode, i.e. integrate directives have to be manipulated
 						equation.put(eq.getLhs().getSimpleName(), expr);
 						//now generate the corresponding activator
@@ -230,7 +230,7 @@ public class LEMSCollector extends Collector {
 						Expression expr = new Expression(eq.getRhs());
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstant(this,expr);
+						expr = helper.replaceResolutionByConstantReference(this,expr);
 						equation.put(eq.getLhs().getSimpleName(), expr);
 					}
 				}

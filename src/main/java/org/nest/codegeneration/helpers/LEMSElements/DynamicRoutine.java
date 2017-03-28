@@ -231,6 +231,7 @@ public class DynamicRoutine {
         }
         else {
           Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
+          tempExpression = container.getHelper().replaceResolutionByConstantReference(container,tempExpression);
           Expression ret = new Expression();
           Variable tempVar = new Variable(input.getAssignment().get().getLhsVarialbe().getName().toString());
           Operator tempOp = new Operator();
