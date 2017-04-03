@@ -2,7 +2,7 @@
 <#--glex global-value "container".-->
 <#--@author perun -->
 <Lems>
-    <!-- Generated on ${.now} from  NESTML-model "${container.getNeuronName()}".-->
+    <!-- Generated on ${.now} from NESTML-model "${container.getNeuronName()}".-->
 <#if (container.getConfig().isUnitsExternal())==false>
 ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),container.getDimensionsSet()])}
 <#else>

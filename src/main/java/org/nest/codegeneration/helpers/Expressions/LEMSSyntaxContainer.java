@@ -1,5 +1,7 @@
 package org.nest.codegeneration.helpers.Expressions;
 
+import org.nest.units._ast.ASTUnitType;
+
 /**
  * A concrete syntax container for the target modeling language LEMS.
  *

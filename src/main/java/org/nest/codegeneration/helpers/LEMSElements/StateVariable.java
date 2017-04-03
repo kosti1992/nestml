@@ -61,7 +61,8 @@ public class StateVariable {
 		} else if (variable.getDeclaringExpression().isPresent()) {
 			//otherwise just copy the value, but first replace the constants with references
 			Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
-			tempExpression = LEMSCollector.helper.replaceConstantsWithReferences(container, tempExpression);
+			tempExpression = container.getHelper().replaceConstantsWithReferences(container, tempExpression);
+			tempExpression = container.getHelper().replaceResolutionByConstantReference(container,tempExpression);
 			this.defaultValue = Optional.of(tempExpression);
 		} else if (!variable.getDeclaringExpression().isPresent() &&
 				!this.dimension.equals(container.getHelper().DIMENSION_NONE)
