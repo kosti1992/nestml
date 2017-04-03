@@ -27,8 +27,8 @@ public class SimulationConfiguration {
 	//indicates whether units and dimensions have to be generated externally
 	private boolean unitsExternal = false;
 	//stores the length of single simulation step in ms
-	private double simulation_steps_length;
-	private Unit simulation_steps_unit;
+	private double simulation_steps_length = -1;//standard values to indicate errors
+	private Unit simulation_steps_unit = null;
 	//the path to a configuration file
 	private Path configPath = null;
 
@@ -46,6 +46,9 @@ public class SimulationConfiguration {
 	 */
 	public void adaptSettings(LEMSCollector container) {
 		if (configPath == null) {
+			//if no artifact has been provided, use some standard settings:
+			this.simulation_steps_length = 10;
+			this.simulation_steps_unit = new Unit("ms", new Dimension(container.getHelper().PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 			return;
 		}
 		try {
@@ -62,9 +65,7 @@ public class SimulationConfiguration {
 			for (int i = 0; i < outerList.getLength(); i++) {
 				outerNode = outerList.item(i);
 				//first check if the object we are looking for is in the list
-				if (outerNode.getAttributes().getNamedItem("specification") != null &&
-						outerNode.getAttributes().getNamedItem("specification").getNodeValue().equals("LEMS") &&
-						outerNode.getAttributes().getNamedItem("name") != null) {
+				if (outerNode.getAttributes().getNamedItem("name") != null) {
 					List target_models =
 							Arrays.asList(outerNode.getAttributes().getNamedItem("name").getNodeValue().split(";"));
 					if (target_models.contains(container.getNeuronName())) {
@@ -104,7 +105,7 @@ public class SimulationConfiguration {
 							//if it matches a value declaration, e.g. 10ms (value:unit)
 							if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().matches("[0-9]+[a-zA-Z]+")) {
 								String unit = outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[0-9]", "");
-								simulation_steps_unit=new Unit(unit, new Dimension(container.getHelper().PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
+								simulation_steps_unit = new Unit(unit, new Dimension(container.getHelper().PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
 								simulation_steps_length = Double.parseDouble(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[a-zA-Z]", ""));
 								container.addUnit(simulation_steps_unit);
 								container.addDimension(simulation_steps_unit.getDimension());
@@ -116,14 +117,17 @@ public class SimulationConfiguration {
 
 		} catch (SAXException e) {
 			System.err.println("Artifact skipped (invalid): " + configPath);
-			return;
 		} catch (ParserConfigurationException e) {
 			System.err.println("Artifact skipped (invalid): " + configPath);
-			return;
 		} catch (IOException e) {
 			System.err.println("Artifact skipped (not found): " + configPath);
-			return;
 		}
+		//in the case that a correct artifact has been provided but without steps length and unit stated
+		if (this.simulation_steps_length == -1 && this.simulation_steps_unit == null) {
+			this.simulation_steps_length = 10;
+			this.simulation_steps_unit = new Unit("ms", new Dimension(container.getHelper().PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
+		}
+
 	}
 
 	public boolean isUnitsExternal() {

@@ -16,7 +16,7 @@ import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
  */
 public class LEMSArtifactTest extends ModelbasedTest{
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
-  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevich.nestml";
+  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/empty_model.nestml";
   private static final String CONFIG_PATH = "src/test/resources/codegeneration/LEMSTests/artifact.xml";
   @Test
   public void testGenerateLEMS() throws Exception {
@@ -33,18 +33,20 @@ public class LEMSArtifactTest extends ModelbasedTest{
             getDerivedElementList().get(0).getDerivationInstruction().print());
     Assert.assertEquals("testReduce",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getReduce());
     //check if parameter are read in correctly
-    Assert.assertEquals("testParameter",testant.getListOfNeurons().get(0).getConstantsList().get(8).getName());
-    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getConstantsList().get(8).getDimension());
+    Assert.assertEquals("testParameter",testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
+    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());
+    Assert.assertTrue(testant.getListOfNeurons().get(0).getConstantsList().get(0).isParameter());
     //check if constants are read in correctly
-    Assert.assertEquals("testConst",testant.getListOfNeurons().get(0).getConstantsList().get(9).getName());
-    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getConstantsList().get(9).getDimension());
-    Assert.assertEquals("testValue",testant.getListOfNeurons().get(0).getConstantsList().get(9).getValue().print());
+    Assert.assertEquals("testConst",testant.getListOfNeurons().get(0).getConstantsList().get(1).getName());
+    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getConstantsList().get(1).getDimension());
+    Assert.assertEquals("testValue",testant.getListOfNeurons().get(0).getConstantsList().get(1).getValue().print());
+    Assert.assertTrue(!testant.getListOfNeurons().get(0).getConstantsList().get(1).isParameter());
     //check if event port is read in correctly
-    Assert.assertEquals("testEventPort",testant.getListOfNeurons().get(0).getPortsList().get(3).getName());
-    Assert.assertEquals(EventPort.Direction.out,testant.getListOfNeurons().get(0).getPortsList().get(3).getDirection());
+    Assert.assertEquals("testEventPort",testant.getListOfNeurons().get(0).getPortsList().get(0).getName());
+    Assert.assertEquals(EventPort.Direction.out,testant.getListOfNeurons().get(0).getPortsList().get(0).getDirection());
     //check if state variable is read in correctly
-    Assert.assertEquals("testStateVariable",testant.getListOfNeurons().get(0).getStateVariablesList().get(4).getName());
-    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getStateVariablesList().get(4).getDimension());
+    Assert.assertEquals("testStateVariable",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
+    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
     //check if time derivative is read in correctly
     Assert.assertEquals("testEquation",testant.getListOfNeurons().get(0).getEquations().get("testTimeDerivative").print());
 }

@@ -36,12 +36,10 @@ public class DerivedElement {
 		}
 		//get the derivation instruction in LEMS format
 		derivationInstruction = new Expression(variable);
-		//
+		//replace the resolution function call with a reference to the constant
 		derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container,derivationInstruction);
-		System.out.println(derivationInstruction.print());
 		//replace constants with references
 		derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
-		System.out.println(derivationInstruction.print());
 	}
 
 	/**

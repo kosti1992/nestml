@@ -1,0 +1,24 @@
+#This model is used to test if external artifacts are read-in, parsed and printed correctly.
+
+neuron izhikevich_nestml:
+
+  state:
+  
+  end
+
+  equations:
+ 
+  end
+
+  parameters:
+
+  end
+ 
+  input:
+
+  end
+
+  update:
+  end
+
+end

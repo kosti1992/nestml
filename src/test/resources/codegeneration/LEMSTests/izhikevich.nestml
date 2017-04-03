@@ -7,7 +7,7 @@ neuron izhikevich_nestml:
   end
 
   equations:
-    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)*resolution()
+    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)
     u' = a*(b*V_m/1mV-u)
   end
 
