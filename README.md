@@ -49,18 +49,19 @@ The _name_ parameter of the artifact is used to specify the target model for whi
 									
 The NESTML2LEMS framework supports almost all characteristics of the NestML specification language. For a list of all fully supported source models and corresponding keywords please refer to sub-folder _examples_ . Currently, the concept of _buffers_ is not fully supported due to the lack of expressiveness in the target language LEMS. Additionally, only a small set of function calls has been provided with a semantic preserving transformation.  
 
-Currently supported functions are:\\
-**integrate([VAR])** : the integration of a variable VAR.\\
-**emit_spike()**: instructs the component to emit an event/spike.\\
-**step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.\\
+Currently supported functions are:
 
-The framework supports the following mathematical functions:\\
+- **integrate([VAR])** : the integration of a variable VAR.
+- **emit_spike()**: instructs the component to emit an event/spike.
+- **step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.
 
-- **exp(A,B)** : A to the power of B\\
+The framework supports the following mathematical functions:
+
+- **exp(A,B)** : A to the power of B
 - **log(A)** : logarithm of A to base 10 
 - **ln(A)** : natural logarithm of A
 - **sin(A),cos(A),tan(A)** : trigonometric functions
-- **sinh(A),cosh(A),tanh(A) : hyperbolic trigonometric functions 
+- **sinh(A),cosh(A),tanh(A)** : hyperbolic trigonometric functions 
 - **sqrt(A)** : square root of A
 - **ceil(A)** : the ceil function
 - **random(A)** : returns a random number in the interval [0;A]
