@@ -55,16 +55,17 @@ Currently supported functions are:\\
 **step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.\\
 
 The framework supports the following mathematical functions:\\
-**exp(A,B)** : A to the power of B\\
-**log(A)** : logarithm of A to base 10 
-**ln(A)** : natural logarithm of A
-**sin(A),cos(A),tan(A)** : trigonometric functions
-**sinh(A),cosh(A),tanh(A) : hyperbolic trigonometric functions 
-**sqrt(A)** : square root of A
-**ceil(A)** : the ceil function
-**random(A)** : returns a random number in the interval [0;A]
-**factorial(A)** : factorial function
-**abs(A)** : the absolute value of A
+
+- **exp(A,B)** : A to the power of B\\
+- **log(A)** : logarithm of A to base 10 
+- **ln(A)** : natural logarithm of A
+- **sin(A),cos(A),tan(A)** : trigonometric functions
+- **sinh(A),cosh(A),tanh(A) : hyperbolic trigonometric functions 
+- **sqrt(A)** : square root of A
+- **ceil(A)** : the ceil function
+- **random(A)** : returns a random number in the interval [0;A]
+- **factorial(A)** : factorial function
+- **abs(A)** : the absolute value of A
 
 A predefined simulation environment and a set of common components, e.g. current generators, is located in the sub folder :  
 
