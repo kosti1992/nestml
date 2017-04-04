@@ -68,6 +68,12 @@ public class Expression {
 		} else if (expr.exprIsPresent()) {
 			this.operator = Optional.of(new Operator(expr));
 			this.rhs = Optional.of(new Expression(expr.getExpr().get()));
+		} else if (expr.baseIsPresent() && expr.exponentIsPresent()) {
+			this.lhs = Optional.of(new Expression(expr.getBase().get()));
+			this.rhs = Optional.of(new Expression(expr.getExponent().get()));
+			Operator tempOperator = new Operator();
+			tempOperator.setPower(true);
+			this.operator = Optional.of(tempOperator);
 		} else {
 			if (expr.leftIsPresent()) {
 				this.lhs = Optional.of(new Expression(expr.getLeft().get()));
@@ -337,9 +343,9 @@ public class Expression {
 
 	public boolean containsNamedFunction(String funcName, List<Expression> args) {
 		boolean contains = false;
-		if(this instanceof Function &&
+		if (this instanceof Function &&
 				((Function) this).getFunctionName().equals(funcName) &&
-				equalArgs(((Function) this).getArguments(), args)){
+				equalArgs(((Function) this).getArguments(), args)) {
 			return true;
 		}
 		if (this.rhs.isPresent() && this.rhs.get() instanceof Function &&
@@ -362,7 +368,7 @@ public class Expression {
 	}
 
 	private boolean equalArgs(List<Expression> args1, List<Expression> args2) {
-		if(args1==null && args2==null){
+		if (args1 == null && args2 == null) {
 			return true;
 		}
 		if (args1 == null ^ args2 == null || args1.size() != args2.size()) {

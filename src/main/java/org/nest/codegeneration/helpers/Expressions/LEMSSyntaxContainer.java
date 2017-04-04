@@ -102,8 +102,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 			return "-";
 		}
 		if (expr.isPower()) {
-			//TODO:this is a big todo <-
-			return "exp";
+			return "^";
 		}
 		if (expr.isLeftParentheses()) {
 			return "(";

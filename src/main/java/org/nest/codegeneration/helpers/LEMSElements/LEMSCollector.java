@@ -30,6 +30,7 @@ import org.nest.nestml._ast.ASTInputLine;
 import org.nest.nestml._ast.ASTNeuron;
 import org.nest.nestml._ast.ASTOutput;
 import org.nest.ode._ast.ASTEquation;
+import org.nest.ode._ast.ASTOdeFunction;
 import org.nest.ode._ast.ASTShape;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
@@ -142,8 +143,8 @@ public class LEMSCollector extends Collector {
 			this.addDerivedElement(new DerivedElement(var, this, true, false));
 			handleType(var.getType());//handle the type
 		}
-    /*
-     * user-defined functions are not supported by LEMS (yet)
+	/*
+	 * user-defined functions are not supported by LEMS (yet)
      */
 		for (ASTFunction func : neuronBody.getFunctions()) {
 			//print an error message an store a corresponding message for the generation
@@ -151,8 +152,8 @@ public class LEMSCollector extends Collector {
 			this.addNotConverted("Not supported function-declaration found: " + func.getName()
 					+ " in lines " + func.get_SourcePositionStart() + " to " + func.get_SourcePositionEnd() + ".");
 		}
-    /*
-     * process the equations block
+	/*
+	 * process the equations block
      */
 		if (!neuronBody.getEquations().isEmpty()) {
 			//create a new constant in order to achieve a correct dimension of the equation:
@@ -162,8 +163,8 @@ public class LEMSCollector extends Collector {
 			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", msDimension));
-      /*
-       * first process all shapes of the model
+	  /*
+	   * first process all shapes of the model
        */
 			for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 				ASTShape eq = neuronBody.getShapes().get(i);
@@ -172,36 +173,15 @@ public class LEMSCollector extends Collector {
 					this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 					equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 				} else {
-					Expression tempExpression  = helper.replaceResolutionByConstantReference(this,new Expression(eq.getRhs()));
+					Expression tempExpression = helper.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
 					DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
 					//store the shape
 					this.addDerivedElement(shapeVariable);
 				}
 
-				//String temp = "";//required during the computation
-        /*
-        if (helper.containsFunctionCall(eq.getRhs(), true)) {
-          //print a proper warning
-          this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
-          temp ="not_supported:" + prettyPrint.print(eq.getRhs(), false);
-          this.addNotConverted(
-              "Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString()
-                  + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-          equation.put(eq.getLhs().toString(),temp);
-        }
-        else{
-          temp = temp + prettyPrint.print(eq.getRhs(), false);
-          temp = "(" +helper.replaceConstantsWithReferences(this, temp)+")/CON1ms";
-          DerivedElement shapeVariable =
-              new DerivedElement(eq.getLhs().getName().toString(),
-                  "none",temp,true,false);
-          //store the shape
-          this.addDerivedElement(shapeVariable);
-        }
-        */
 			}
-      /*
-       * process the defining differential equation, i.e. non "shapes"
+	  /*
+	   * process the defining differential equation, i.e. non "shapes"
        */
 			for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 				ASTEquation eq = neuronBody.getEquations().get(i);
@@ -218,7 +198,7 @@ public class LEMSCollector extends Collector {
 						expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstantReference(this,expr);
+						expr = helper.replaceResolutionByConstantReference(this, expr);
 						//only ode, i.e. integrate directives have to be manipulated
 						equation.put(eq.getLhs().getSimpleName(), expr);
 						//now generate the corresponding activator
@@ -230,47 +210,48 @@ public class LEMSCollector extends Collector {
 						Expression expr = new Expression(eq.getRhs());
 						expr = helper.extendExpressionByCON1ms(expr);
 						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstantReference(this,expr);
+						expr = helper.replaceResolutionByConstantReference(this, expr);
 						equation.put(eq.getLhs().getSimpleName(), expr);
 					}
 				}
 			}
+			/*
+			 *finally process all "function" declarations inside the equations block
+			 */
+			for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
+				ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
+				DerivedElement tempDerivedVar = null;
+				if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
+					int[] dec = helper.convertTypeDeclToArray(
+							tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
+					//create the required units and dimensions
+					Dimension tempDimension = new Dimension(helper.PREFIX_DIMENSION
+							+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
+							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+					Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							tempDimension.getName(),
+							new Expression(tempFunction.getExpr()),
+							true,
+							false
+					);
+					this.addDimension(tempDimension);
+					this.addUnit(tempUnit);
+				} else {
+					//otherwise it is a non dimensional function, e.g. real
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							helper.DIMENSION_NONE,
+							new Expression(tempFunction.getExpr()),
+							true,
+							false
+					);
+				}
+				this.addDerivedElement(tempDerivedVar);
+			}
+
 		}
-/*
-        String temp = "";//required during the computation
-        if (helper.containsFunctionCall(eq.getRhs(), true)) {//check whether the equation contains a function call
-          //print a proper warning
-          System.err
-              .println("Not supported function call in expression found: " + prettyPrint.print(eq.getRhs(), false));
-          temp = temp + "not_supported:" + prettyPrint.print(eq.getRhs(), false);
-          this.addNotConverted(
-              "Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString()
-                  + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-          equation.put(eq.getLhs().toString(), temp);
-        }
-        else {
-          temp = temp + prettyPrint.print(eq.getRhs(), false);//replace constants with references
-          List<String> tempList = new ArrayList<>();
-          //TODO: the deletion of tilde is hardcoded, some kind or workaround is required
-          tempList.add(eq.getLhs().toString().replaceAll("'",""));// a list is required, since method blockContains requires lists of args.
-          //check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
-          if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
-            //only ode, i.e. integrate directives have to be manipulated
-            equation.put(eq.getLhs().toString().replaceAll("'",""),
-                "ACT" + eq.getLhs().toString().replaceAll("'","")
-                    + "*(" + helper.replaceConstantsWithReferences(this, temp) + ")/CON1ms");
-            //now generate the corresponding activator
-            this.stateVariablesList.add(
-                new StateVariable("ACT" + eq.getLhs().toString().replaceAll("'",""), "none", "1", "", this));
-            this.localTimeDerivative.add(eq.getLhs().toString().replaceAll("'",""));
-          }
-          else {
-            //otherwise the integration is global, no further steps required
-            equation.put(eq.getLhs().toString().replaceAll("'",""),
-                "("+helper.replaceConstantsWithReferences(this, temp)+ ")/CON1ms");
-          }
-        }
-      }*/
 
     /*
      * processes all non-aliases in the parameter block, namely the constants
@@ -331,7 +312,7 @@ public class LEMSCollector extends Collector {
 			this.addDerivedElement(new DerivedElement(var, this, false, false));
 			handleType(var.getType());
 		}
-    /*
+	/*
      * processes all non-alias declarations of the internal block
      */
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
