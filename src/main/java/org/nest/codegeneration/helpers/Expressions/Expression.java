@@ -82,6 +82,10 @@ public class Expression {
 			if (expr.rightIsPresent()) {
 				this.rhs = Optional.of(new Expression(expr.getRight().get()));
 			}
+			if(expr.isLogicalAnd()||expr.isLogicalOr()||expr.isLogicalNot()){
+				this.lhs = Optional.of(Expression.encapsulateInBrackets(this.lhs.get()));
+				this.rhs = Optional.of(Expression.encapsulateInBrackets(this.rhs.get()));
+			}
 		}
 	}
 

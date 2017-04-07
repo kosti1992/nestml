@@ -1,5 +1,5 @@
 <Lems>
-    <!-- Generated on Apr 7, 2017 3:07:53 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 7, 2017 3:19:56 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
@@ -44,7 +44,7 @@
             <!--  V_m = c*1-->
             <!--  u += d-->
             <!--  emit_spike()-->
-            <OnCondition test="(V_m.geq.CON30mV.and.5.gt.10)">
+            <OnCondition test="((V_m.geq.CON30mV).and.(5.gt.10))">
                 <StateAssignment value="c*CON1mV" variable="V_m"/>
                 <StateAssignment value="d+u" variable="u"/>
                 <EventOut port="spike"/>

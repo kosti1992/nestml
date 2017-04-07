@@ -139,6 +139,7 @@ public class DynamicRoutine {
 			}
 			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = Expression.encapsulateInBrackets(tempCondition);//finally encapsulate everything in brackets
 			handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 
