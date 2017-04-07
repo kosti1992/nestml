@@ -371,6 +371,10 @@ public class Operator extends Expression{
       this.eq = false;
       this.ne = true;
     }
+    else if(this.ne){
+      this.eq = true;
+      this.ne = false;
+    }
     else if(this.non){
       this.non = false;
       this.logicalNot = true;

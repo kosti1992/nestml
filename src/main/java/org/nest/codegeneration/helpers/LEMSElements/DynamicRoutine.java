@@ -110,6 +110,7 @@ public class DynamicRoutine {
 			//store a new conditional block
 			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = container.getHelper().replaceNotByLogicalEquivalent(container,tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 		//process all elif statements

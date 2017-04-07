@@ -490,6 +490,25 @@ public class HelperCollection {
 		return expr;
 	}
 
+	/**
+	 * Resolves the problem with not present logical-not in LEMS by using de Morgan to reconfigure the
+	 * expression to a logical equivalent counter piece without logical-not. Logical-not not required in literals
+	 * since expression language is a strict equality logic without boolean atoms.
+	 * @param expr the expression whose "not" part will be resolved
+	 */
+	public Expression replaceNotByLogicalEquivalent(LEMSCollector container, Expression expr){
+		if(expr.opIsPresent()&&expr.getOperator().get().isLogicalNot()){
+			expr.negateLogic();
+		}
+		if(expr.lhsIsPresent()){
+			expr.replaceLhs(replaceNotByLogicalEquivalent(container,expr.getLhs().get()));
+		}
+		if(expr.rhsIsPresent()){
+			expr.replaceRhs(replaceNotByLogicalEquivalent(container,expr.getRhs().get()));
+		}
+		return expr;
+	}
+
 	public void printArrayNotSupportedMessage(VariableSymbol var) {
 		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
 	}

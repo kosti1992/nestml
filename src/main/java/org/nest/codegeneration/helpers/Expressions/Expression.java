@@ -89,6 +89,7 @@ public class Expression {
 		}
 	}
 
+
 	/**
 	 * Returns a list of all Operator objects stored in an expression.
 	 *
@@ -385,6 +386,29 @@ public class Expression {
 		}
 		return true;
 	}
+
+	public Optional<Expression> getLhs() {
+		return lhs;
+	}
+
+	public Optional<Operator> getOperator() {
+		return operator;
+	}
+
+	public Optional<Expression> getRhs() {
+		return rhs;
+	}
+
+	public boolean lhsIsPresent(){
+		return this.lhs.isPresent();
+	}
+	public boolean rhsIsPresent(){
+		return this.rhs.isPresent();
+	}
+	public boolean opIsPresent(){
+		return this.operator.isPresent();
+	}
+
 
 
 	private void parseStringToExpression(String expressionAsString) {
