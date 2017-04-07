@@ -102,12 +102,14 @@ public class DynamicRoutine {
 				tempCondition.replaceLhs(condition);
 				tempCondition.replaceRhs(tempRhs);
 				tempCondition.replaceOp(tempOp);
+				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			} else {
 				tempCondition = Expression.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
 			}
 			tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
 			//store a new conditional block
-			tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 		//process all elif statements
@@ -135,7 +137,8 @@ public class DynamicRoutine {
 				tempExpr.replaceOp(newOp);
 				tempCondition = tempExpr;
 			}
-			tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
 			handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 
@@ -155,7 +158,9 @@ public class DynamicRoutine {
 				tempCondition = tempExpr;
 			}
 			//create the corresponding block
-			tempCondition = LEMSCollector.helper.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getELSE_Clause().get().getBlock(),
 					tempCondition, tempPrettyPrinter.result());
 		}
@@ -501,7 +506,7 @@ public class DynamicRoutine {
 
 		@SuppressWarnings("unused")//used in the template
 		public String printAssignedValue() {
-			if (this.assignedValue!=null) {
+			if (this.assignedValue != null) {
 				return this.assignedValue.print(new LEMSSyntaxContainer());
 			}
 			return "";

@@ -339,12 +339,12 @@ public class LEMSCollector extends Collector {
 						ASTUnitType tempType = new ASTUnitType();
 						tempType.setUnit("ms");
 						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + "ms", helper.PREFIX_DIMENSION + "ms", tempNumerical, false));
+						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length_asString() + "ms", helper.PREFIX_DIMENSION + "ms", tempNumerical, false));
 						//search for the constant to which steps refer
 						for (Constant v : this.getConstantsList()) {
 							if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
 								//create a new derived parameter for this expression
-								Variable tempVar = new Variable(v.getName() + "/" + helper.PREFIX_CONSTANT + config.getSimulation_steps_length() + config.getSimulation_steps_unit().getSymbol());
+								Variable tempVar = new Variable(v.getName() + "/" + helper.PREFIX_CONSTANT + config.getSimulation_steps_length_asString() + config.getSimulation_steps_unit().getSymbol());
 								this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
 										tempVar, false, false));
 							}

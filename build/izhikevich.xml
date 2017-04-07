@@ -1,16 +1,13 @@
 <Lems>
-    <!-- Generated on Apr 4, 2017 5:21:19 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 7, 2017 3:07:53 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
-    <Dimension i="1" name="DimensionOf_pA"/>
-    <Unit dimension="DimensionOf_pA" power="-12" symbol="pA"/>
     <Unit dimension="DimensionOf_mA" power="-3" symbol="mA"/>
     <Unit dimension="DimensionOf_ms" power="-3" symbol="ms"/>
     <Unit dimension="DimensionOf_mV" power="-3" symbol="mV"/>
     <ComponentType name="izhikevich">
-        <Constant dimension="DimensionOf_mV" name="INITV_m" value="0mV"/>
-        <Constant dimension="DimensionOf_mV" name="CON1.0mV" value="1mV"/>
+        <Constant dimension="DimensionOf_mV" name="CON1mV" value="1mV"/>
         <Constant dimension="DimensionOf_ms" name="CON1ms" value="1ms"/>
         <Parameter dimension="none" name="a"/>
         <Parameter dimension="none" name="b"/>
@@ -18,7 +15,7 @@
         <Parameter dimension="none" name="d"/>
         <Parameter dimension="DimensionOf_mV" name="V_m_init"/>
         <Parameter dimension="DimensionOf_mA" name="I_e"/>
-        <Constant dimension="DimensionOf_mV" name="CON30.0mV" value="30mV"/>
+        <Constant dimension="DimensionOf_mV" name="CON30mV" value="30mV"/>
         <EventPort direction="in" name="spikes"/>
         <EventPort direction="in" name="currents"/>
         <EventPort direction="out" name="spike"/>
@@ -29,28 +26,26 @@
             <StateVariable dimension="none" name="I"/>
             <StateVariable dimension="none" name="ACTV_m"/>
             <DerivedVariable dimension="none" name="I" reduce="add" select="pulseGeneratorDL[*]/I"/>
-            <DerivedVariable dimension="none" name="g_in" value="c^c"/>
-            <DerivedVariable dimension="DimensionOf_pA" name="u_out" value="exp(1)*V_m"/>
             <OnStart>
-                <StateAssignment value="INITV_m" variable="V_m"/>
-                <StateAssignment value="V_m*b/CON1.0mV" variable="u"/>
+                <StateAssignment value="V_m_init" variable="V_m"/>
+                <StateAssignment value="V_m*b/CON1mV" variable="u"/>
                 <StateAssignment value="0" variable="I"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
             </OnStart>
-            <TimeDerivative value="(ACTV_m*(0.04*V_m*V_m/CON1.0mV+5*V_m+(140-u+I)))/CON1.0ms" variable="V_m"/>
-            <TimeDerivative value="(a*(b*V_m/CON1.0mV-u)*g_in*u_out)/CON1.0ms" variable="u"/>
-            <!--Generated from source lines <33,1> to <33,15>.-->
+            <TimeDerivative value="(ACTV_m*(0.04*V_m*V_m/CON1mV+5*V_m+(140-u+I)*CON1mV))/CON1ms" variable="V_m"/>
+            <TimeDerivative value="(a*(b*V_m/CON1mV-u))/CON1ms" variable="u"/>
+            <!--Generated from source lines <31,1> to <31,15>.-->
             <!--integrate(V_m)-->
             <OnCondition test="1.eq.1">
                 <StateAssignment value="1" variable="ACTV_m"/>
             </OnCondition>
-            <!--Generated from source lines <34,19> to <37,19>.-->
-            <!--if V_m>=30:-->
+            <!--Generated from source lines <32,28> to <35,19>.-->
+            <!--if (V_m>=30)and(5>10):-->
             <!--  V_m = c*1-->
             <!--  u += d-->
             <!--  emit_spike()-->
-            <OnCondition test="(V_m.geq.CON30.0mV)">
-                <StateAssignment value="c*CON1.0mV" variable="V_m"/>
+            <OnCondition test="(V_m.geq.CON30mV.and.5.gt.10)">
+                <StateAssignment value="c*CON1mV" variable="V_m"/>
                 <StateAssignment value="d+u" variable="u"/>
                 <EventOut port="spike"/>
                 <StateAssignment value="0" variable="ACTV_m"/>

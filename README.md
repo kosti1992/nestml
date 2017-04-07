@@ -74,10 +74,10 @@ A predefined simulation environment and a set of common components, e.g. current
 
 For more information, please refer to the following sources:
 
-*[LEMS homepage](http://lems.github.io/LEMS)
-*[LEMS research article](http://journal.frontiersin.org/article/10.3389/fninf.2014.00079/full)
-*[NESTML github](https://github.com/nest/nestml)
-*[NESTML research article](http://www.nest-initiative.org/publications/Plotnikov2016.pdf)
+* *[LEMS homepage](http://lems.github.io/LEMS)
+* *[LEMS research article](http://journal.frontiersin.org/article/10.3389/fninf.2014.00079/full)
+* *[NESTML github](https://github.com/nest/nestml)
+* *[NESTML research article](http://www.nest-initiative.org/publications/Plotnikov2016.pdf)
 
 
 

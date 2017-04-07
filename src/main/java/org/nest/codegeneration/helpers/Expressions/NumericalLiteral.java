@@ -63,9 +63,19 @@ public class NumericalLiteral extends Expression {
 	 */
 	public String printValueType() {
 		if (this.type.isPresent()) {
-			return this.value + type.get().getUnit().get();
+			if(this.value-(int)this.value==0){
+				return String.valueOf((int)this.value) + type.get().getUnit().get();
+			}
+			else{
+				return String.valueOf(this.value) + type.get().getUnit().get();
+			}
 		} else {
-			return String.valueOf(this.value);
+			if(this.value-(int)this.value==0){
+				return String.valueOf((int)this.value);
+			}
+			else{
+				return String.valueOf(this.value);
+			}
 		}
 	}
 

@@ -138,6 +138,16 @@ public class SimulationConfiguration {
 		return simulation_steps_length;
 	}
 
+	public String getSimulation_steps_length_asString(){
+		if(this.getSimulation_steps_length()- (int)simulation_steps_length == 0){
+			return String.valueOf((int)simulation_steps_length);
+		}
+		else{
+			return String.valueOf(simulation_steps_length);
+		}
+	}
+
+
 	public Unit getSimulation_steps_unit() {
 		return simulation_steps_unit;
 	}
