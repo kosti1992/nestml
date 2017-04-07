@@ -82,7 +82,7 @@ public class Expression {
 			if (expr.rightIsPresent()) {
 				this.rhs = Optional.of(new Expression(expr.getRight().get()));
 			}
-			if(expr.isLogicalAnd()||expr.isLogicalOr()||expr.isLogicalNot()){
+			if (expr.isLogicalAnd() || expr.isLogicalOr() || expr.isLogicalNot()) {
 				this.lhs = Optional.of(Expression.encapsulateInBrackets(this.lhs.get()));
 				this.rhs = Optional.of(Expression.encapsulateInBrackets(this.rhs.get()));
 			}
@@ -399,17 +399,37 @@ public class Expression {
 		return rhs;
 	}
 
-	public boolean lhsIsPresent(){
+	public boolean lhsIsPresent() {
 		return this.lhs.isPresent();
 	}
-	public boolean rhsIsPresent(){
+
+	public boolean rhsIsPresent() {
 		return this.rhs.isPresent();
 	}
-	public boolean opIsPresent(){
+
+	public boolean opIsPresent() {
 		return this.operator.isPresent();
 	}
 
-
+	/**
+	 * This is a deepClone method which generates a clone of this object whenever required, e.g. when it has to be
+	 * mirrored to other parts of the expression tree.
+	 *
+	 * @return a deep clone of this
+	 */
+	public Expression deepClone() {
+		Expression ret = new Expression();
+		if (this.lhsIsPresent()) {
+			ret.replaceLhs(this.getLhs().get().deepClone());
+		}
+		if (this.opIsPresent()) {
+			ret.replaceOp(this.getOperator().get().deepClone());
+		}
+		if (this.rhsIsPresent()) {
+			ret.replaceRhs(this.getRhs().get().deepClone());
+		}
+		return ret;
+	}
 
 	private void parseStringToExpression(String expressionAsString) {
 		//TODO: write a parser+lexer for expression in string form

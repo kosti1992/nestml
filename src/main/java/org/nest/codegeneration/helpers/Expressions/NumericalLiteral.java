@@ -63,17 +63,15 @@ public class NumericalLiteral extends Expression {
 	 */
 	public String printValueType() {
 		if (this.type.isPresent()) {
-			if(this.value-(int)this.value==0){
-				return String.valueOf((int)this.value) + type.get().getUnit().get();
-			}
-			else{
+			if (this.value - (int) this.value == 0) {
+				return String.valueOf((int) this.value) + type.get().getUnit().get();
+			} else {
 				return String.valueOf(this.value) + type.get().getUnit().get();
 			}
 		} else {
-			if(this.value-(int)this.value==0){
-				return String.valueOf((int)this.value);
-			}
-			else{
+			if (this.value - (int) this.value == 0) {
+				return String.valueOf((int) this.value);
+			} else {
 				return String.valueOf(this.value);
 			}
 		}
@@ -103,4 +101,20 @@ public class NumericalLiteral extends Expression {
 		result = 31 * result + (type != null ? type.hashCode() : 0);
 		return result;
 	}
+
+
+	/**
+	 * This is a deepClone method which generates a clone of this object whenever required, e.g. when it has to be
+	 * mirrored to other parts of the expression tree.
+	 *
+	 * @return a deep clone of this
+	 */
+	public NumericalLiteral deepClone() {
+		if(this.type.isPresent()) {
+			return new NumericalLiteral(this.value, this.type.get());
+		}else{
+			return new NumericalLiteral(this.value, null);
+		}
+	}
+
 }

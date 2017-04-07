@@ -1,5 +1,5 @@
 <Lems>
-    <!-- Generated on Apr 7, 2017 3:19:56 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 7, 2017 5:41:41 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
@@ -39,16 +39,23 @@
             <OnCondition test="1.eq.1">
                 <StateAssignment value="1" variable="ACTV_m"/>
             </OnCondition>
-            <!--Generated from source lines <32,28> to <35,19>.-->
-            <!--if (V_m>=30)and(5>10):-->
+            <!--Generated from source lines <32,19> to <36,19>.-->
+            <!--if V_m>=30:-->
             <!--  V_m = c*1-->
             <!--  u += d-->
+            <!--  u = (a<b)?(a):(b)-->
             <!--  emit_spike()-->
-            <OnCondition test="((V_m.geq.CON30mV).and.(5.gt.10))">
+            <OnCondition test="(V_m.geq.CON30mV)">
                 <StateAssignment value="c*CON1mV" variable="V_m"/>
                 <StateAssignment value="d+u" variable="u"/>
                 <EventOut port="spike"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
+            </OnCondition>
+            <OnCondition test="(V_m.geq.CON30mV).and.(a.lt.b)">
+                <StateAssignment value="a" variable="u"/>
+            </OnCondition>
+            <OnCondition test="(V_m.geq.CON30mV).and.(a.geq.b)">
+                <StateAssignment value="b" variable="u"/>
             </OnCondition>
         </Dynamics>
     </ComponentType>

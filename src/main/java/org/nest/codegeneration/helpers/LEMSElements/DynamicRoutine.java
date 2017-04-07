@@ -110,7 +110,7 @@ public class DynamicRoutine {
 			//store a new conditional block
 			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
-			tempCondition = container.getHelper().replaceNotByLogicalEquivalent(container,tempCondition);
+			tempCondition = container.getHelper().replaceNotByLogicalEquivalent(container, tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 		//process all elif statements
@@ -182,6 +182,7 @@ public class DynamicRoutine {
 	 */
 	private void handleASTBlock(ASTBlock input, Expression condition, String rawCode) {
 		List<Instruction> tempInstruction = new ArrayList<>();
+		List<ConditionalBlock> tempBlocks = null;
 		//generate a description header
 		String rawCodeTemp = this.buildHeader(input, rawCode);
 		//iterate over all statements in the block
@@ -195,7 +196,13 @@ public class DynamicRoutine {
 				tempInstruction = new ArrayList<>();//delete all processed statements in order to avoid duplicates
 				handleCompoundStatement(stmt.getCompound_Stmt().get(), condition);
 			} else if (stmt.small_StmtIsPresent()) {
-				Instruction notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
+				Instruction notNullCheck = null;
+				if (stmt.getSmall_Stmt().get().assignmentIsPresent() &&
+						stmt.getSmall_Stmt().get().getAssignment().get().getExpr().conditionIsPresent()) {
+					  tempBlocks = handleTernaryOperator(stmt.getSmall_Stmt().get(),condition);
+				} else {
+					notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
+				}
 				if (notNullCheck != null) {
 					tempInstruction.add(notNullCheck);
 				}
@@ -209,6 +216,7 @@ public class DynamicRoutine {
 		//blocks without any instructions can be skipped
 		if (tempInstruction != null && tempInstruction.size() > 0) {
 			this.blocks.add(new ConditionalBlock(tempInstruction, condition, rawCodeTemp));
+			this.blocks.addAll(tempBlocks);
 		}
 	}
 
@@ -221,7 +229,7 @@ public class DynamicRoutine {
 	private Instruction handleSmallStatement(ASTSmall_Stmt input) {
 		if (input.assignmentIsPresent()) {
 			//check if not supported functions are part of the assignment
-			if (LEMSCollector.helper.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
+			if (container.getHelper().containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
 				//Generate a proper error message
 				container.getHelper().printNotSupportedFunctionInBlock(input);
 				//now generate a expression which indicates that it is not supported
@@ -245,31 +253,30 @@ public class DynamicRoutine {
 				if (input.getAssignment().get().isCompoundMinus()) {
 					tempOp.setMinusOp(true);
 					ret.replaceOp(tempOp);
-					ret = LEMSCollector.helper.replaceConstantsWithReferences(container, ret);
+					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x*=y
 				else if (input.getAssignment().get().isCompoundProduct()) {
 					tempOp.setTimesOp(true);
 					ret.replaceOp(tempOp);
-					ret = LEMSCollector.helper.replaceConstantsWithReferences(container, ret);
+					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x+=y
 				else if (input.getAssignment().get().isCompoundSum()) {
 					tempOp.setPlusOp(true);
 					ret.replaceOp(tempOp);
-					ret = LEMSCollector.helper.replaceConstantsWithReferences(container, ret);
+					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x/=y
 				else if (input.getAssignment().get().isCompoundQuotient()) {
 					tempOp.setDivOp(true);
 					ret.replaceOp(tempOp);
-					ret = LEMSCollector.helper.replaceConstantsWithReferences(container, ret);
+					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				} else {
-					ret = LEMSCollector.helper.replaceConstantsWithReferences(container, new Expression(input.getAssignment().get().getExpr()));
+					ret = container.getHelper().replaceConstantsWithReferences(container, new Expression(input.getAssignment().get().getExpr()));
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}
-				retAssignment.replaceResolutionByConstantReference(container);
 				retAssignment.replaceResolutionByConstantReference(container);
 				return retAssignment;
 			}
@@ -314,6 +321,50 @@ public class DynamicRoutine {
 	private Instruction handleEmitSpike(ASTFunctionCall functionCall) {
 		return new FunctionCall(functionCall);
 	}
+
+
+	/**
+	 * For a given conditional block and an assignment inside which uses the ternary operator, this method
+	 * replaces it by means of two sub blocks with corresponding conditions.
+	 * @param input the input small statement with ternary operator
+	 * @param condition the condition, if one is present, of the super block containing the assignment
+	 * @return the list containing two conditions
+	 */
+	private List<ConditionalBlock> handleTernaryOperator(ASTSmall_Stmt input,Expression condition){
+		List<ConditionalBlock> ret = new ArrayList<>();
+		//first create the first part of the expression, namely the one which applies if condition is true
+		Expression firstSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
+		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
+		Operator opFirst = new Operator();
+		opFirst.setLogicalAnd(true);
+		Expression firstCondition = new Expression();
+		firstCondition.replaceLhs(condition.deepClone());
+		firstCondition.replaceOp(opFirst);
+		firstCondition.replaceRhs(firstSubCondition);
+		//now generate an assignment for the first half
+		Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
+				new Expression(input.getAssignment().get().getExpr().getIfTrue().get()));
+		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment,firstCondition,null);
+		ret.add(firstBlock);
+
+		//now create the second part which applies if the condition is not true
+		Expression secondSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
+		secondSubCondition.negateLogic();
+		secondSubCondition = Expression.encapsulateInBrackets(secondSubCondition);
+		Operator opSecond = new Operator();
+		opSecond.setLogicalAnd(true);
+		Expression secondCondition = new Expression();
+		secondCondition.replaceLhs(condition.deepClone());
+		secondCondition.replaceOp(opSecond);
+		secondCondition.replaceRhs(secondSubCondition);
+		//now generate an assignment for the second half
+		Assignment secondAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
+				new Expression(input.getAssignment().get().getExpr().getIfNot().get()));
+		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment,secondCondition,null);
+		ret.add(secondBlock);
+		return ret;
+	}
+
 
 	/**
 	 * Checks a given set of instructions for existence of integrate directives. If non found,

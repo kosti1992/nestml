@@ -3,6 +3,7 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
@@ -26,6 +27,13 @@ public class ConditionalBlock {
 		this.rawCode = rawCode;
 	}
 
+	public ConditionalBlock(DynamicRoutine.Instruction instruction,Expression condition, String rawCode){
+		this.instructions = new ArrayList<>();
+		this.instructions.add(instruction);
+		this.condition = condition;
+		this.rawCode = rawCode;
+	}
+
 
 	/**
 	 * Returns the header of a conditional block, i.e. a string representation of the code as stated in the source model.
@@ -34,6 +42,9 @@ public class ConditionalBlock {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public Object[] getInitialCode() {
+		if(rawCode == null){
+			return new String[0];
+		}
 		BufferedReader bufReader = new BufferedReader(new StringReader(rawCode));
 		return bufReader.lines().toArray();
 	}

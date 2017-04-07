@@ -60,4 +60,18 @@ public class Function extends Expression {
 				((Function) obj).getFunctionName().equals(this.functionName) &&
 				this.arguments.equals(((Function) obj).getArguments());
 	}
+
+	/**
+	 * This is a deepClone method which generates a clone of this object whenever required, e.g. when it has to be
+	 * mirrored to other parts of the expression tree.
+	 * @return a deep clone of this
+	 */
+	public Function deepClone(){
+		List<Expression> args = new ArrayList<>();
+		for(Expression arg:arguments){
+			args.add(arg.deepClone());
+		}
+		Function temp = new Function(String.valueOf(this.functionName),args);
+		return temp;
+	}
 }
