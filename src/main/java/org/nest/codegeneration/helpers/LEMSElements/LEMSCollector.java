@@ -264,10 +264,24 @@ public class LEMSCollector extends Collector {
 						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to " + var.getAstNode().get()
 						.get_SourcePositionEnd() + " of type array.");
 			} else {
-				Constant temp;
+				Constant temp = null;
+				DerivedElement tempDerivedElement = null;
+				StateVariable tempStateVariable = null;
 				if (var.getDeclaringExpression().isPresent()) {
-					//if a declaring value is present -> generate a constant
-					temp = new Constant(var, false, false, this);
+					//first check if a ternary operator is used
+					if (var.getDeclaringExpression().get().conditionIsPresent()) {
+						tempDerivedElement = new DerivedElement(var, this, false, false);
+						if(var.getType().getType()==TypeSymbol.Type.UNIT){
+							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
+									var.getType().prettyPrint(), this);
+						}else {
+							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
+									"", this);//no unit,therefore "" as 4th arg
+						}
+					} else {
+						//if a declaring value is present -> generate a constant
+						temp = new Constant(var, false, false, this);
+					}
 				} else {
 					//otherwise generate a parameter
 					temp = new Constant(var, false, true, this);
@@ -289,6 +303,7 @@ public class LEMSCollector extends Collector {
 						}
 					}
 				}
+
 				//now, in order to avoid constants which are not used, delete them
 				int tempIndex = -1;
 				for (Constant v : constantsList) {//search for the index
@@ -300,7 +315,12 @@ public class LEMSCollector extends Collector {
 					constantsList.remove(tempIndex);//remove the previously generated init value
 				}
 				//finally add the new constant
-				this.addConstant(temp);
+				if (temp != null)
+					this.addConstant(temp);
+				if (tempDerivedElement != null)
+					this.addDerivedElement(tempDerivedElement);
+				if (tempStateVariable !=null)
+					this.addStateVariable(tempStateVariable);
 			}
 			handleType(var.getType());
 		}
@@ -313,7 +333,7 @@ public class LEMSCollector extends Collector {
 			handleType(var.getType());
 		}
 	/*
-     * processes all non-alias declarations of the internal block
+	 * processes all non-alias declarations of the internal block
      */
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
@@ -363,7 +383,7 @@ public class LEMSCollector extends Collector {
 			}
 
 		}
-    /*
+	/*
      * processes all alias declarations of the internal block
     */
 		for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {

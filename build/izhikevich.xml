@@ -1,15 +1,16 @@
 <Lems>
-    <!-- Generated on Apr 8, 2017 11:18:01 AM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 8, 2017 1:00:42 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
+    <Dimension i="1" name="DimensionOf_pA"/>
+    <Unit dimension="DimensionOf_pA" power="-12" symbol="pA"/>
     <Unit dimension="DimensionOf_mA" power="-3" symbol="mA"/>
     <Unit dimension="DimensionOf_ms" power="-3" symbol="ms"/>
     <Unit dimension="DimensionOf_mV" power="-3" symbol="mV"/>
     <ComponentType name="izhikevich">
         <Constant dimension="DimensionOf_mV" name="CON1mV" value="1mV"/>
         <Constant dimension="DimensionOf_ms" name="CON1ms" value="1ms"/>
-        <Parameter dimension="none" name="a"/>
         <Parameter dimension="none" name="b"/>
         <Parameter dimension="none" name="c"/>
         <Parameter dimension="none" name="d"/>
@@ -25,12 +26,18 @@
             <StateVariable dimension="none" name="u"/>
             <StateVariable dimension="none" name="I"/>
             <StateVariable dimension="none" name="ACTV_m"/>
+            <StateVariable dimension="DimensionOf_pA" name="a"/>
             <DerivedVariable dimension="none" name="I" reduce="add" select="pulseGeneratorDL[*]/I"/>
+            <ConditionalDerivedVariable dimension="DimensionOf_pA" name="INITa">
+                <Case condition="(t.geq.p)" value="p"/>
+                <Case condition="(t.lt.p)" value="t"/>
+            </ConditionalDerivedVariable>
             <OnStart>
                 <StateAssignment value="V_m_init" variable="V_m"/>
                 <StateAssignment value="V_m*b/CON1mV" variable="u"/>
                 <StateAssignment value="0" variable="I"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
+                <StateAssignment value="INITa" variable="a"/>
             </OnStart>
             <TimeDerivative value="(ACTV_m*(0.04*V_m*V_m/CON1mV+5*V_m+(140-u+I)*CON1mV))/CON1ms" variable="V_m"/>
             <TimeDerivative value="(a*(b*V_m/CON1mV-u))/CON1ms" variable="u"/>
@@ -39,30 +46,14 @@
             <OnCondition test="1.eq.1">
                 <StateAssignment value="1" variable="ACTV_m"/>
             </OnCondition>
-            <!--Generated from source lines <32,19> to <36,19>.-->
+            <!--Generated from source lines <32,19> to <35,19>.-->
             <!--if V_m>=30:-->
             <!--  V_m = c*1-->
             <!--  u += d-->
-            <!--  u = (a<b)?(a):(b)-->
             <!--  emit_spike()-->
             <OnCondition test="(V_m.geq.CON30mV)">
                 <StateAssignment value="c*CON1mV" variable="V_m"/>
                 <StateAssignment value="d+u" variable="u"/>
-                <StateAssignment value="0" variable="ACTV_m"/>
-            </OnCondition>
-            <OnCondition test="(V_m.geq.CON30mV).and.(a.lt.b)">
-                <StateAssignment value="a" variable="u"/>
-            </OnCondition>
-            <OnCondition test="(V_m.geq.CON30mV).and.(a.geq.b)">
-                <StateAssignment value="b" variable="u"/>
-            </OnCondition>
-            <!--Generated from source lines <32,19> to <36,19>.-->
-            <!--if V_m>=30:-->
-            <!--  V_m = c*1-->
-            <!--  u += d-->
-            <!--  u = (a<b)?(a):(b)-->
-            <!--  emit_spike()-->
-            <OnCondition test="(V_m.geq.CON30mV)">
                 <EventOut port="spike"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
             </OnCondition>

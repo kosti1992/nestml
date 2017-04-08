@@ -1,7 +1,7 @@
 neuron izhikevich_nestml:
 
   state:
-    V_m mV  = V_m_init
+    V_m mV = V_m_init
     u real = V_m*b/1mV
     I real = 0
   end
@@ -32,7 +32,6 @@ neuron izhikevich_nestml:
     if V_m >= 30mV:
       V_m = c*1mV
       u += d
-	  u = a<b? a:b
       emit_spike()
 	end	
   end

@@ -48,9 +48,19 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
           </#list>
           <#list container.getDerivedVariablesList() as derivedVariable>
             <#if !derivedVariable.isExternal()>
+            <#if !derivedVariable.isConditionalDerived()>
+
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
                                                             value="${derivedVariable.getDerivationInstruction().print()}" </@compress>/>
+            <#else>
+
+              <ConditionalDerivedVariable name="${derivedVariable.getName()}" dimension="${derivedVariable.getDimension()}">
+                   <#list (derivedVariable.getConditionalDerivedValuesAsStrings())?keys as var>
+                      <Case condition="${var}" value="${derivedVariable.getConditionalDerivedValuesAsStrings()[var]}"/>
+                  </#list>
+              </ConditionalDerivedVariable>
+            </#if>
             <#else>
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"

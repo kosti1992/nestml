@@ -1,9 +1,14 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class represents a derived element, a characteristic of the model which possibly
@@ -18,9 +23,11 @@ public class DerivedElement {
 	private boolean dynamic;//distinguish between derived variables and derived parameter
 	private boolean external;//uses an external source, i.e. other tags are used
 	private String reduce;//the reduce indicates (in the case of external vars) how to combine values to a single one
+	private Optional<Map<Expression, Expression>> conditionalDerivedValues;
+
 
 	public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {
-		if (init) {
+		if (init||variable.getDeclaringExpression().get().conditionIsPresent()) {
 			this.name = container.getHelper().PREFIX_INIT + variable.getName();
 		} else {
 			this.name = variable.getName();
@@ -34,13 +41,19 @@ public class DerivedElement {
 		} else {
 			dimension = container.getHelper().typeToDimensionConverter(variable.getType());
 		}
-		//get the derivation instruction in LEMS format
-		derivationInstruction = new Expression(variable);
-		//replace the resolution function call with a reference to the constant
-		derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container,derivationInstruction);
-		//replace constants with references
-		derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
+		if(!variable.getDeclaringExpression().get().conditionIsPresent()) {
+			//get the derivation instruction in LEMS format
+			derivationInstruction = new Expression(variable);
+			//replace the resolution function call with a reference to the constant
+			derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container, derivationInstruction);
+			//replace constants with references
+			derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
+		}else {
+			handleTernaryOp(variable,container);
+		}
 	}
+
+
 
 	/**
 	 * This constructor can be used to generate a hand made derived element.
@@ -88,6 +101,30 @@ public class DerivedElement {
 		}
 	}
 
+
+	/**
+	 * This method can be used to generate a conditional derived variable representing a ternary operator.
+	 *
+	 * @param variable  the variable which shall be a conditional derived var
+	 * @param container a lems collector file
+	 */
+	private void handleTernaryOp(VariableSymbol variable, LEMSCollector container) {
+		Map<Expression,Expression> tempMap = new HashMap<>();
+		//first create the first part of the expression, namely the one which applies if condition is true
+		Expression firstSubCondition = new Expression(variable.getDeclaringExpression().get().getCondition().get());
+		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
+		Expression firstSubValue = new Expression(variable.getDeclaringExpression().get().getIfTrue().get());
+		tempMap.put(firstSubCondition,firstSubValue);
+		//now create the second part which applies if the condition is not true
+		Expression secondSubCondition = firstSubCondition.deepClone();
+		secondSubCondition.negateLogic();
+		Expression secondSubValue = new Expression(variable.getDeclaringExpression().get().getIfNot().get());
+		tempMap.put(secondSubCondition,secondSubValue);
+		this.conditionalDerivedValues = Optional.of(tempMap);
+		this.dynamic = true;
+	}
+
+
 	@SuppressWarnings("unused")//used in the template
 	public String getName() {
 		return this.name;
@@ -109,6 +146,37 @@ public class DerivedElement {
 
 	public boolean isExternal() {
 		return external;
+	}
+
+	@SuppressWarnings("unused")//used in the template
+	public boolean isConditionalDerived(){
+		return this.conditionalDerivedValues.isPresent();
+	}
+
+	public Map<Expression,Expression> getConditionalDerivedValues(){
+		if(this.conditionalDerivedValues.isPresent()){
+			return this.conditionalDerivedValues.get();
+		}else{
+			return new HashMap<>();
+		}
+	}
+
+	/**
+	 * This method is required since the api of freemarker has been deactivated in monticore, thus a direct fetching of
+	 * values by keys from maps is not possible.
+	 * @return a string,string map with conditions,values
+	 */
+	public Map<String,String> getConditionalDerivedValuesAsStrings(){
+		if(this.conditionalDerivedValues.isPresent()) {
+			Map<String, String> tempMap = new HashMap<>();
+			for (Expression key : this.conditionalDerivedValues.get().keySet()) {
+				tempMap.put(key.print(),this.conditionalDerivedValues.get().get(key).print());
+			}
+			return tempMap;
+		}
+		else{
+			return new HashMap<>();
+		}
 	}
 
 	@SuppressWarnings("unused")//used in the template

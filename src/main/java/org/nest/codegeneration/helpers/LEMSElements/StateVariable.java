@@ -50,7 +50,7 @@ public class StateVariable {
 				container.addConstant(temp);
 				this.defaultValue = Optional.of(new Variable(temp.getName()));
 			}
-      /*
+	  /*
        *it is not a single reference or a single value, therefore have to be an expression
        */
 			else {
@@ -59,11 +59,18 @@ public class StateVariable {
 				this.defaultValue = Optional.of(new Variable(temp.getName()));
 			}
 		} else if (variable.getDeclaringExpression().isPresent()) {
-			//otherwise just copy the value, but first replace the constants with references
-			Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
-			tempExpression = container.getHelper().replaceConstantsWithReferences(container, tempExpression);
-			tempExpression = container.getHelper().replaceResolutionByConstantReference(container,tempExpression);
-			this.defaultValue = Optional.of(tempExpression);
+			//first check if the ternary operator is used, since then we have to generate a conditional derived var
+			if (variable.getDeclaringExpression().get().conditionIsPresent()) {
+				DerivedElement temp = new DerivedElement(variable,container,false,false);
+				container.addDerivedElement(temp);
+				this.defaultValue = Optional.of(new Variable(temp.getName()));
+			} else {
+				//otherwise just copy the value, but first replace the constants with references
+				Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
+				tempExpression = container.getHelper().replaceConstantsWithReferences(container, tempExpression);
+				tempExpression = container.getHelper().replaceResolutionByConstantReference(container, tempExpression);
+				this.defaultValue = Optional.of(tempExpression);
+			}
 		} else if (!variable.getDeclaringExpression().isPresent() &&
 				!this.dimension.equals(container.getHelper().DIMENSION_NONE)
 				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
@@ -80,6 +87,7 @@ public class StateVariable {
 
 	/**
 	 * This constructor can be used to generate new StateVariables from an external artifact stored as an xml file
+	 *
 	 * @param xmlNode the xml node of a state varaibel artifact
 	 */
 	public StateVariable(Node xmlNode) {
