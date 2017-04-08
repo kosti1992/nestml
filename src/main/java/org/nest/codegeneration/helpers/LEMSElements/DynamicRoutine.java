@@ -195,14 +195,18 @@ public class DynamicRoutine {
 				}
 				tempInstruction = new ArrayList<>();//delete all processed statements in order to avoid duplicates
 				handleCompoundStatement(stmt.getCompound_Stmt().get(), condition);
-			} else if (stmt.small_StmtIsPresent()) {
-				Instruction notNullCheck = null;
-				if (stmt.getSmall_Stmt().get().assignmentIsPresent() &&
-						stmt.getSmall_Stmt().get().getAssignment().get().getExpr().conditionIsPresent()) {
-					  tempBlocks = handleTernaryOperator(stmt.getSmall_Stmt().get(),condition);
-				} else {
-					notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
+			//now the ternary operator requires extra handling by generating an intermediate cond. block
+			} else if (stmt.small_StmtIsPresent() && stmt.getSmall_Stmt().get().assignmentIsPresent()
+					&& stmt.getSmall_Stmt().get().getAssignment().get().getExpr().conditionIsPresent()) {
+				if (tempInstruction.size() > 0) {
+					tempInstruction = deactivateIntegration(tempInstruction);
+					this.blocks.add(new ConditionalBlock(tempInstruction, condition, rawCodeTemp));//add a new condition
 				}
+				tempInstruction = new ArrayList<>();
+				this.blocks.addAll(handleTernaryOperator(stmt.getSmall_Stmt().get(), condition));
+
+			} else if (stmt.small_StmtIsPresent()) {
+				Instruction notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
 				if (notNullCheck != null) {
 					tempInstruction.add(notNullCheck);
 				}
@@ -216,7 +220,6 @@ public class DynamicRoutine {
 		//blocks without any instructions can be skipped
 		if (tempInstruction != null && tempInstruction.size() > 0) {
 			this.blocks.add(new ConditionalBlock(tempInstruction, condition, rawCodeTemp));
-			this.blocks.addAll(tempBlocks);
 		}
 	}
 
@@ -326,11 +329,12 @@ public class DynamicRoutine {
 	/**
 	 * For a given conditional block and an assignment inside which uses the ternary operator, this method
 	 * replaces it by means of two sub blocks with corresponding conditions.
-	 * @param input the input small statement with ternary operator
+	 *
+	 * @param input     the input small statement with ternary operator
 	 * @param condition the condition, if one is present, of the super block containing the assignment
 	 * @return the list containing two conditions
 	 */
-	private List<ConditionalBlock> handleTernaryOperator(ASTSmall_Stmt input,Expression condition){
+	private List<ConditionalBlock> handleTernaryOperator(ASTSmall_Stmt input, Expression condition) {
 		List<ConditionalBlock> ret = new ArrayList<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
 		Expression firstSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
@@ -344,7 +348,7 @@ public class DynamicRoutine {
 		//now generate an assignment for the first half
 		Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				new Expression(input.getAssignment().get().getExpr().getIfTrue().get()));
-		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment,firstCondition,null);
+		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
 		ret.add(firstBlock);
 
 		//now create the second part which applies if the condition is not true
@@ -360,7 +364,7 @@ public class DynamicRoutine {
 		//now generate an assignment for the second half
 		Assignment secondAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				new Expression(input.getAssignment().get().getExpr().getIfNot().get()));
-		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment,secondCondition,null);
+		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
 		ret.add(secondBlock);
 		return ret;
 	}
@@ -612,4 +616,5 @@ public class DynamicRoutine {
 
 
 	}
+
 }
