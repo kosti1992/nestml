@@ -124,7 +124,9 @@ public class DerivedElement {
 		Map<Expression, Expression> tempMap = new HashMap<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
 		Expression firstSubCondition = new Expression(expr.getCondition().get());
-		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
+		if(!(firstSubCondition.opIsPresent()&&firstSubCondition.getOperator().get().isLeftParentheses()&&
+				firstSubCondition.opIsPresent()&&firstSubCondition.getOperator().get().isRightParentheses()))
+			firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
 		Expression firstSubValue = new Expression(expr.getIfTrue().get());
 		firstSubValue = container.getHelper().replaceConstantsWithReferences(container, firstSubValue);
 		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container, firstSubValue);

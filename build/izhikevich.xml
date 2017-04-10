@@ -1,5 +1,5 @@
 <Lems>
-    <!-- Generated on Apr 10, 2017 3:55:02 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 10, 2017 3:58:24 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
@@ -29,8 +29,8 @@
             <DerivedVariable dimension="none" name="I" reduce="add" select="pulseGeneratorDL[*]/I"/>
             <DerivedVariable dimension="none" name="INITu" value="V_m*b/CON1mV"/>
             <ConditionalDerivedVariable dimension="none" name="INITI_spike">
-                <Case condition="((a.lt.b))" value="-(V_m-E_K)/Tau_spike"/>
-                <Case condition="((a.geq.b))" value="0"/>
+                <Case condition="(a.lt.b)" value="-(V_m-E_K)/Tau_spike"/>
+                <Case condition="(a.geq.b)" value="0"/>
             </ConditionalDerivedVariable>
             <OnStart>
                 <StateAssignment value="V_m_init" variable="V_m"/>
