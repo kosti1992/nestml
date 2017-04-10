@@ -108,22 +108,72 @@ public class LEMSCollector extends Collector {
 	private void handleNeuron(ASTNeuron neuron) {
 		neuronName = neuron.getName();
 
-		 /*
-	 * now adapt the settings according to the handed over artifact if required
-     */
+		//first adapt the settings according to the handed over artifact if required
 		config.adaptSettings(this);
 
-
-	/*
-	 * checks whether the model extends an other model
-     */
+		//checks whether the model extends an other model
 		if (neuron.getBase().isPresent()) {
 			extendedModel = neuron.getBase().get();//store the name of the extended model
 		}
 		ASTBody neuronBody = neuron.getBody();
-	/*
-	 * processes all non-alias elements of the state block
-     */
+
+		//processes all non-alias elements of the state block
+		this.handleStateNonAliases(neuronBody);
+
+		//processes all alias elements of the state block
+		this.handleStateAliases(neuronBody);
+
+		//user-defined functions are not supported by LEMS (yet)
+		this.handleUsedDefinedFunctions(neuronBody);
+
+		//process the equations block
+		if (!neuronBody.getEquations().isEmpty()) {
+			//create a new constant in order to achieve a correct dimension of the equation:
+			ASTUnitType tempType = new ASTUnitType();
+			tempType.setUnit("ms");
+			this.addConstant(new Constant(helper.PREFIX_CONSTANT + "1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
+			this.addDimension(msDimension);
+			this.addUnit(new Unit("ms", msDimension));
+
+			//first process all shapes of the model
+			this.handleShapes(neuronBody);
+
+			//process the defining differential equation, i.e. non "shapes"
+			this.handleEquations(neuronBody);
+
+			//finally process all "function" declarations inside the equations block
+			this.handleODEFunctions(neuronBody);
+		}
+
+		//processes all non-aliases in the parameter block, namely the constants
+		this.handleParameterNonAliases(neuronBody);
+
+		//processes all aliases in the parameter, namely the derived constants
+		this.handleParameterAliases(neuronBody);
+
+		//processes all non-alias declarations of the internal block
+		this.handleInternalNonAliases(neuronBody);
+
+		//processes all alias declarations of the internal block
+		this.handleInternalAliases(neuronBody);
+
+		//process the buffers
+		this.handleBuffers(neuronBody);
+
+		//check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding automaton
+		this.handleDynamicsBlock(neuronBody);
+
+		//if no spike directive is present, an artificial event out directive has to be added in order to activate the port
+		this.addPortActivator();
+	}
+
+	/**
+	 * Handles all non-aliases located in the state block of the model.
+	 *
+	 * @param neuronBody a neuron body containing a state block.
+	 */
+	private void handleStateNonAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				helper.printArrayNotSupportedMessage(var);
@@ -136,126 +186,147 @@ public class LEMSCollector extends Collector {
 				handleType(var.getType());//handle the type of the variable
 			}
 		}
-	/*
-	 * processes all alias elements of the state block
-     */
+	}
+
+
+	/**
+	 * Handles all aliases stated in the state block of the model.
+	 *
+	 * @param neuronBody a neuron body containing a state block
+	 */
+	private void handleStateAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getStateAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, true, false));
 			handleType(var.getType());//handle the type
 		}
-	/*
-	 * user-defined functions are not supported by LEMS (yet)
-     */
+	}
+
+
+	/**
+	 * Handles user defined functions as stated in the source model. Although currently not supported by LEMS,
+	 * this method represents a extension point for future work.
+	 *
+	 * @param neuronBody a neuron body containing a "user-defined functions" block
+	 */
+	private void handleUsedDefinedFunctions(ASTBody neuronBody) {
 		for (ASTFunction func : neuronBody.getFunctions()) {
 			//print an error message an store a corresponding message for the generation
 			System.err.println("Not supported function-declaration found \"" + func.getName() + "\".");
 			this.addNotConverted("Not supported function-declaration found: " + func.getName()
 					+ " in lines " + func.get_SourcePositionStart() + " to " + func.get_SourcePositionEnd() + ".");
 		}
-	/*
-	 * process the equations block
-     */
-		if (!neuronBody.getEquations().isEmpty()) {
-			//create a new constant in order to achieve a correct dimension of the equation:
-			ASTUnitType tempType = new ASTUnitType();
-			tempType.setUnit("ms");
-			this.addConstant(new Constant(helper.PREFIX_CONSTANT + "1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
-			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
-			this.addDimension(msDimension);
-			this.addUnit(new Unit("ms", msDimension));
-	  /*
-	   * first process all shapes of the model
-       */
-			for (int i = 0; i < neuronBody.getShapes().size(); i++) {
-				ASTShape eq = neuronBody.getShapes().get(i);
-				if (helper.containsFunctionCall(eq.getRhs(), true)) {
-					this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
-					this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-					equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
-				} else {
-					Expression tempExpression = helper.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
-					DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
-					//store the shape
-					this.addDerivedElement(shapeVariable);
-				}
+	}
 
-			}
-	  /*
-	   * process the defining differential equation, i.e. non "shapes"
-       */
-			for (int i = 0; i < neuronBody.getEquations().size(); i++) {
-				ASTEquation eq = neuronBody.getEquations().get(i);
-				if (helper.containsFunctionCall(eq.getRhs(), true)) {
-					helper.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
-					this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-					equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
-				} else {
-					List<String> tempList = new ArrayList<>();
-					tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
-					//check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
-					if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
-						Expression expr = new Expression(eq.getRhs());
-						expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
-						expr = helper.extendExpressionByCON1ms(expr);
-						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstantReference(this, expr);
-						//only ode, i.e. integrate directives have to be manipulated
-						equation.put(eq.getLhs().getSimpleName(), expr);
-						//now generate the corresponding activator
-						this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().getSimpleName(),
-								helper.DIMENSION_NONE, new NumericalLiteral(1, null), helper.NO_UNIT, this));
-						this.localTimeDerivative.add(eq.getLhs().getSimpleName());
-					} else {
-						//otherwise the integration is global, no further steps required
-						Expression expr = new Expression(eq.getRhs());
-						expr = helper.extendExpressionByCON1ms(expr);
-						expr = helper.replaceConstantsWithReferences(this, expr);
-						expr = helper.replaceResolutionByConstantReference(this, expr);
-						equation.put(eq.getLhs().getSimpleName(), expr);
-					}
-				}
-			}
-			/*
-			 *finally process all "function" declarations inside the equations block
-			 */
-			for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
-				ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
-				DerivedElement tempDerivedVar = null;
-				if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
-					int[] dec = helper.convertTypeDeclToArray(
-							tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
-					//create the required units and dimensions
-					Dimension tempDimension = new Dimension(helper.PREFIX_DIMENSION
-							+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
-							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-					Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
-					tempDerivedVar = new DerivedElement(
-							tempFunction.getVariableName(),
-							tempDimension.getName(),
-							new Expression(tempFunction.getExpr()),
-							true,
-							false
-					);
-					this.addDimension(tempDimension);
-					this.addUnit(tempUnit);
-				} else {
-					//otherwise it is a non dimensional function, e.g. real
-					tempDerivedVar = new DerivedElement(
-							tempFunction.getVariableName(),
-							helper.DIMENSION_NONE,
-							new Expression(tempFunction.getExpr()),
-							true,
-							false
-					);
-				}
-				this.addDerivedElement(tempDerivedVar);
+	/**
+	 * Handles all shapes of the given neuron model, i.e. all non-equations and all non-ode-functions of the model
+	 * as located in the equations block.
+	 *
+	 * @param neuronBody a neuron body with defined equations block.
+	 */
+	private void handleShapes(ASTBody neuronBody) {
+		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
+			ASTShape eq = neuronBody.getShapes().get(i);
+			if (helper.containsFunctionCall(eq.getRhs(), true)) {
+				this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
+				this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
+				equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
+			} else {
+				Expression tempExpression = helper.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
+				DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
+				//store the shape
+				this.addDerivedElement(shapeVariable);
 			}
 
 		}
+	}
 
-    /*
-     * processes all non-aliases in the parameter block, namely the constants
-     */
+	/**
+	 * Handles the equations located in the equations block, i.e. non-shapes and non ode-functions.
+	 *
+	 * @param neuronBody a neuron body containing equations.
+	 */
+	private void handleEquations(ASTBody neuronBody) {
+		for (int i = 0; i < neuronBody.getEquations().size(); i++) {
+			ASTEquation eq = neuronBody.getEquations().get(i);
+			if (helper.containsFunctionCall(eq.getRhs(), true)) {
+				helper.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
+				this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
+				equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
+			} else {
+				List<String> tempList = new ArrayList<>();
+				tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
+				//check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
+				if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
+					Expression expr = new Expression(eq.getRhs());
+					expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
+					expr = helper.extendExpressionByCON1ms(expr);
+					expr = helper.replaceConstantsWithReferences(this, expr);
+					expr = helper.replaceResolutionByConstantReference(this, expr);
+					//only ode, i.e. integrate directives have to be manipulated
+					equation.put(eq.getLhs().getSimpleName(), expr);
+					//now generate the corresponding activator
+					this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().getSimpleName(),
+							helper.DIMENSION_NONE, new NumericalLiteral(1, null), helper.NO_UNIT, this));
+					this.localTimeDerivative.add(eq.getLhs().getSimpleName());
+				} else {
+					//otherwise the integration is global, no further steps required
+					Expression expr = new Expression(eq.getRhs());
+					expr = helper.extendExpressionByCON1ms(expr);
+					expr = helper.replaceConstantsWithReferences(this, expr);
+					expr = helper.replaceResolutionByConstantReference(this, expr);
+					equation.put(eq.getLhs().getSimpleName(), expr);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks if there are any ODE functions present in the model and transforms them to LEMS counter pieces.
+	 *
+	 * @param neuronBody a neuron body containing ODE functions
+	 */
+	private void handleODEFunctions(ASTBody neuronBody) {
+		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
+			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
+			DerivedElement tempDerivedVar = null;
+			if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
+				int[] dec = helper.convertTypeDeclToArray(
+						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
+				//create the required units and dimensions
+				Dimension tempDimension = new Dimension(helper.PREFIX_DIMENSION
+						+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
+						dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+				Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+				tempDerivedVar = new DerivedElement(
+						tempFunction.getVariableName(),
+						tempDimension.getName(),
+						new Expression(tempFunction.getExpr()),
+						true,
+						false
+				);
+				this.addDimension(tempDimension);
+				this.addUnit(tempUnit);
+			} else {
+				//otherwise it is a non dimensional function, e.g. real
+				tempDerivedVar = new DerivedElement(
+						tempFunction.getVariableName(),
+						helper.DIMENSION_NONE,
+						new Expression(tempFunction.getExpr()),
+						true,
+						false
+				);
+			}
+			this.addDerivedElement(tempDerivedVar);
+		}
+	}
+
+
+	/**
+	 * Handles all non aliases of the parameter block.
+	 *
+	 * @param neuronBody a neuron body containing a parameter block.
+	 */
+	private void handleParameterNonAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
@@ -271,10 +342,10 @@ public class LEMSCollector extends Collector {
 					//first check if a ternary operator is used
 					if (var.getDeclaringExpression().get().conditionIsPresent()) {
 						tempDerivedElement = new DerivedElement(var, this, false, false);
-						if(var.getType().getType()==TypeSymbol.Type.UNIT){
+						if (var.getType().getType() == TypeSymbol.Type.UNIT) {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									var.getType().prettyPrint(), this);
-						}else {
+						} else {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									"", this);//no unit,therefore "" as 4th arg
 						}
@@ -319,22 +390,31 @@ public class LEMSCollector extends Collector {
 					this.addConstant(temp);
 				if (tempDerivedElement != null)
 					this.addDerivedElement(tempDerivedElement);
-				if (tempStateVariable !=null)
+				if (tempStateVariable != null)
 					this.addStateVariable(tempStateVariable);
 			}
 			handleType(var.getType());
 		}
+	}
 
-    /*
-     * processes all aliases in the parameter, namely the derived constants
-     */
+	/**
+	 * Handles all aliases in the parameter block of the neuron.
+	 *
+	 * @param neuronBody a neuron body containing a parameter block.
+	 */
+	private void handleParameterAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getParameterAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, false, false));
 			handleType(var.getType());
 		}
-	/*
-	 * processes all non-alias declarations of the internal block
-     */
+	}
+
+	/**
+	 * Handles all non aliases located in the internal block.
+	 *
+	 * @param neuronBody a neuron body containing a internal block.
+	 */
+	private void handleInternalNonAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
@@ -383,35 +463,55 @@ public class LEMSCollector extends Collector {
 			}
 
 		}
-	/*
-     * processes all alias declarations of the internal block
-    */
+	}
+
+	/**
+	 * Checks if some aliases are present in the internal block and processes them in an appropriate way.
+	 *
+	 * @param neuronBody the body possibly containing aliases
+	 */
+	private void handleInternalAliases(ASTBody neuronBody) {
 		for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, false, false));
 			handleType(var.getType());
 		}
-    /*
-    * processes all input-buffers
-    */
+	}
+
+	/**
+	 * Handles the buffers located in the neuron.
+	 *
+	 * @param neuronBody the ast body of a neuron
+	 */
+	private void handleBuffers(ASTBody neuronBody) {
+		// processes all input-buffers
 		for (ASTInputLine var : neuronBody.getInputLines()) {
 			//if(!var.isCurrent()){//current sources are not actual event ports, but rather variables derived externally
 			this.addEventPort(new EventPort(var));//spike ports are added normally
 			//}//current buffers are treated as derived variables and therefore have to be added with an artifact
 		}
-    /*
-     * processes all output-buffers
-    */
+		//processes all output-buffers
 		for (ASTOutput var : neuronBody.getOutputs()) {
 			this.addEventPort(new EventPort(var));
 		}
 
-    /*
-     * check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding automaton
-     */
+	}
+
+
+	/**
+	 * Checks if a dynamic routine is present and handles it.
+	 *
+	 * @param neuronBody the body of a neuron
+	 */
+	private void handleDynamicsBlock(ASTBody neuronBody) {
 		if (neuronBody.getDynamicsBlock().isPresent()) {
 			automaton = new DynamicRoutine(neuronBody.getDynamics(), this);
 		}
-		//if there is no event out
+	}
+
+	/**
+	 * Activates a port for the LEMS simulator, for more details read git hub issue.
+	 */
+	private void addPortActivator() {
 		if (outputPortDefined() && !helper.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
 			automaton.addPortActivator();
 		}

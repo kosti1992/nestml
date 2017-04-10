@@ -23,7 +23,7 @@ public class DerivedElement {
 	private boolean dynamic;//distinguish between derived variables and derived parameter
 	private boolean external;//uses an external source, i.e. other tags are used
 	private String reduce;//the reduce indicates (in the case of external vars) how to combine values to a single one
-	private Optional<Map<Expression, Expression>> conditionalDerivedValues;
+	private Optional<Map<Expression, Expression>> conditionalDerivedValues = Optional.empty();
 
 
 	public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {

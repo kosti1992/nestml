@@ -37,7 +37,7 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getDerivedParametersList().size());
       Assert.assertEquals("V_reset", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getName());
       Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDimension());
-      Assert.assertEquals("-CON70.0mV-E_L", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDerivationInstruction().print());
+      Assert.assertEquals("-CON70mV-E_L", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDerivationInstruction().print());
       //not supported elements found
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getNotConvertedElements().size() > 0);
       //test event ports
