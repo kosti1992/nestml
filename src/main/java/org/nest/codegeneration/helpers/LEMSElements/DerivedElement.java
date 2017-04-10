@@ -128,6 +128,8 @@ public class DerivedElement {
 		Expression firstSubValue = new Expression(expr.getIfTrue().get());
 		firstSubValue = container.getHelper().replaceConstantsWithReferences(container, firstSubValue);
 		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container, firstSubValue);
+		System.out.println(firstSubCondition.print());
+		System.out.println(firstSubValue.print());
 		tempMap.put(firstSubCondition, firstSubValue);
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = firstSubCondition.deepClone();
@@ -135,6 +137,8 @@ public class DerivedElement {
 		Expression secondSubValue = new Expression(expr.getIfNot().get());
 		secondSubValue = container.getHelper().replaceConstantsWithReferences(container, secondSubValue);
 		secondSubValue = container.getHelper().replaceResolutionByConstantReference(container, secondSubValue);
+		System.out.println(secondSubCondition.print());
+		System.out.println(secondSubValue.print());
 		tempMap.put(secondSubCondition, secondSubValue);
 		this.conditionalDerivedValues = Optional.of(tempMap);
 		this.dynamic = true;

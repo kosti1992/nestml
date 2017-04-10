@@ -289,7 +289,8 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
 			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
 			DerivedElement tempDerivedVar;
-			if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
+			if (tempFunction.getDatatype().getUnitType().isPresent()&&
+					tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
 				int[] dec = helper.convertTypeDeclToArray(
 						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
 				//create the required units and dimensions

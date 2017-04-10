@@ -27,8 +27,7 @@ public class Expression {
 		this.rhs = Optional.of(new Variable(value));
 	}
 
-	public Expression() {
-	}
+	public Expression() {}
 
 	public Expression(ASTExpr expr) {
 		checkNotNull(expr);
@@ -52,13 +51,7 @@ public class Expression {
 	private void handleExpression(ASTExpr expr) {
 		if (expr.getTerm().isPresent()) {
 			this.operator = Optional.of(new Operator(expr));
-			if (expr.getTerm().get().nESTMLNumericLiteralIsPresent()) {
-				this.rhs = Optional.of(new NumericalLiteral(expr.getTerm().get().getNESTMLNumericLiteral().get()));
-			} else if (expr.getTerm().get().variableIsPresent()) {
-				this.rhs = Optional.of(new Variable(expr.getTerm().get().getVariable().get()));
-			} else if (expr.getTerm().get().functionCallIsPresent()) {
-				this.rhs = Optional.of(new Function(expr.getTerm().get().getFunctionCall().get()));
-			}
+			this.rhs = Optional.of(new Expression(expr.getTerm().get()));
 		} else if (expr.nESTMLNumericLiteralIsPresent()) {
 			this.rhs = Optional.of(new NumericalLiteral(expr.getNESTMLNumericLiteral().get()));
 		} else if (expr.variableIsPresent()) {
@@ -182,7 +175,7 @@ public class Expression {
 		String ret = "";
 		//This is a special case, since brackets have to be around the whole expr.
 		if (this.operator.isPresent() && this.operator.get().isLeftParentheses() &&
-				this.operator.get().isLeftParentheses() && this.rhs.isPresent()) {
+				this.operator.get().isRightParentheses() && this.rhs.isPresent()) {
 			ret = "(" + this.rhs.get().print(container) + ")";
 		} else {
 			if (this.lhs.isPresent()) {

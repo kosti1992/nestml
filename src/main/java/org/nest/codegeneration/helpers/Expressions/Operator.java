@@ -85,14 +85,15 @@ public class Operator extends Expression {
 			this.unaryMinus = true;
 		} else if (expr.isPow()) {
 			this.power = true;
-		} else if (expr.isLeftParentheses()) {
-			this.leftParentheses = true;
-		} else if (expr.isRightParentheses()) {
-			this.rightParentheses = true;
 		} else {
 			this.non = true;
 		}
-
+		if (expr.isLeftParentheses()) {
+			this.leftParentheses = true;
+		}
+		if (expr.isRightParentheses()) {
+			this.rightParentheses = true;
+		}
 	}
 
 	public Operator() {

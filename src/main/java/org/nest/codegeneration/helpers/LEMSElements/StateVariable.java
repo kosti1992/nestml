@@ -60,7 +60,9 @@ public class StateVariable {
 		if (!this.dimension.equals(container.getHelper().DIMENSION_NONE)
 				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
 			//state variables are often generated outside the main routine, thus a processing of units has to be triggered
-			this.unit = (new Unit(variable.getType())).getSymbol();
+			Unit tempUnit = new Unit(variable.getType());
+			this.unit = tempUnit.getSymbol();
+			container.addUnit(tempUnit);
 		}
 	}
 
@@ -99,8 +101,9 @@ public class StateVariable {
 	public String print() {
 		if (defaultValue.isPresent()) {
 			return defaultValue.get().print(new LEMSSyntaxContainer());
+		} else {
+			return "0";
 		}
-		return "0";
 	}
 
 	public Optional<Expression> getDefaultValue() {
