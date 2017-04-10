@@ -346,8 +346,11 @@ public class DynamicRoutine {
 		firstCondition.replaceOp(opFirst);
 		firstCondition.replaceRhs(firstSubCondition);
 		//now generate an assignment for the first half
+		Expression firstAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfTrue().get());
+		firstAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container,firstAssignmentExpression);
+		firstAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container,firstAssignmentExpression);
 		Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
-				new Expression(input.getAssignment().get().getExpr().getIfTrue().get()));
+				firstAssignmentExpression);
 		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
 		ret.add(firstBlock);
 
@@ -362,8 +365,11 @@ public class DynamicRoutine {
 		secondCondition.replaceOp(opSecond);
 		secondCondition.replaceRhs(secondSubCondition);
 		//now generate an assignment for the second half
+		Expression secondAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfNot().get());
+		secondAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container,secondAssignmentExpression);
+		secondAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container,secondAssignmentExpression);
 		Assignment secondAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
-				new Expression(input.getAssignment().get().getExpr().getIfNot().get()));
+				secondAssignmentExpression);
 		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
 		ret.add(secondBlock);
 		return ret;
