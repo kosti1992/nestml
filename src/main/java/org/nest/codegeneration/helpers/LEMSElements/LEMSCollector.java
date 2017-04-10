@@ -288,7 +288,7 @@ public class LEMSCollector extends Collector {
 	private void handleODEFunctions(ASTBody neuronBody) {
 		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
 			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
-			DerivedElement tempDerivedVar = null;
+			DerivedElement tempDerivedVar;
 			if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
 				int[] dec = helper.convertTypeDeclToArray(
 						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
@@ -308,13 +308,22 @@ public class LEMSCollector extends Collector {
 				this.addUnit(tempUnit);
 			} else {
 				//otherwise it is a non dimensional function, e.g. real
-				tempDerivedVar = new DerivedElement(
-						tempFunction.getVariableName(),
-						helper.DIMENSION_NONE,
-						new Expression(tempFunction.getExpr()),
-						true,
-						false
-				);
+				if(tempFunction.getExpr().conditionIsPresent()){
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							helper.DIMENSION_NONE,
+							tempFunction.getExpr(),
+							this);
+				}else{
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							helper.DIMENSION_NONE,
+							new Expression(tempFunction.getExpr()),
+							true,
+							false);
+				}
+
+
 			}
 			this.addDerivedElement(tempDerivedVar);
 		}
@@ -341,7 +350,10 @@ public class LEMSCollector extends Collector {
 				if (var.getDeclaringExpression().isPresent()) {
 					//first check if a ternary operator is used
 					if (var.getDeclaringExpression().get().conditionIsPresent()) {
-						tempDerivedElement = new DerivedElement(var, this, false, false);
+						tempDerivedElement = new DerivedElement(var.getName(),
+								this.getHelper().typeToDimensionConverter(var.getType()),
+								var.getDeclaringExpression().get(),
+								this);
 						if (var.getType().getType() == TypeSymbol.Type.UNIT) {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									var.getType().prettyPrint(), this);

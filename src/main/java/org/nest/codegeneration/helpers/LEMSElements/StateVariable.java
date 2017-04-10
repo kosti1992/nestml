@@ -33,50 +33,29 @@ public class StateVariable {
 		}
 
 		//check if a standard value is set and an actual dimension is used
-		if ((!this.dimension.equals(container.getHelper().DIMENSION_NONE)
-				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED))
-				&& variable.getDeclaringExpression().isPresent()) {
-			//in case it is a reference just set it as it is
+		if (variable.getDeclaringExpression().isPresent()) {
+			//in the case it is a reference just set it as it is
 			if (variable.getDeclaringExpression().get().variableIsPresent()) {
 				this.defaultValue = Optional.of(new Variable(variable.getDeclaringExpression().get().getVariable().get()));
-				//this.defaultValue = variable.getDeclaringExpression().get().getVariable().get().toString();
 			}
-	  /*
-	  * now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
-      * reference to it.
-      */
-			else if (variable.getDeclaringExpression().get().getNESTMLNumericLiteral().isPresent()) {
+			//now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
+			//reference to it.
+			else if (variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
 				Constant temp = new Constant(variable, true, false, container);
 				container.addConstant(temp);
 				this.defaultValue = Optional.of(new Variable(temp.getName()));
-			}
-	  /*
-       *it is not a single reference or a single value, therefore have to be an expression
-       */
-			else {
+			} else if (variable.getDeclaringExpression().get().conditionIsPresent()) {
+				DerivedElement temp = new DerivedElement(variable.getName(),
+						container.getHelper().typeToDimensionConverter(variable.getType()),
+						variable.getDeclaringExpression().get(),
+						container);
+				container.addDerivedElement(temp);
+				this.defaultValue = Optional.of(new Variable(temp.getName()));
+			} else {
 				DerivedElement temp = new DerivedElement(variable, container, true, true);
 				container.addDerivedElement(temp);
 				this.defaultValue = Optional.of(new Variable(temp.getName()));
 			}
-		} else if (variable.getDeclaringExpression().isPresent()) {
-			//first check if the ternary operator is used, since then we have to generate a conditional derived var
-			if (variable.getDeclaringExpression().get().conditionIsPresent()) {
-				DerivedElement temp = new DerivedElement(variable,container,false,false);
-				container.addDerivedElement(temp);
-				this.defaultValue = Optional.of(new Variable(temp.getName()));
-			} else {
-				//otherwise just copy the value, but first replace the constants with references
-				Expression tempExpression = new Expression(variable.getDeclaringExpression().get());
-				tempExpression = container.getHelper().replaceConstantsWithReferences(container, tempExpression);
-				tempExpression = container.getHelper().replaceResolutionByConstantReference(container, tempExpression);
-				this.defaultValue = Optional.of(tempExpression);
-			}
-		} else if (!variable.getDeclaringExpression().isPresent() &&
-				!this.dimension.equals(container.getHelper().DIMENSION_NONE)
-				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
-			Constant temp = new Constant(variable, true, false, container);
-			container.addConstant(temp);
-			this.defaultValue = Optional.of(new Variable(temp.getName()));
 		}
 		if (!this.dimension.equals(container.getHelper().DIMENSION_NONE)
 				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
@@ -147,7 +126,7 @@ public class StateVariable {
 	}
 
 	public boolean equals(Object o) {
-		//it is sufficient to only check the name
+		//it is sufficient to only check the name since otherwise the model would crash
 		return this.getClass().equals(o.getClass()) && this.getName().equals(((StateVariable) o).getName());
 	}
 

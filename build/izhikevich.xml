@@ -1,5 +1,5 @@
 <Lems>
-    <!-- Generated on Apr 10, 2017 2:26:17 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 10, 2017 3:16:14 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
@@ -7,18 +7,16 @@
     <Unit dimension="DimensionOf_ms" power="-3" symbol="ms"/>
     <Unit dimension="DimensionOf_mV" power="-3" symbol="mV"/>
     <ComponentType name="izhikevich">
-        <Constant dimension="DimensionOf_mV" name="CON0mV" value="0mV"/>
         <Constant dimension="DimensionOf_mV" name="CON1mV" value="1mV"/>
+        <Constant dimension="none" name="INITI" value="0"/>
         <Constant dimension="DimensionOf_ms" name="CON1ms" value="1ms"/>
-        <Constant dimension="DimensionOf_mV" name="CON3mV" value="3mV"/>
-        <Constant dimension="DimensionOf_mV" name="CON4mV" value="4mV"/>
+        <Parameter dimension="none" name="a"/>
         <Parameter dimension="none" name="b"/>
         <Parameter dimension="none" name="c"/>
         <Parameter dimension="none" name="d"/>
         <Parameter dimension="DimensionOf_mV" name="V_m_init"/>
         <Parameter dimension="DimensionOf_mA" name="I_e"/>
         <Constant dimension="DimensionOf_mV" name="CON30mV" value="30mV"/>
-        <Constant dimension="DimensionOf_mV" name="CON2mV" value="2mV"/>
         <EventPort direction="in" name="spikes"/>
         <EventPort direction="in" name="currents"/>
         <EventPort direction="out" name="spike"/>
@@ -28,54 +26,29 @@
             <StateVariable dimension="none" name="u"/>
             <StateVariable dimension="none" name="I"/>
             <StateVariable dimension="none" name="ACTV_m"/>
-            <StateVariable dimension="none" name="a"/>
             <DerivedVariable dimension="none" name="I" reduce="add" select="pulseGeneratorDL[*]/I"/>
-            <ConditionalDerivedVariable dimension="DimensionOf_mV" name="INITV_m">
-                <Case condition="(1.leq.0)" value="CON0mV"/>
-                <Case condition="(1.gt.0)" value="V_m_init"/>
-            </ConditionalDerivedVariable>
-            <ConditionalDerivedVariable dimension="none" name="INITa">
-                <Case condition="(0.lt.1)" value="CON3mV"/>
-                <Case condition="(0.geq.1)" value="CON4mV"/>
-            </ConditionalDerivedVariable>
+            <DerivedVariable dimension="none" name="INITu" value="V_m*b/CON1mV"/>
             <OnStart>
-                <StateAssignment value="INITV_m" variable="V_m"/>
-                <StateAssignment value="V_m*b/CON1mV" variable="u"/>
-                <StateAssignment value="0" variable="I"/>
+                <StateAssignment value="V_m_init" variable="V_m"/>
+                <StateAssignment value="INITu" variable="u"/>
+                <StateAssignment value="INITI" variable="I"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
-                <StateAssignment value="INITa" variable="a"/>
             </OnStart>
             <TimeDerivative value="(ACTV_m*(0.04*V_m*V_m/CON1mV+5*V_m+(140-u+I)*CON1mV))/CON1ms" variable="V_m"/>
             <TimeDerivative value="(a*(b*V_m/CON1mV-u))/CON1ms" variable="u"/>
-            <!--Generated from source lines <31,1> to <31,15>.-->
+            <!--Generated from source lines <32,1> to <32,15>.-->
             <!--integrate(V_m)-->
             <OnCondition test="1.eq.1">
                 <StateAssignment value="1" variable="ACTV_m"/>
             </OnCondition>
-            <!--Generated from source lines <32,19> to <36,19>.-->
+            <!--Generated from source lines <33,19> to <36,19>.-->
             <!--if V_m>=30:-->
             <!--  V_m = c*1-->
             <!--  u += d-->
-            <!--  u = (0<1)?(1):(2)-->
             <!--  emit_spike()-->
             <OnCondition test="(V_m.geq.CON30mV)">
                 <StateAssignment value="c*CON1mV" variable="V_m"/>
                 <StateAssignment value="d+u" variable="u"/>
-                <StateAssignment value="0" variable="ACTV_m"/>
-            </OnCondition>
-            <OnCondition test="(V_m.geq.CON30mV).and.(0.lt.1)">
-                <StateAssignment value="CON1mV" variable="u"/>
-            </OnCondition>
-            <OnCondition test="(V_m.geq.CON30mV).and.(0.geq.1)">
-                <StateAssignment value="CON2mV" variable="u"/>
-            </OnCondition>
-            <!--Generated from source lines <32,19> to <36,19>.-->
-            <!--if V_m>=30:-->
-            <!--  V_m = c*1-->
-            <!--  u += d-->
-            <!--  u = (0<1)?(1):(2)-->
-            <!--  emit_spike()-->
-            <OnCondition test="(V_m.geq.CON30mV)">
                 <EventOut port="spike"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
             </OnCondition>

@@ -2,6 +2,7 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.Operator;
+import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -27,7 +28,7 @@ public class DerivedElement {
 
 
 	public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {
-		if (init||variable.getDeclaringExpression().get().conditionIsPresent()) {
+		if (init) {
 			this.name = container.getHelper().PREFIX_INIT + variable.getName();
 		} else {
 			this.name = variable.getName();
@@ -41,18 +42,15 @@ public class DerivedElement {
 		} else {
 			dimension = container.getHelper().typeToDimensionConverter(variable.getType());
 		}
-		if(!variable.getDeclaringExpression().get().conditionIsPresent()) {
-			//get the derivation instruction in LEMS format
-			derivationInstruction = new Expression(variable);
-			//replace the resolution function call with a reference to the constant
-			derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container, derivationInstruction);
-			//replace constants with references
-			derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
-		}else {
-			handleTernaryOp(variable,container);
-		}
-	}
 
+		//get the derivation instruction in LEMS format
+		derivationInstruction = new Expression(variable);
+		//replace the resolution function call with a reference to the constant
+		derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container, derivationInstruction);
+		//replace constants with references
+		derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
+
+	}
 
 
 	/**
@@ -101,29 +99,43 @@ public class DerivedElement {
 		}
 	}
 
+	/**
+	 * This constructor is used whenever a ternary operator is located in the expression.
+	 *
+	 * @param name      the name of the derived var
+	 * @param dimension the dimension of the derived var
+	 * @param expr      the expr containing the ternary op
+	 * @param container the lems collector fo further operations
+	 */
+	public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container) {
+		this.name = container.getHelper().PREFIX_INIT+name;
+		this.dimension = dimension;
+		this.handleTernaryOp(expr, container);
+	}
+
 
 	/**
 	 * This method can be used to generate a conditional derived variable representing a ternary operator.
 	 *
-	 * @param variable  the variable which shall be a conditional derived var
+	 * @param expr      the variable which shall be a conditional derived var
 	 * @param container a lems collector file
 	 */
-	private void handleTernaryOp(VariableSymbol variable, LEMSCollector container) {
-		Map<Expression,Expression> tempMap = new HashMap<>();
+	private void handleTernaryOp(ASTExpr expr, LEMSCollector container) {
+		Map<Expression, Expression> tempMap = new HashMap<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
-		Expression firstSubCondition = new Expression(variable.getDeclaringExpression().get().getCondition().get());
+		Expression firstSubCondition = new Expression(expr.getCondition().get());
 		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
-		Expression firstSubValue = new Expression(variable.getDeclaringExpression().get().getIfTrue().get());
-		firstSubValue = container.getHelper().replaceConstantsWithReferences(container,firstSubValue);
-		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container,firstSubValue);
-		tempMap.put(firstSubCondition,firstSubValue);
+		Expression firstSubValue = new Expression(expr.getIfTrue().get());
+		firstSubValue = container.getHelper().replaceConstantsWithReferences(container, firstSubValue);
+		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container, firstSubValue);
+		tempMap.put(firstSubCondition, firstSubValue);
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = firstSubCondition.deepClone();
 		secondSubCondition.negateLogic();
-		Expression secondSubValue = new Expression(variable.getDeclaringExpression().get().getIfNot().get());
-		secondSubValue = container.getHelper().replaceConstantsWithReferences(container,secondSubValue);
-		secondSubValue = container.getHelper().replaceResolutionByConstantReference(container,secondSubValue);
-		tempMap.put(secondSubCondition,secondSubValue);
+		Expression secondSubValue = new Expression(expr.getIfNot().get());
+		secondSubValue = container.getHelper().replaceConstantsWithReferences(container, secondSubValue);
+		secondSubValue = container.getHelper().replaceResolutionByConstantReference(container, secondSubValue);
+		tempMap.put(secondSubCondition, secondSubValue);
 		this.conditionalDerivedValues = Optional.of(tempMap);
 		this.dynamic = true;
 	}
@@ -153,14 +165,14 @@ public class DerivedElement {
 	}
 
 	@SuppressWarnings("unused")//used in the template
-	public boolean isConditionalDerived(){
+	public boolean isConditionalDerived() {
 		return this.conditionalDerivedValues.isPresent();
 	}
 
-	public Map<Expression,Expression> getConditionalDerivedValues(){
-		if(this.conditionalDerivedValues.isPresent()){
+	public Map<Expression, Expression> getConditionalDerivedValues() {
+		if (this.conditionalDerivedValues.isPresent()) {
 			return this.conditionalDerivedValues.get();
-		}else{
+		} else {
 			return new HashMap<>();
 		}
 	}
@@ -168,17 +180,17 @@ public class DerivedElement {
 	/**
 	 * This method is required since the api of freemarker has been deactivated in monticore, thus a direct fetching of
 	 * values by keys from maps is not possible.
+	 *
 	 * @return a string,string map with conditions,values
 	 */
-	public Map<String,String> getConditionalDerivedValuesAsStrings(){
-		if(this.conditionalDerivedValues.isPresent()) {
+	public Map<String, String> getConditionalDerivedValuesAsStrings() {
+		if (this.conditionalDerivedValues.isPresent()) {
 			Map<String, String> tempMap = new HashMap<>();
 			for (Expression key : this.conditionalDerivedValues.get().keySet()) {
-				tempMap.put(key.print(),this.conditionalDerivedValues.get().get(key).print());
+				tempMap.put(key.print(), this.conditionalDerivedValues.get().get(key).print());
 			}
 			return tempMap;
-		}
-		else{
+		} else {
 			return new HashMap<>();
 		}
 	}
