@@ -80,6 +80,9 @@ public class LEMSCollector extends Collector {
 
 	public static HelperCollection helper = null;//a set of assisting functions
 
+	private List<String> booleanElements = null;
+
+
 	public LEMSCollector(ASTNeuron neuron, SimulationConfiguration config) {
 		//set the system language to english in order to avoid problems with "," instead of "." in double representation
 		Locale.setDefault(Locale.ENGLISH);
@@ -96,6 +99,7 @@ public class LEMSCollector extends Collector {
 		this.attachments = new ArrayList<>();
 		this.config = config;
 		this.helper = new HelperCollection(this);
+		this.booleanElements = new ArrayList<>();
 		this.handleNeuron(neuron);
 	}
 
@@ -116,6 +120,9 @@ public class LEMSCollector extends Collector {
 			extendedModel = neuron.getBase().get();//store the name of the extended model
 		}
 		ASTBody neuronBody = neuron.getBody();
+
+		//collect all boolean elements
+		this.collectBooleanElements(neuronBody);
 
 		//processes all non-alias elements of the state block
 		this.handleStateNonAliases(neuronBody);
@@ -289,7 +296,7 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
 			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
 			DerivedElement tempDerivedVar;
-			if (tempFunction.getDatatype().getUnitType().isPresent()&&
+			if (tempFunction.getDatatype().getUnitType().isPresent() &&
 					tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
 				int[] dec = helper.convertTypeDeclToArray(
 						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
@@ -298,6 +305,7 @@ public class LEMSCollector extends Collector {
 						+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
 						dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
 				Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+				/*
 				tempDerivedVar = new DerivedElement(
 						tempFunction.getVariableName(),
 						tempDimension.getName(),
@@ -305,17 +313,35 @@ public class LEMSCollector extends Collector {
 						true,
 						false
 				);
+				*/
+
+				if (tempFunction.getExpr().conditionIsPresent()) {
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							tempDimension.getName(),
+							tempFunction.getExpr(),
+							this,false);
+				} else {
+					tempDerivedVar = new DerivedElement(
+							tempFunction.getVariableName(),
+							tempDimension.getName(),
+							new Expression(tempFunction.getExpr()),
+							true,
+							false);
+				}
+
+
 				this.addDimension(tempDimension);
 				this.addUnit(tempUnit);
 			} else {
 				//otherwise it is a non dimensional function, e.g. real
-				if(tempFunction.getExpr().conditionIsPresent()){
+				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
 							helper.DIMENSION_NONE,
 							tempFunction.getExpr(),
-							this);
-				}else{
+							this,false);
+				} else {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
 							helper.DIMENSION_NONE,
@@ -354,7 +380,7 @@ public class LEMSCollector extends Collector {
 						tempDerivedElement = new DerivedElement(var.getName(),
 								this.getHelper().typeToDimensionConverter(var.getType()),
 								var.getDeclaringExpression().get(),
-								this);
+								this,false);
 						if (var.getType().getType() == TypeSymbol.Type.UNIT) {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									var.getType().prettyPrint(), this);
@@ -535,7 +561,7 @@ public class LEMSCollector extends Collector {
 	 *
 	 * @param var The variable which will processed.
 	 */
-	public void handleType(TypeSymbol var) {
+	private void handleType(TypeSymbol var) {
 		// in case that a provided variable uses a concrete unit, this unit has to be processed.
 		// otherwise, nothing happens
 		if (var.getType() == TypeSymbol.Type.UNIT) {
@@ -543,6 +569,53 @@ public class LEMSCollector extends Collector {
 			this.addDimension(temp.getDimension());
 			addUnit(temp);
 		}
+	}
+
+	/**
+	 * A pre-processing function.
+	 * Collects all boolean variables located in the model for further computations.
+	 */
+	private void collectBooleanElements(ASTBody neuronBody) {
+		for(VariableSymbol var:neuronBody.getStateAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+		for(VariableSymbol var:neuronBody.getStateNonAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+		for(VariableSymbol var:neuronBody.getParameterAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+		for(VariableSymbol var:neuronBody.getParameterNonAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+		for(VariableSymbol var:neuronBody.getInternalAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+		for(VariableSymbol var:neuronBody.getInternalNonAliasSymbols()){
+			if(var.getType().getName().equals("boolean")){
+				booleanElements.add(var.getName());
+			}
+		}
+
+	}
+
+
+	public void addBooleanElement(String element){
+		this.booleanElements.add(element);
+	}
+
+	public List<String> getBooleanElements(){
+		return this.booleanElements;
 	}
 
 	@SuppressWarnings("unused")//Used in the template

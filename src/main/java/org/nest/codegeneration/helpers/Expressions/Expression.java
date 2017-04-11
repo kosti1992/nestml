@@ -27,7 +27,8 @@ public class Expression {
 		this.rhs = Optional.of(new Variable(value));
 	}
 
-	public Expression() {}
+	public Expression() {
+	}
 
 	public Expression(ASTExpr expr) {
 		checkNotNull(expr);
@@ -67,6 +68,12 @@ public class Expression {
 			Operator tempOperator = new Operator();
 			tempOperator.setPower(true);
 			this.operator = Optional.of(tempOperator);
+		} else if (expr.booleanLiteralIsPresent()) {
+			if (expr.getBooleanLiteral().get().getValue()) {
+				this.rhs = Optional.of(new NumericalLiteral(1, null));
+			} else {
+				this.rhs = Optional.of(new NumericalLiteral(0, null));
+			}
 		} else {
 			if (expr.leftIsPresent()) {
 				this.lhs = Optional.of(new Expression(expr.getLeft().get()));

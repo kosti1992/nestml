@@ -9,7 +9,6 @@ neuron izhikevich_nestml:
   equations:
     V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)*1mV
     u' = a*(b*V_m/1mV-u)
-	function I_spike real = (a<b) ? -( V_m - E_K ) / Tau_spike : 0
   end
 
   parameters:
@@ -34,7 +33,7 @@ neuron izhikevich_nestml:
       V_m = c*1mV
       u += d
       emit_spike()
-	end	
+	end
   end
 
 end

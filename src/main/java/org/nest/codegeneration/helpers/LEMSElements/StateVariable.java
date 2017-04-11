@@ -25,7 +25,7 @@ public class StateVariable {
 		this.name = variable.getName();
 
 		//check whether data type is supported or not
-		if (LEMSCollector.helper.dataTypeNotSupported(variable.getType())) {
+		if (container.getHelper().dataTypeNotSupported(variable.getType())) {
 			this.dimension = container.getHelper().NOT_SUPPORTED;
 			container.getHelper().printNotSupportedDataType(variable);
 		} else {
@@ -41,14 +41,19 @@ public class StateVariable {
 			//now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
 			//reference to it.
 			else if (variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
-				Constant temp = new Constant(variable, true, false, container);
-				container.addConstant(temp);
-				this.defaultValue = Optional.of(new Variable(temp.getName()));
+				if (this.dimension.equals(container.getHelper().DIMENSION_NONE)) {
+					this.defaultValue = Optional.of(new NumericalLiteral(variable.getDeclaringExpression().
+							get().getNESTMLNumericLiteral().get()));
+				} else {
+					Constant temp = new Constant(variable, true, false, container);
+					container.addConstant(temp);
+					this.defaultValue = Optional.of(new Variable(temp.getName()));
+				}
 			} else if (variable.getDeclaringExpression().get().conditionIsPresent()) {
 				DerivedElement temp = new DerivedElement(variable.getName(),
 						container.getHelper().typeToDimensionConverter(variable.getType()),
 						variable.getDeclaringExpression().get(),
-						container);
+						container, true);
 				container.addDerivedElement(temp);
 				this.defaultValue = Optional.of(new Variable(temp.getName()));
 			} else {
@@ -64,6 +69,7 @@ public class StateVariable {
 			this.unit = tempUnit.getSymbol();
 			container.addUnit(tempUnit);
 		}
+
 	}
 
 	/**

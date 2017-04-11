@@ -72,7 +72,7 @@ public class HelperCollection {
 	 * @return the name of the dimension as String
 	 */
 	public String typeToDimensionConverter(TypeSymbol input) {
-		if (input.getName().equals("boolean") || input.getName().equals("void") || input.getName().equals("string")) {
+		if (input.getName().equals("void") || input.getName().equals("string")) {
 			return NOT_SUPPORTED;
 		}
 		if (input.getType() == TypeSymbol.Type.PRIMITIVE) {
@@ -250,6 +250,35 @@ public class HelperCollection {
 
 
 	/**
+	 * Inspects a given expression and replaces boolean atoms, e.g. bool_var ist replaced by 1.eq.bool_var
+	 * to represent an equal behavior.
+	 *
+	 * @param container a lems container containing further specifications.
+	 * @param expr      the expression in which bool vars will be replaced.
+	 * @return an expression with replaced bool parts.
+	 */
+	public Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
+		if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())){
+			NumericalLiteral lit1 = new NumericalLiteral(1, null);
+			Operator op1 = new Operator();
+			op1.setEq(true);
+			Expression ex1 = new Expression();
+			ex1.replaceLhs(lit1);
+			ex1.replaceOp(op1);
+			ex1.replaceRhs(expr);
+			return ex1;
+		}
+		if (expr.lhsIsPresent()) {
+			//if it is a variable, then check if it is a boolean var
+			expr.replaceLhs(replaceBooleanAtomByExpression(container,expr.getLhs().get()));
+		}
+		if (expr.rhsIsPresent()) {
+			expr.replaceRhs(replaceBooleanAtomByExpression(container,expr.getRhs().get()));
+		}
+		return expr;
+	}
+
+	/**
 	 * Returns the arguments of a function separated by ",".
 	 * E.g: sum(x,y) -> x,y
 	 *
@@ -373,9 +402,9 @@ public class HelperCollection {
 	 * @return true, if the type is not supported
 	 */
 	public boolean dataTypeNotSupported(TypeSymbol type) {
-		if ((type.getType() == TypeSymbol.Type.PRIMITIVE) && (type.prettyPrint().equals("boolean") ||
+		if ((type.getType() == TypeSymbol.Type.PRIMITIVE) && (
 				type.prettyPrint().equals("void") ||
-				type.prettyPrint().equals("String"))) {
+						type.prettyPrint().equals("String"))) {
 			return true;
 		}
 		return false;
@@ -494,17 +523,18 @@ public class HelperCollection {
 	 * Resolves the problem with not present logical-not in LEMS by using de Morgan to reconfigure the
 	 * expression to a logical equivalent counter piece without logical-not. Logical-not not required in literals
 	 * since expression language is a strict equality logic without boolean atoms.
+	 *
 	 * @param expr the expression whose "not" part will be resolved
 	 */
-	public Expression replaceNotByLogicalEquivalent(LEMSCollector container, Expression expr){
-		if(expr.opIsPresent()&&expr.getOperator().get().isLogicalNot()){
+	public Expression replaceNotByLogicalEquivalent(LEMSCollector container, Expression expr) {
+		if (expr.opIsPresent() && expr.getOperator().get().isLogicalNot()) {
 			expr.negateLogic();
 		}
-		if(expr.lhsIsPresent()){
-			expr.replaceLhs(replaceNotByLogicalEquivalent(container,expr.getLhs().get()));
+		if (expr.lhsIsPresent()) {
+			expr.replaceLhs(replaceNotByLogicalEquivalent(container, expr.getLhs().get()));
 		}
-		if(expr.rhsIsPresent()){
-			expr.replaceRhs(replaceNotByLogicalEquivalent(container,expr.getRhs().get()));
+		if (expr.rhsIsPresent()) {
+			expr.replaceRhs(replaceNotByLogicalEquivalent(container, expr.getRhs().get()));
 		}
 		return expr;
 	}

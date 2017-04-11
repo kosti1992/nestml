@@ -51,22 +51,22 @@ The NESTML2LEMS framework supports almost all characteristics of the NestML spec
 
 Currently supported functions are:
 
-- **integrate([VAR])** : the integration of a variable VAR.
+- **integrate(VAR)** : the integration of a variable VAR.
 - **emit_spike()**: instructs the component to emit an event/spike.
 - **step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.
 
 The framework supports the following mathematical functions:
 
-- **exp(A,B)** : A to the power of B
-- **log(A)** : logarithm of A to base 10 
-- **ln(A)** : natural logarithm of A
-- **sin(A),cos(A),tan(A)** : trigonometric functions
-- **sinh(A),cosh(A),tanh(A)** : hyperbolic trigonometric functions 
-- **sqrt(A)** : square root of A
-- **ceil(A)** : the ceil function
-- **random(A)** : returns a random number in the interval [0;A]
-- **factorial(A)** : factorial function
-- **abs(A)** : the absolute value of A
+- **exp(VarA,VarB)** : VarA to the power of VarB
+- **log(VarA)** : logarithm of VarA to base 10 
+- **ln(VarA)** : natural logarithm of VarA
+- **sin(VarA),cos(VarA),tan(VarA)** : trigonometric functions
+- **sinh(VarA),cosh(VarA),tanh(VarA)** : hyperbolic trigonometric functions 
+- **sqrt(VarA)** : square root of VarA
+- **ceil(VarA)** : the ceil function
+- **random(VarA)** : returns a random number in the interval [0;VarA]
+- **factorial(VarA)** : factorial function
+- **abs(VarA)** : the absolute value of VarA
 
 A predefined simulation environment and a set of common components, e.g. current generators, is located in the sub folder :  
 
@@ -74,10 +74,10 @@ A predefined simulation environment and a set of common components, e.g. current
 
 For more information, please refer to the following sources:
 
-* *[LEMS homepage](http://lems.github.io/LEMS)
-* *[LEMS research article](http://journal.frontiersin.org/article/10.3389/fninf.2014.00079/full)
-* *[NESTML github](https://github.com/nest/nestml)
-* *[NESTML research article](http://www.nest-initiative.org/publications/Plotnikov2016.pdf)
+* [LEMS homepage](http://lems.github.io/LEMS)
+* [LEMS research article](http://journal.frontiersin.org/article/10.3389/fninf.2014.00079/full)
+* [NESTML github](https://github.com/nest/nestml)
+* [NESTML research article](http://www.nest-initiative.org/publications/Plotnikov2016.pdf)
 
 
 

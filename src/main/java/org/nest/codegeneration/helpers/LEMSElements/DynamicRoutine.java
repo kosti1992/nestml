@@ -102,9 +102,12 @@ public class DynamicRoutine {
 				tempCondition.replaceLhs(condition);
 				tempCondition.replaceRhs(tempRhs);
 				tempCondition.replaceOp(tempOp);
+				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container,tempCondition);
 				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			} else {
-				tempCondition = Expression.encapsulateInBrackets(new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr()));
+				tempCondition = new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr());
+				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container,tempCondition);
+				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			}
 			tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
 			//store a new conditional block
@@ -345,6 +348,7 @@ public class DynamicRoutine {
 		firstCondition.replaceLhs(condition.deepClone());
 		firstCondition.replaceOp(opFirst);
 		firstCondition.replaceRhs(firstSubCondition);
+		firstCondition = container.getHelper().replaceBooleanAtomByExpression(container,firstCondition);
 		//now generate an assignment for the first half
 		Expression firstAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfTrue().get());
 		firstAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container,firstAssignmentExpression);
@@ -356,6 +360,7 @@ public class DynamicRoutine {
 
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
+		secondSubCondition = container.getHelper().replaceBooleanAtomByExpression(container,secondSubCondition);
 		secondSubCondition.negateLogic();
 		secondSubCondition = Expression.encapsulateInBrackets(secondSubCondition);
 		Operator opSecond = new Operator();

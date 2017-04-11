@@ -49,7 +49,6 @@ public class DerivedElement {
 		derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container, derivationInstruction);
 		//replace constants with references
 		derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
-
 	}
 
 
@@ -107,8 +106,10 @@ public class DerivedElement {
 	 * @param expr      the expr containing the ternary op
 	 * @param container the lems collector fo further operations
 	 */
-	public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container) {
-		this.name = container.getHelper().PREFIX_INIT+name;
+	public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container, boolean init) {
+		this.name = name;
+		if(init)
+			this.name = container.getHelper().PREFIX_INIT + this.name;
 		this.dimension = dimension;
 		this.handleTernaryOp(expr, container);
 	}
@@ -124,14 +125,13 @@ public class DerivedElement {
 		Map<Expression, Expression> tempMap = new HashMap<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
 		Expression firstSubCondition = new Expression(expr.getCondition().get());
-		if(!(firstSubCondition.opIsPresent()&&firstSubCondition.getOperator().get().isLeftParentheses()&&
-				firstSubCondition.opIsPresent()&&firstSubCondition.getOperator().get().isRightParentheses()))
+		firstSubCondition = container.getHelper().replaceBooleanAtomByExpression(container,firstSubCondition);
+		if (!(firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isLeftParentheses() &&
+				firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isRightParentheses()))
 			firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
 		Expression firstSubValue = new Expression(expr.getIfTrue().get());
 		firstSubValue = container.getHelper().replaceConstantsWithReferences(container, firstSubValue);
 		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container, firstSubValue);
-		System.out.println(firstSubCondition.print());
-		System.out.println(firstSubValue.print());
 		tempMap.put(firstSubCondition, firstSubValue);
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = firstSubCondition.deepClone();
@@ -139,8 +139,6 @@ public class DerivedElement {
 		Expression secondSubValue = new Expression(expr.getIfNot().get());
 		secondSubValue = container.getHelper().replaceConstantsWithReferences(container, secondSubValue);
 		secondSubValue = container.getHelper().replaceResolutionByConstantReference(container, secondSubValue);
-		System.out.println(secondSubCondition.print());
-		System.out.println(secondSubValue.print());
 		tempMap.put(secondSubCondition, secondSubValue);
 		this.conditionalDerivedValues = Optional.of(tempMap);
 		this.dynamic = true;

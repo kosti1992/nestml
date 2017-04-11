@@ -1,5 +1,5 @@
 <Lems>
-    <!-- Generated on Apr 10, 2017 3:58:24 PM from NESTML-model "izhikevich".-->
+    <!-- Generated on Apr 11, 2017 5:01:14 PM from NESTML-model "izhikevich".-->
     <Dimension i="-1" l="2" m="1" name="DimensionOf_mV" t="-3"/>
     <Dimension name="DimensionOf_ms" t="1"/>
     <Dimension i="1" name="DimensionOf_mA"/>
@@ -8,7 +8,6 @@
     <Unit dimension="DimensionOf_mV" power="-3" symbol="mV"/>
     <ComponentType name="izhikevich">
         <Constant dimension="DimensionOf_mV" name="CON1mV" value="1mV"/>
-        <Constant dimension="none" name="INITI" value="0"/>
         <Constant dimension="DimensionOf_ms" name="CON1ms" value="1ms"/>
         <Parameter dimension="none" name="a"/>
         <Parameter dimension="none" name="b"/>
@@ -28,24 +27,20 @@
             <StateVariable dimension="none" name="ACTV_m"/>
             <DerivedVariable dimension="none" name="I" reduce="add" select="pulseGeneratorDL[*]/I"/>
             <DerivedVariable dimension="none" name="INITu" value="V_m*b/CON1mV"/>
-            <ConditionalDerivedVariable dimension="none" name="INITI_spike">
-                <Case condition="(a.lt.b)" value="-(V_m-E_K)/Tau_spike"/>
-                <Case condition="(a.geq.b)" value="0"/>
-            </ConditionalDerivedVariable>
             <OnStart>
                 <StateAssignment value="V_m_init" variable="V_m"/>
                 <StateAssignment value="INITu" variable="u"/>
-                <StateAssignment value="INITI" variable="I"/>
+                <StateAssignment value="0" variable="I"/>
                 <StateAssignment value="0" variable="ACTV_m"/>
             </OnStart>
             <TimeDerivative value="(ACTV_m*(0.04*V_m*V_m/CON1mV+5*V_m+(140-u+I)*CON1mV))/CON1ms" variable="V_m"/>
             <TimeDerivative value="(a*(b*V_m/CON1mV-u))/CON1ms" variable="u"/>
-            <!--Generated from source lines <32,1> to <32,15>.-->
+            <!--Generated from source lines <31,1> to <31,15>.-->
             <!--integrate(V_m)-->
             <OnCondition test="1.eq.1">
                 <StateAssignment value="1" variable="ACTV_m"/>
             </OnCondition>
-            <!--Generated from source lines <33,19> to <36,19>.-->
+            <!--Generated from source lines <32,19> to <35,19>.-->
             <!--if V_m>=30:-->
             <!--  V_m = c*1-->
             <!--  u += d-->

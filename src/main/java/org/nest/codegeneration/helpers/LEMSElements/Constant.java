@@ -40,7 +40,12 @@ public class Constant {
 		if (!parameter) {//a parameter does not have a unit or a value, thus should not be checked
 			//if a declaring expression is present, convert it
 			if (variable.getDeclaringExpression().isPresent()) {
-				this.value = new Expression(variable);
+				//check whether the variable has a function call
+				if (variable.getDeclaringExpression().get().functionCallIsPresent()) {
+					this.value = this.processFunctionCallInConstantDefinition(variable, container);
+				} else {
+					this.value = new Expression(variable);
+				}
 			} else {//otherwise this is an initialization, thus create a new numerical literal or variable
 				if (variable.getType().getType() == TypeSymbol.Type.UNIT) {// in case a unit is used, we have to create num
 					ASTUnitType tempType = new ASTUnitType();
@@ -50,18 +55,13 @@ public class Constant {
 				} else {//var does not have unit, a variable with value 0 is sufficient
 					this.value = new Variable("0");
 				}
-
 			}
 			if (this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
 				//store an adequate message if the data type is not supported
 				container.getHelper().printNotSupportedDataType(variable);
 			}
-			//check whether the variable has a function call
-			if (variable.getDeclaringExpression().isPresent() &&
-					variable.getDeclaringExpression().get().functionCallIsPresent()) {
-				this.value = this.processFunctionCallInConstantDefinition(variable, container);
-			}
 		}
+
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class Constant {
 		if (variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
-			return new NumericalLiteral(container.getConfig().getSimulation_steps_length(),tempType);
+			return new NumericalLiteral(container.getConfig().getSimulation_steps_length(), tempType);
 		} else {
 			container.getHelper().printNotSupportedFunctionCallInExpression(variable);
 			return new Variable(container.getHelper().NOT_SUPPORTED
