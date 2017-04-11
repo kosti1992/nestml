@@ -1,6 +1,7 @@
 .settings/
 target/
 .idea/
+build/
 
 .DS_Store
 .project
