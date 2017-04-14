@@ -19,6 +19,7 @@ import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTDynamics;
+import org.nest.nestml._ast.ASTFunction;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTCompound_Stmt;
 import org.nest.spl._ast.ASTELIF_Clause;
@@ -58,13 +59,13 @@ public class DynamicRoutine {
 			//a simple statement can be processed directly
 			List<Instruction> tempList = new ArrayList<>();
 			if (input.getSmall_Stmt().get().getFunctionCall().isPresent()) {
-				Instruction temp = handleFunctionCall(input.getSmall_Stmt().get().getFunctionCall().get());
-				if (temp != null) {
+				List<Instruction> notNullCheck = handleFunctionCall(input.getSmall_Stmt().get().getFunctionCall().get());
+				if (!notNullCheck.isEmpty()) {
 					//some function calls do not generate an instruction, thus it is not required to add null to the list
-					tempList.add(temp);
+					tempList.addAll(notNullCheck);
 				}
 			} else {
-				tempList.add(handleSmallStatement(input.getSmall_Stmt().get()));
+				tempList.addAll(handleSmallStatement(input.getSmall_Stmt().get()));
 			}
 			//generate a description header
 			SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
@@ -102,11 +103,11 @@ public class DynamicRoutine {
 				tempCondition.replaceLhs(condition);
 				tempCondition.replaceRhs(tempRhs);
 				tempCondition.replaceOp(tempOp);
-				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container,tempCondition);
+				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container, tempCondition);
 				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			} else {
 				tempCondition = new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr());
-				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container,tempCondition);
+				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container, tempCondition);
 				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			}
 			tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
@@ -198,7 +199,7 @@ public class DynamicRoutine {
 				}
 				tempInstruction = new ArrayList<>();//delete all processed statements in order to avoid duplicates
 				handleCompoundStatement(stmt.getCompound_Stmt().get(), condition);
-			//now the ternary operator requires extra handling by generating an intermediate cond. block
+				//now the ternary operator requires extra handling by generating an intermediate cond. block
 			} else if (stmt.small_StmtIsPresent() && stmt.getSmall_Stmt().get().assignmentIsPresent()
 					&& stmt.getSmall_Stmt().get().getAssignment().get().getExpr().conditionIsPresent()) {
 				if (tempInstruction.size() > 0) {
@@ -209,9 +210,9 @@ public class DynamicRoutine {
 				this.blocks.addAll(handleTernaryOperator(stmt.getSmall_Stmt().get(), condition));
 
 			} else if (stmt.small_StmtIsPresent()) {
-				Instruction notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
-				if (notNullCheck != null) {
-					tempInstruction.add(notNullCheck);
+				List<Instruction> notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
+				if (!notNullCheck.isEmpty()) {
+					tempInstruction.addAll(notNullCheck);
 				}
 			} else {
 				System.err.println("Error in if-processing. Neither small nor compound statement found.");
@@ -232,7 +233,8 @@ public class DynamicRoutine {
 	 * @param input a statement
 	 * @return a instruction encapsulated in a object
 	 */
-	private Instruction handleSmallStatement(ASTSmall_Stmt input) {
+	private List<Instruction> handleSmallStatement(ASTSmall_Stmt input) {
+		List<Instruction> res = new ArrayList<>();
 		if (input.assignmentIsPresent()) {
 			//check if not supported functions are part of the assignment
 			if (container.getHelper().containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
@@ -245,7 +247,8 @@ public class DynamicRoutine {
 				Assignment retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), tempExpression);
 				retAssignment.replaceConstantsWithReferences(container);
 				retAssignment.replaceResolutionByConstantReference(container);
-				return retAssignment;
+				res.add(retAssignment);
+				return res;
 			} else {
 				Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
 				tempExpression = container.getHelper().replaceResolutionByConstantReference(container, tempExpression);
@@ -284,7 +287,8 @@ public class DynamicRoutine {
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}
 				retAssignment.replaceResolutionByConstantReference(container);
-				return retAssignment;
+				res.add(retAssignment);
+				return res;
 			}
 		}
 		if (input.functionCallIsPresent()) {
@@ -292,7 +296,8 @@ public class DynamicRoutine {
 		}
 		System.err.println("Something went wrong in small statement processing." +
 				" Position in source: " + input.get_SourcePositionStart());
-		return new Assignment("", null);
+		res.add(new Assignment("", null));
+		return res;
 	}
 
 	/**
@@ -302,11 +307,13 @@ public class DynamicRoutine {
 	 * @param functionCall the function call.
 	 * @return a instruction which states steps steps need to be done
 	 */
-	private Instruction handleFunctionCall(ASTFunctionCall functionCall) {
+	private List<Instruction> handleFunctionCall(ASTFunctionCall functionCall) {
 		checkNotNull(functionCall);
 		switch (functionCall.getName().toString()) {
 			case "integrate":
 				return this.handleIntegrate(functionCall);
+			case "integrate_odes":
+				return this.handleIntegrate_ode();
 			case "emit_spike":
 				return this.handleEmitSpike(functionCall);
 			default:
@@ -321,11 +328,13 @@ public class DynamicRoutine {
 	/**
 	 * Emit spike calls are simply transformed to a new function call.
 	 *
-	 * @param functionCall an function call containing "emitSpiek()"
+	 * @param functionCall an function call containing "emitSpike()"
 	 * @return a new function call which imitates the spike emission
 	 */
-	private Instruction handleEmitSpike(ASTFunctionCall functionCall) {
-		return new FunctionCall(functionCall);
+	private List<Instruction> handleEmitSpike(ASTFunctionCall functionCall) {
+		List<Instruction> res = new ArrayList<>();
+		res.add(new FunctionCall(functionCall));
+		return res;
 	}
 
 
@@ -348,11 +357,11 @@ public class DynamicRoutine {
 		firstCondition.replaceLhs(condition.deepClone());
 		firstCondition.replaceOp(opFirst);
 		firstCondition.replaceRhs(firstSubCondition);
-		firstCondition = container.getHelper().replaceBooleanAtomByExpression(container,firstCondition);
+		firstCondition = container.getHelper().replaceBooleanAtomByExpression(container, firstCondition);
 		//now generate an assignment for the first half
 		Expression firstAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfTrue().get());
-		firstAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container,firstAssignmentExpression);
-		firstAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container,firstAssignmentExpression);
+		firstAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container, firstAssignmentExpression);
+		firstAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container, firstAssignmentExpression);
 		Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				firstAssignmentExpression);
 		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
@@ -360,7 +369,7 @@ public class DynamicRoutine {
 
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
-		secondSubCondition = container.getHelper().replaceBooleanAtomByExpression(container,secondSubCondition);
+		secondSubCondition = container.getHelper().replaceBooleanAtomByExpression(container, secondSubCondition);
 		secondSubCondition.negateLogic();
 		secondSubCondition = Expression.encapsulateInBrackets(secondSubCondition);
 		Operator opSecond = new Operator();
@@ -371,8 +380,8 @@ public class DynamicRoutine {
 		secondCondition.replaceRhs(secondSubCondition);
 		//now generate an assignment for the second half
 		Expression secondAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfNot().get());
-		secondAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container,secondAssignmentExpression);
-		secondAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container,secondAssignmentExpression);
+		secondAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container, secondAssignmentExpression);
+		secondAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container, secondAssignmentExpression);
 		Assignment secondAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				secondAssignmentExpression);
 		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
@@ -416,9 +425,9 @@ public class DynamicRoutine {
 	 * Generates a "integrate" counter piece in the target modeling language by replacing it with assignments.
 	 *
 	 * @param functionCall a integrate function call
-	 * @return an instruction which represents the integrate directive
+	 * @return an instruction list which represents the integrate directive consisting of a single instruction
 	 */
-	private Instruction handleIntegrate(ASTFunctionCall functionCall) {
+	private List<Instruction> handleIntegrate(ASTFunctionCall functionCall) {
 		//add a new state variable which symbolize that integration should be activated in necessary
 		if (functionCall.getArgs().size() != 1) {
 			System.err.println("Integrate is wrongly declared, <>1 arguments provided!");
@@ -431,8 +440,30 @@ public class DynamicRoutine {
 			}
 			//integrate the corresponding variable in this block
 			NumericalLiteral tempLiteral = new NumericalLiteral(1, null);
-			return new Assignment(container.getHelper().PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString(), tempLiteral);
+			//the method requires a list of instructions rather than a single instruction
+			List<Instruction> res = new ArrayList<>();
+			res.add(new Assignment(container.getHelper().PREFIX_ACT +
+					functionCall.getArgs().get(0).getVariable().get().getName().toString(), tempLiteral));
+			return res;
 		}
+	}
+
+	/**
+	 * Handles the integrate_odes() function calls and generates a set of activator assignments.
+	 * @return a list of instructions
+	 */
+	private List<Instruction> handleIntegrate_ode() {
+		//since all variables have to be integrated, we create a list of integrate instructions
+		List<Instruction> res = new ArrayList<>();
+		NumericalLiteral tempLiteral;
+		for (String var : container.getEquations().keySet()) {
+			//integrate the corresponding variable in this block
+			tempLiteral = new NumericalLiteral(1, null);
+			res.add(new Assignment(container.getHelper().PREFIX_ACT +var, tempLiteral));
+			//moreover, since a integrate_odes function call has been found, we make all integrations local
+			container.addLocalTimeDerivative(var);
+		}
+		return res;
 	}
 
 	/**

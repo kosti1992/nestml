@@ -226,6 +226,14 @@ public class HelperCollection {
 								.getSerializedUnit() == null) {
 					//TODO
 
+					//Dimension tempDimension = new Dimension();
+					//Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
+					//		tempDimension.getName(), exp, false);
+
+
+					System.out.println("not yet implemented (replace)");
+
+
 				} else {
 					int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
 					//create the required units and dimensions

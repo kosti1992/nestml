@@ -10,10 +10,7 @@ import java.util.Set;
 
 import org.eclipse.emf.ecore.xmi.impl.EMOFHandler;
 import org.nest.codegeneration.helpers.Collector;
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.codegeneration.helpers.LEMSElements.ConditionalBlock;
 import org.nest.codegeneration.helpers.LEMSElements.Constant;
 import org.nest.codegeneration.helpers.LEMSElements.DerivedElement;
@@ -24,6 +21,7 @@ import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 import org.nest.codegeneration.helpers.LEMSElements.SimulationConfiguration;
 import org.nest.codegeneration.helpers.LEMSElements.StateVariable;
 import org.nest.codegeneration.helpers.LEMSElements.Unit;
+import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.ASTBody;
 import org.nest.nestml._ast.ASTFunction;
 import org.nest.nestml._ast.ASTInputLine;
@@ -36,6 +34,8 @@ import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class provides an infrastructure which generates an internal,processed representation of an input model, which
@@ -305,22 +305,12 @@ public class LEMSCollector extends Collector {
 						+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
 						dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
 				Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
-				/*
-				tempDerivedVar = new DerivedElement(
-						tempFunction.getVariableName(),
-						tempDimension.getName(),
-						new Expression(tempFunction.getExpr()),
-						true,
-						false
-				);
-				*/
-
 				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
 							tempDimension.getName(),
 							tempFunction.getExpr(),
-							this,false);
+							this, false);
 				} else {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
@@ -340,7 +330,7 @@ public class LEMSCollector extends Collector {
 							tempFunction.getVariableName(),
 							helper.DIMENSION_NONE,
 							tempFunction.getExpr(),
-							this,false);
+							this, false);
 				} else {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
@@ -380,7 +370,7 @@ public class LEMSCollector extends Collector {
 						tempDerivedElement = new DerivedElement(var.getName(),
 								this.getHelper().typeToDimensionConverter(var.getType()),
 								var.getDeclaringExpression().get(),
-								this,false);
+								this, false);
 						if (var.getType().getType() == TypeSymbol.Type.UNIT) {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									var.getType().prettyPrint(), this);
@@ -464,19 +454,64 @@ public class LEMSCollector extends Collector {
 			} else {//the declaration does not use arrays
 				//is a right hand side present?
 				if (var.getDeclaringExpression().isPresent()) {
-					// the function "resolution()" is not required by lems
+					//handle resolution()
 					if (var.getDeclaringExpression().get().functionCallIsPresent() &&
 							var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("resolution")) {
-						//store an adequate message
-						this.addNotConverted("Function call \"resolution()\" in lines "
-								+ var.getAstNode().get().get_SourcePositionStart()
-								+ " to " + var.getAstNode().get().get_SourcePositionEnd()
-								+ " not required by LEMS.");
+						ASTUnitType tempType = new ASTUnitType();
+						tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
+						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
+						Constant tempConstant = new Constant(var.getName(), config.getSimulation_steps_unit().
+								getDimensionName(), tempNumerical, false);
+						this.addConstant(tempConstant);
+						//handle steps()
 					} else if (var.getDeclaringExpression().get().functionCallIsPresent() &&
 							var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("steps")) {
-						//the steps function is a special case, here we have derive the value by hand
+
+						List<ASTExpr> args = var.getDeclaringExpression().get().getFunctionCall().get().getArgs();
+						Expression lhs = null;
+						//handle a numerical lit, e.g. 10ms
+						if (args.get(0).nESTMLNumericLiteralIsPresent()) {
+							lhs = new NumericalLiteral(args.get(0).getNESTMLNumericLiteral().get());
+							//handle a variable ref, e.g. res_init
+						} else if (args.get(0).variableIsPresent()) {
+							lhs = new Variable(args.get(0).getVariable().get());
+							//handle an expression, e.g. 10ms + res_init
+						} else if (args.get(0).leftIsPresent() && args.get(0).rightIsPresent()) {
+							lhs = new Expression();
+							lhs.replaceLhs(new Expression(args.get(0).getLeft().get()));
+							lhs.replaceOp(new Operator(args.get(0)));
+							lhs.replaceRhs(new Expression(args.get(0).getRight().get()));
+						}
+						lhs = Expression.encapsulateInBrackets(lhs);
+						Operator tempOp = new Operator();
+						tempOp.setDivOp(true);
+
+						//TODO: in order to enable the replacement of constants, we have to create an appropriate unit
 						ASTUnitType tempType = new ASTUnitType();
-						tempType.setUnit("ms");
+						tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
+
+
+						NumericalLiteral rhs = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
+
+
+						Expression tempExpr = new Expression();
+						tempExpr.replaceLhs(lhs);
+						tempExpr.replaceOp(tempOp);
+						tempExpr.replaceRhs(rhs);
+						tempExpr = this.getHelper().replaceConstantsWithReferences(this, tempExpr);
+						this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
+								tempExpr, false, false));
+						/*
+						else if(args.get(0).get){
+
+						}else{
+
+						}
+
+						//TODO
+						//the steps function is a special case, here we have to derive the value by hand
+						ASTUnitType tempType = new ASTUnitType();
+						tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
 						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
 						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length_asString() + "ms", helper.PREFIX_DIMENSION + "ms", tempNumerical, false));
 						//search for the constant to which steps refer
@@ -488,9 +523,60 @@ public class LEMSCollector extends Collector {
 										tempVar, false, false));
 							}
 						}
-
-					} else {//not a resolution call -> thus a normal constant
-						this.addConstant(new Constant(var, false, false, this));
+						*/
+					} else {// otherwise it is either an expression or does contain a yet different type of function call.
+						if (var.getDeclaringExpression().get().exprIsPresent()) {
+							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());
+							DerivedElement tempElem = new DerivedElement(var.getName(),
+									this.helper.typeToDimensionConverter(var.getType()), tempExpression, true, false);
+							this.addDerivedElement(tempElem);
+						} else if (var.getDeclaringExpression().get().termIsPresent()) {
+							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getTerm().get());
+							DerivedElement tempElem = new DerivedElement(var.getName(),
+									this.helper.typeToDimensionConverter(var.getType()), tempExpression, true, false);
+							this.addDerivedElement(tempElem);
+							// handle ternary op
+						} else if (var.getDeclaringExpression().get().conditionIsPresent()) {
+							DerivedElement tempElem = new DerivedElement(var.getName(),
+									this.helper.typeToDimensionConverter(var.getType()), var.getDeclaringExpression().get(), this, true);
+							this.addDerivedElement(tempElem);
+							if (var.getType().getType() == TypeSymbol.Type.UNIT) {
+								Unit tempUnit = new Unit(var.getType());
+								this.addStateVariable(new StateVariable(var.getName(), this.helper.typeToDimensionConverter(var.getType()),
+										new Variable(tempElem.getName()), tempUnit.getSymbol(), this));
+							} else {
+								this.addStateVariable(new StateVariable(var.getName(), this.helper.typeToDimensionConverter(var.getType()),
+										new Variable(tempElem.getName()), "", this));
+							}
+							// handle boolean literal or numLiteral, e.g. 1mV
+						} else if (var.getDeclaringExpression().get().booleanLiteralIsPresent() ||
+								var.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
+							Expression tempExpression = new Expression(var.getDeclaringExpression().get());
+							Constant tempConstant = new Constant(var.getName(),
+									helper.typeToDimensionConverter(var.getType()), tempExpression, false);
+							this.addConstant(tempConstant);
+							//e.g 1mV+50mV or 1mV+V_init
+						} else if (var.getDeclaringExpression().get().getLeft().isPresent() &&
+								var.getDeclaringExpression().get().getRight().isPresent()) {
+							Expression leftExpr = new Expression(var.getDeclaringExpression().get().getLeft().get());
+							Operator op = new Operator(var.getDeclaringExpression().get());
+							Expression rightExpr = new Expression(var.getDeclaringExpression().get().getRight().get());
+							Expression combined = new Expression();
+							combined.replaceLhs(leftExpr);
+							combined.replaceOp(op);
+							combined.replaceRhs(rightExpr);
+							combined = this.getHelper().replaceConstantsWithReferences(this, combined);
+							combined = this.getHelper().replaceResolutionByConstantReference(this, combined);
+							DerivedElement tempElem = new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
+									combined, false, false);
+							this.addDerivedElement(tempElem);
+							//e.g. v real = v_init
+						} else if (var.getDeclaringExpression().get().variableIsPresent()) {
+							StateVariable tempVariable = new StateVariable(var, this);
+							this.addStateVariable(tempVariable);
+						} else {
+							System.err.println("INTERNAL NOT SUPPORTED: " + var.getSourcePosition().getLine());
+						}
 						handleType(var.getType());
 					}
 
@@ -567,7 +653,7 @@ public class LEMSCollector extends Collector {
 		if (var.getType() == TypeSymbol.Type.UNIT) {
 			Unit temp = new Unit(var);
 			this.addDimension(temp.getDimension());
-			addUnit(temp);
+			this.addUnit(temp);
 		}
 	}
 
@@ -576,33 +662,33 @@ public class LEMSCollector extends Collector {
 	 * Collects all boolean variables located in the model for further computations.
 	 */
 	private void collectBooleanElements(ASTBody neuronBody) {
-		for(VariableSymbol var:neuronBody.getStateAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getStateAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
-		for(VariableSymbol var:neuronBody.getStateNonAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
-		for(VariableSymbol var:neuronBody.getParameterAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getParameterAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
-		for(VariableSymbol var:neuronBody.getParameterNonAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
-		for(VariableSymbol var:neuronBody.getInternalAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
-		for(VariableSymbol var:neuronBody.getInternalNonAliasSymbols()){
-			if(var.getType().getName().equals("boolean")){
+		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
+			if (var.getType().getName().equals("boolean")) {
 				booleanElements.add(var.getName());
 			}
 		}
@@ -610,11 +696,11 @@ public class LEMSCollector extends Collector {
 	}
 
 
-	public void addBooleanElement(String element){
+	public void addBooleanElement(String element) {
 		this.booleanElements.add(element);
 	}
 
-	public List<String> getBooleanElements(){
+	public List<String> getBooleanElements() {
 		return this.booleanElements;
 	}
 
@@ -711,6 +797,11 @@ public class LEMSCollector extends Collector {
 
 	public List<String> getLocalTimeDerivative() {
 		return this.localTimeDerivative;
+	}
+
+	public void addLocalTimeDerivative(String var){
+		checkNotNull(var);
+		this.localTimeDerivative.add(var);
 	}
 
 	/**
