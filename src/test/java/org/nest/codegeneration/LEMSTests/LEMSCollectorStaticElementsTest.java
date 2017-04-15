@@ -27,7 +27,7 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY));
     //test constants
     if(true) {
-      Assert.assertEquals(12, testant.getListOfNeurons().get(0).getConstantsList().size());
+      Assert.assertEquals(11, testant.getListOfNeurons().get(0).getConstantsList().size());
       Assert.assertEquals("INITV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
       Assert.assertEquals("0mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
       Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());

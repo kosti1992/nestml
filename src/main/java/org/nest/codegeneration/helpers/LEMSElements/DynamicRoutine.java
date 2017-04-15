@@ -320,8 +320,7 @@ public class DynamicRoutine {
 				this.container.addNotConverted("Not supported function call "
 						+ functionCall.getName().toString() + " in lines "
 						+ functionCall.get_SourcePositionStart() + " to " + functionCall.get_SourcePositionEnd());
-				//System.err.println("Not supported function call found.");
-				return null;
+				return new ArrayList<>();
 		}
 	}
 
@@ -450,6 +449,7 @@ public class DynamicRoutine {
 
 	/**
 	 * Handles the integrate_odes() function calls and generates a set of activator assignments.
+	 *
 	 * @return a list of instructions
 	 */
 	private List<Instruction> handleIntegrate_ode() {
@@ -459,7 +459,7 @@ public class DynamicRoutine {
 		for (String var : container.getEquations().keySet()) {
 			//integrate the corresponding variable in this block
 			tempLiteral = new NumericalLiteral(1, null);
-			res.add(new Assignment(container.getHelper().PREFIX_ACT +var, tempLiteral));
+			res.add(new Assignment(container.getHelper().PREFIX_ACT + var, tempLiteral));
 			//moreover, since a integrate_odes function call has been found, we make all integrations local
 			container.addLocalTimeDerivative(var);
 		}
@@ -578,17 +578,23 @@ public class DynamicRoutine {
 	 * An instruction superclass used required in order to store all types of instructions in a single list.
 	 */
 	public abstract class Instruction {
-		//an empty super class
+		private String classIdentifier;//each instruction has to provide an identifier for the backend
+
+		public abstract String getClassIdentifier();
+
 	}
 
 	/**
 	 * This class stores a concrete instructions, namely an assignments.
 	 */
 	public class Assignment extends Instruction {
+		private String classIdentifier = "Assignment";//required by the backend
 		private String assignedVariable = null;
 		private Expression assignedValue = null;
 
 		public Assignment(String assignedVariable, Expression assignedValue) {
+			checkNotNull(assignedValue);
+			checkNotNull(assignedVariable);
 			this.assignedVariable = assignedVariable;
 			this.assignedValue = assignedValue;
 		}
@@ -619,13 +625,16 @@ public class DynamicRoutine {
 			this.assignedValue = container.getHelper().replaceResolutionByConstantReference(container, this.assignedValue);
 		}
 
-
+		public String getClassIdentifier() {
+			return classIdentifier;
+		}
 	}
 
 	/**
 	 * This class is used to store concrete instructions, namely function calls.
 	 */
 	public class FunctionCall extends Instruction {
+		private String classIdentifier = "FunctionCall";//required by the backend
 		private Function functionCallExpr;
 
 		public FunctionCall(ASTFunctionCall call) {
@@ -650,6 +659,10 @@ public class DynamicRoutine {
 			}
 			newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string
 			return newBuilder.toString();
+		}
+
+		public String getClassIdentifier() {
+			return classIdentifier;
 		}
 
 		public List<Expression> getArgs() {

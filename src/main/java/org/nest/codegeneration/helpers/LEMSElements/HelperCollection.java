@@ -551,6 +551,11 @@ public class HelperCollection {
 		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
 	}
 
+	public String getArrayNotSupportedMessage(VariableSymbol var){
+		return "Array declaration in lines" + var.getSourcePosition().getLine();
+	}
+
+
 	public void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter) {
 		System.err.println("Not supported function call in expression found: " + prettyPrinter.print(eq.getRhs(), false));
 	}

@@ -1,6 +1,8 @@
 package org.nest.codegeneration.helpers.Expressions;
 
-import org.nest.units._ast.ASTUnitType;
+import org.nest.codegeneration.LEMSCodeGenerator;
+
+import static de.se_rwth.commons.logging.Log.info;
 
 /**
  * A concrete syntax container for the target modeling language LEMS.
@@ -18,8 +20,6 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 			}
 		}
 		if (expr.hasType() && expr.getType().isPresent() && expr.getType().get().getUnit().isPresent()) {
-			//System.out.print(String.valueOf(expr.getValue())
-			//		+ expr.getType().get().getUnit().get().toString());
 			return String.valueOf(expr.getValue()) + expr.getType().get().getUnit().get().toString();
 		} else {
 			return String.valueOf(expr.getValue());
@@ -41,7 +41,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 			return ".and.";
 		}
 		if (expr.isLogicalNot()) {
-			//TODO:this case seems to be rather fishy in LEMS, not sure if it works
+			info("Logical NOT found. This should not happen.",LEMSCodeGenerator.LOG_NAME);
 			return ".not.";
 		}
 		if (expr.isGt()) {
@@ -112,8 +112,9 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 		}
 		if (expr.isNon()) {
 			return "";
-		} else {//TODO: Yet to implement more
-			return "TODO";
+		} else {
+			info("New type of operator found. Please implement first.",LEMSCodeGenerator.LOG_NAME);
+			return "";
 		}
 
 	}

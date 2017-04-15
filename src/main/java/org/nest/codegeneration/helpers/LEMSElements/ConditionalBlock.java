@@ -66,14 +66,9 @@ public class ConditionalBlock {
 
 	@SuppressWarnings("unused")//used in the template
 	public String getInstructionType(DynamicRoutine.Instruction instr) {
-		if (instr.getClass().equals(DynamicRoutine.Assignment.class)) {
-			return "Assignment";
-		}
-		if (instr.getClass().equals(DynamicRoutine.FunctionCall.class)) {
-			return "FunctionCall";
-		} else {
-			return "Class not defined";
-		}
-
+		return instr.getClassIdentifier();
 	}
+
+
+
 }

@@ -1,12 +1,6 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.emf.ecore.xmi.impl.EMOFHandler;
 import org.nest.codegeneration.helpers.Collector;
@@ -48,9 +42,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class LEMSCollector extends Collector {
 	private LEMSSyntaxContainer syntax = new LEMSSyntaxContainer();
 
-	private String neuronName = "";
+	private String neuronName;
 
-	private String extendedModel;
+	private Optional<String> extendedModel = Optional.empty();
 
 	private LEMSExpressionsPrettyPrinter prettyPrint;//used in order to convert expressions to LEMS syntax
 
@@ -117,7 +111,7 @@ public class LEMSCollector extends Collector {
 
 		//checks whether the model extends an other model
 		if (neuron.getBase().isPresent()) {
-			extendedModel = neuron.getBase().get();//store the name of the extended model
+			extendedModel = Optional.of(neuron.getBase().get());//store the name of the extended model
 		}
 		ASTBody neuronBody = neuron.getBody();
 
@@ -181,12 +175,11 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a state block.
 	 */
 	private void handleStateNonAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				helper.printArrayNotSupportedMessage(var);
-				this.addNotConverted("Not supported array-declaration found: " + var.getName()
-						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to " + var.getAstNode().get()
-						.get_SourcePositionEnd() + ".");
+				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
 			} else {
 				//otherwise process the object to a state variable
 				this.addStateVariable(new StateVariable(var, this));
@@ -202,6 +195,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a state block
 	 */
 	private void handleStateAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getStateAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, true, false));
 			handleType(var.getType());//handle the type
@@ -216,6 +210,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a "user-defined functions" block
 	 */
 	private void handleUsedDefinedFunctions(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (ASTFunction func : neuronBody.getFunctions()) {
 			//print an error message an store a corresponding message for the generation
 			System.err.println("Not supported function-declaration found \"" + func.getName() + "\".");
@@ -231,6 +226,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body with defined equations block.
 	 */
 	private void handleShapes(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 			ASTShape eq = neuronBody.getShapes().get(i);
 			if (helper.containsFunctionCall(eq.getRhs(), true)) {
@@ -253,34 +249,35 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing equations.
 	 */
 	private void handleEquations(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 			ASTEquation eq = neuronBody.getEquations().get(i);
-			if (helper.containsFunctionCall(eq.getRhs(), true)) {
-				helper.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
+			if (this.getHelper().containsFunctionCall(eq.getRhs(), true)) {
+				this.getHelper().printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
 				this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
 			} else {
 				List<String> tempList = new ArrayList<>();
 				tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
 				//check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
-				if (helper.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
+				if (this.getHelper().blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
 					Expression expr = new Expression(eq.getRhs());
-					expr = helper.buildExpressionWithActivator(eq.getLhs().toString(), expr);
-					expr = helper.extendExpressionByCON1ms(expr);
-					expr = helper.replaceConstantsWithReferences(this, expr);
-					expr = helper.replaceResolutionByConstantReference(this, expr);
+					expr = this.getHelper().buildExpressionWithActivator(eq.getLhs().toString(), expr);
+					expr = this.getHelper().extendExpressionByCON1ms(expr);
+					expr = this.getHelper().replaceConstantsWithReferences(this, expr);
+					expr = this.getHelper().replaceResolutionByConstantReference(this, expr);
 					//only ode, i.e. integrate directives have to be manipulated
 					equation.put(eq.getLhs().getSimpleName(), expr);
 					//now generate the corresponding activator
-					this.stateVariablesList.add(new StateVariable(helper.PREFIX_ACT + eq.getLhs().getSimpleName(),
-							helper.DIMENSION_NONE, new NumericalLiteral(1, null), helper.NO_UNIT, this));
+					this.stateVariablesList.add(new StateVariable(this.getHelper().PREFIX_ACT + eq.getLhs().getSimpleName(),
+							this.getHelper().DIMENSION_NONE, new NumericalLiteral(1, null), this.getHelper().NO_UNIT, this));
 					this.localTimeDerivative.add(eq.getLhs().getSimpleName());
 				} else {
 					//otherwise the integration is global, no further steps required
 					Expression expr = new Expression(eq.getRhs());
-					expr = helper.extendExpressionByCON1ms(expr);
-					expr = helper.replaceConstantsWithReferences(this, expr);
-					expr = helper.replaceResolutionByConstantReference(this, expr);
+					expr = this.getHelper().extendExpressionByCON1ms(expr);
+					expr = this.getHelper().replaceConstantsWithReferences(this, expr);
+					expr = this.getHelper().replaceResolutionByConstantReference(this, expr);
 					equation.put(eq.getLhs().getSimpleName(), expr);
 				}
 			}
@@ -293,6 +290,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing ODE functions
 	 */
 	private void handleODEFunctions(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
 			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
 			DerivedElement tempDerivedVar;
@@ -353,13 +351,12 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a parameter block.
 	 */
 	private void handleParameterNonAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
-				helper.printArrayNotSupportedMessage(var);
-				this.addNotConverted("/parameter-block/" + var.getName()
-						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to " + var.getAstNode().get()
-						.get_SourcePositionEnd() + " of type array.");
+				this.getHelper().printArrayNotSupportedMessage(var);
+				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
 			} else {
 				Constant temp = null;
 				DerivedElement tempDerivedElement = null;
@@ -432,6 +429,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a parameter block.
 	 */
 	private void handleParameterAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getParameterAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, false, false));
 			handleType(var.getType());
@@ -444,13 +442,12 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody a neuron body containing a internal block.
 	 */
 	private void handleInternalNonAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
 				this.getHelper().printArrayNotSupportedMessage(var);
-				this.addNotConverted("/internal-block/" + var.getName()
-						+ " in lines " + var.getAstNode().get().get_SourcePositionStart() + " to "
-						+ var.getAstNode().get().get_SourcePositionEnd() + " of type array.");
+				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
 			} else {//the declaration does not use arrays
 				//is a right hand side present?
 				if (var.getDeclaringExpression().isPresent()) {
@@ -596,6 +593,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody the body possibly containing aliases
 	 */
 	private void handleInternalAliases(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {
 			this.addDerivedElement(new DerivedElement(var, this, false, false));
 			handleType(var.getType());
@@ -608,6 +606,7 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody the ast body of a neuron
 	 */
 	private void handleBuffers(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		// processes all input-buffers
 		for (ASTInputLine var : neuronBody.getInputLines()) {
 			//if(!var.isCurrent()){//current sources are not actual event ports, but rather variables derived externally
@@ -628,17 +627,9 @@ public class LEMSCollector extends Collector {
 	 * @param neuronBody the body of a neuron
 	 */
 	private void handleDynamicsBlock(ASTBody neuronBody) {
+		checkNotNull(neuronBody);
 		if (neuronBody.getDynamicsBlock().isPresent()) {
 			automaton = new DynamicRoutine(neuronBody.getDynamics(), this);
-		}
-	}
-
-	/**
-	 * Activates a port for the LEMS simulator, for more details read git hub issue.
-	 */
-	private void addPortActivator() {
-		if (outputPortDefined() && !helper.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
-			automaton.addPortActivator();
 		}
 	}
 
@@ -650,6 +641,7 @@ public class LEMSCollector extends Collector {
 	private void handleType(TypeSymbol var) {
 		// in case that a provided variable uses a concrete unit, this unit has to be processed.
 		// otherwise, nothing happens
+		checkNotNull(var);
 		if (var.getType() == TypeSymbol.Type.UNIT) {
 			Unit temp = new Unit(var);
 			this.addDimension(temp.getDimension());
@@ -695,11 +687,6 @@ public class LEMSCollector extends Collector {
 
 	}
 
-
-	public void addBooleanElement(String element) {
-		this.booleanElements.add(element);
-	}
-
 	public List<String> getBooleanElements() {
 		return this.booleanElements;
 	}
@@ -711,12 +698,12 @@ public class LEMSCollector extends Collector {
 
 	@SuppressWarnings("unused")//Used in the template
 	public String getExtendedModel() {
-		return this.extendedModel;
+		return this.extendedModel.get();
 	}
 
 	@SuppressWarnings("unused")//Used in the template
 	public boolean getModelIsExtension() {
-		return this.extendedModel != null;
+		return this.extendedModel.isPresent();
 	}
 
 	@SuppressWarnings("unused")//Used in the template
@@ -737,10 +724,6 @@ public class LEMSCollector extends Collector {
 	@SuppressWarnings("unused")//Used in the template
 	public boolean conditionsPresent() {
 		return (this.automaton != null) && (this.automaton.getConditionalBlocks().size() > 0);
-	}
-
-	public void addEquation(String var, Expression expr) {
-		this.equation.put(var, expr);
 	}
 
 	@SuppressWarnings("unused")//Used in the template
@@ -797,11 +780,6 @@ public class LEMSCollector extends Collector {
 
 	public List<String> getLocalTimeDerivative() {
 		return this.localTimeDerivative;
-	}
-
-	public void addLocalTimeDerivative(String var){
-		checkNotNull(var);
-		this.localTimeDerivative.add(var);
 	}
 
 	/**
@@ -884,102 +862,92 @@ public class LEMSCollector extends Collector {
 		return this.helper;
 	}
 
+	public LEMSSyntaxContainer getSyntaxContainer() {
+		return this.syntax;
+	}
+
 	/**
 	 * A list of functions which add elements to the corresponding lists.
 	 */
 	public void addUnit(Unit var) {
+		checkNotNull(var);
 		if (!this.unitsSet.contains(var)) {
 			this.unitsSet.add(var);
 		}
 	}
 
 	public void addDimension(Dimension var) {
+		checkNotNull(var);
 		if (!this.dimensionsSet.contains(var)) {
 			this.dimensionsSet.add(var);
 		}
 	}
 
 	public void addConstant(Constant var) {
+		checkNotNull(var);
 		if (!this.constantsList.contains(var)) {
 			this.constantsList.add(var);
 		}
 	}
 
 	public void addStateVariable(StateVariable var) {
+		checkNotNull(var);
 		if (!this.stateVariablesList.contains(var)) {
 			this.stateVariablesList.add(var);
 		}
 	}
 
 	public void addEventPort(EventPort var) {
+		checkNotNull(var);
 		if (!this.portsList.contains(var)) {
 			this.portsList.add(var);
 		}
 	}
 
 	public void addNotConverted(String elem) {
+		checkNotNull(elem);
 		if (!this.notConverted.contains(elem)) {
 			this.notConverted.add(elem);
 		}
 	}
 
 	public void addDerivedElement(DerivedElement var) {
+		checkNotNull(var);
 		if (!this.derivedElementList.contains(var)) {
 			this.derivedElementList.add(var);
 		}
 	}
 
 	public void addAttachment(Attachment var) {
+		checkNotNull(var);
 		if (!this.attachments.contains(var)) {
 			this.attachments.add(var);
 		}
 	}
 
-	public LEMSSyntaxContainer getSyntaxContainer() {
-		return this.syntax;
+	public void addBooleanElement(String element) {
+		checkNotNull(element);
+		this.booleanElements.add(element);
+	}
+
+	public void addLocalTimeDerivative(String var) {
+		checkNotNull(var);
+		this.localTimeDerivative.add(var);
+	}
+
+	public void addEquation(String var, Expression expr) {
+		checkNotNull(var);
+		checkNotNull(expr);
+		this.equation.put(var, expr);
 	}
 
 	/**
-	 * Formats a handed over array and deletes all occurrences of empty entries.
-	 * This method is only used in "adaptElementFromString" in order to include an external artifact.
-	 *
-	 * @return an array of string entries without empty entries
-	 * @ari an array of string entries
+	 * Activates a port for the LEMS simulator, for more details read git hub issue.
 	 */
-	private String[] formatArray(String[] ari) {
-		int currentIndex = 0;
-		int newArraySize = 0;
-		for (String e : ari) {
-			if (!e.equals("") && !e.equals("/>")) {
-				newArraySize++;
-			}
+	private void addPortActivator() {
+		if (outputPortDefined() && !helper.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
+			automaton.addPortActivator();
 		}
-		String[] ret = new String[newArraySize];
-		for (int i = 0; i < ari.length; i++) {
-			if (!ari[i].equals("") && !ari[i].equals("/>")) {
-				ret[currentIndex] = ari[i];
-				currentIndex++;
-			}
-		}
-		return ret;
-	}
-
-	/**
-	 * Returns the last index of a handed over element in a handed over array.
-	 * This method is only used in "adaptElementFromString" in order to include an external artifact.
-	 *
-	 * @param ari  The array of elements
-	 * @param elem the element whose index will be returned.
-	 * @return the index of the element
-	 */
-	private int getIndex(String[] ari, String elem) {
-		int ret = -1;
-		for (int i = 0; i < ari.length; i++) {
-			if (ari[i].equals(elem)) {
-				ret = i;
-			}
-		}
-		return ret;
 	}
 
 }
