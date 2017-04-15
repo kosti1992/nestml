@@ -75,12 +75,29 @@ public class Expression {
 				this.rhs = Optional.of(new NumericalLiteral(0, null));
 			}
 		} else {
-			if (expr.leftIsPresent()) {
-				this.lhs = Optional.of(new Expression(expr.getLeft().get()));
+			if (expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
+				if (expr.getLeft().get().booleanLiteralIsPresent()) {
+					if(expr.getLeft().get().getBooleanLiteral().get().getValue()){
+						this.lhs = Optional.of(Expression.generateTrue());
+					}else{
+						this.lhs = Optional.of(Expression.generateFalse());
+					}
+				} else {
+					this.lhs = Optional.of(new Expression(expr.getLeft().get()));
+				}
 			}
 			this.operator = Optional.of(new Operator(expr));
-			if (expr.rightIsPresent()) {
-				this.rhs = Optional.of(new Expression(expr.getRight().get()));
+			if (expr.rightIsPresent()) {//check if the right hand side is a single boolean atom, e.g.: 1<2 and true
+				if (expr.getRight().get().booleanLiteralIsPresent()) {
+					//if it is a boolean atom, generate true, respectively false according to the model
+					if(expr.getRight().get().getBooleanLiteral().get().getValue()){
+						this.rhs = Optional.of(Expression.generateTrue());
+					}else{
+						this.rhs = Optional.of(Expression.generateFalse());
+					}
+				} else {
+					this.rhs = Optional.of(new Expression(expr.getRight().get()));
+				}
 			}
 			if (expr.isLogicalAnd() || expr.isLogicalOr() || expr.isLogicalNot()) {
 				this.lhs = Optional.of(Expression.encapsulateInBrackets(this.lhs.get()));

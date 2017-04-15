@@ -52,21 +52,22 @@ The NESTML2LEMS framework supports almost all characteristics of the NestML spec
 Currently supported functions are:
 
 - **integrate(VAR)** : the integration of a variable VAR.
+- **integrate_odes() : instructs the simulator to integrate all ODEs. 
 - **emit_spike()**: instructs the component to emit an event/spike.
 - **step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.
 
 The framework supports the following mathematical functions:
 
-- **exp(VarA,VarB)** : VarA to the power of VarB
-- **log(VarA)** : logarithm of VarA to base 10 
-- **ln(VarA)** : natural logarithm of VarA
-- **sin(VarA),cos(VarA),tan(VarA)** : trigonometric functions
-- **sinh(VarA),cosh(VarA),tanh(VarA)** : hyperbolic trigonometric functions 
-- **sqrt(VarA)** : square root of VarA
-- **ceil(VarA)** : the ceil function
-- **random(VarA)** : returns a random number in the interval [0;VarA]
-- **factorial(VarA)** : factorial function
-- **abs(VarA)** : the absolute value of VarA
+- **exp(_X_,_Y_)** : _X_ to the power of _Y_
+- **log(_X_)** : logarithm of _X_ to base 10 
+- **ln(_X_)** : natural logarithm of _X_
+- **sin(_X_),cos(_X_),tan(_X_)** : trigonometric functions
+- **sinh(_X_),cosh(_X_),tanh(_X_)** : hyperbolic functions 
+- **sqrt(_X_)** : square root of _X_
+- **ceil(_X_)** : the ceil function
+- **random(_X_)** : the random function with results in the interval [0;_X_]
+- **factorial(_X_)** : the factorial function of _X_
+- **abs(_X_)** : the absolute value of _X_
 
 A predefined simulation environment and a set of common components, e.g. current generators, is located in the sub folder :  
 
