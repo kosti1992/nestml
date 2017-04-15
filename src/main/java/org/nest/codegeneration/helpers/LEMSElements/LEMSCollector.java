@@ -483,44 +483,19 @@ public class LEMSCollector extends Collector {
 						Operator tempOp = new Operator();
 						tempOp.setDivOp(true);
 
-						//TODO: in order to enable the replacement of constants, we have to create an appropriate unit
 						ASTUnitType tempType = new ASTUnitType();
 						tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
-
-
 						NumericalLiteral rhs = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-
 
 						Expression tempExpr = new Expression();
 						tempExpr.replaceLhs(lhs);
 						tempExpr.replaceOp(tempOp);
 						tempExpr.replaceRhs(rhs);
 						tempExpr = this.getHelper().replaceConstantsWithReferences(this, tempExpr);
+						tempExpr = this.getHelper().replaceResolutionByConstantReference(this,tempExpr);
 						this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
 								tempExpr, false, false));
-						/*
-						else if(args.get(0).get){
 
-						}else{
-
-						}
-
-						//TODO
-						//the steps function is a special case, here we have to derive the value by hand
-						ASTUnitType tempType = new ASTUnitType();
-						tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
-						NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-						this.addConstant(new Constant(helper.PREFIX_CONSTANT + config.getSimulation_steps_length_asString() + "ms", helper.PREFIX_DIMENSION + "ms", tempNumerical, false));
-						//search for the constant to which steps refer
-						for (Constant v : this.getConstantsList()) {
-							if (v.getName().equals(this.getHelper().getArgs(var.getDeclaringExpression().get().getFunctionCall().get()))) {
-								//create a new derived parameter for this expression
-								Variable tempVar = new Variable(v.getName() + "/" + helper.PREFIX_CONSTANT + config.getSimulation_steps_length_asString() + config.getSimulation_steps_unit().getSymbol());
-								this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
-										tempVar, false, false));
-							}
-						}
-						*/
 					} else {// otherwise it is either an expression or does contain a yet different type of function call.
 						if (var.getDeclaringExpression().get().exprIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());

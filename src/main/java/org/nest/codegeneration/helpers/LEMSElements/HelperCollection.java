@@ -224,16 +224,24 @@ public class HelperCollection {
 				if (((NumericalLiteral) exp).getType().isPresent() &&
 						((NumericalLiteral) exp).getType().get()
 								.getSerializedUnit() == null) {
-					//TODO
-
-					//Dimension tempDimension = new Dimension();
-					//Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
-					//		tempDimension.getName(), exp, false);
-
-
-					System.out.println("not yet implemented (replace)");
-
-
+					//this is an rather bad approach, since it requires that the same unit is already somewhere defined
+					//in the model, however, this part of the method it only invoked for artificialextensionss, thus not critial
+					Dimension tempDimension = null;
+					for (Unit u : container.getUnitsSet()) {
+						if (u.getSymbol().equals(((NumericalLiteral) exp).getType().get().getUnit().get())) {
+							tempDimension = u.getDimension();
+							break;
+						}
+					}
+					if (tempDimension!=null) {
+						Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
+								tempDimension.getName(), exp, false);
+						container.addConstant(tempConstant);
+						Variable var = new Variable(tempConstant.getName());
+						expr.replaceElement(exp, var);
+					}else{
+						System.err.println("A problematic case occurred during constant replacement!");
+					}
 				} else {
 					int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
 					//create the required units and dimensions
@@ -253,6 +261,7 @@ public class HelperCollection {
 				}
 			}
 		}
+
 		return expr;
 	}
 
@@ -266,7 +275,7 @@ public class HelperCollection {
 	 * @return an expression with replaced bool parts.
 	 */
 	public Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
-		if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())){
+		if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
 			NumericalLiteral lit1 = new NumericalLiteral(1, null);
 			Operator op1 = new Operator();
 			op1.setEq(true);
@@ -278,10 +287,10 @@ public class HelperCollection {
 		}
 		if (expr.lhsIsPresent()) {
 			//if it is a variable, then check if it is a boolean var
-			expr.replaceLhs(replaceBooleanAtomByExpression(container,expr.getLhs().get()));
+			expr.replaceLhs(replaceBooleanAtomByExpression(container, expr.getLhs().get()));
 		}
 		if (expr.rhsIsPresent()) {
-			expr.replaceRhs(replaceBooleanAtomByExpression(container,expr.getRhs().get()));
+			expr.replaceRhs(replaceBooleanAtomByExpression(container, expr.getRhs().get()));
 		}
 		return expr;
 	}
@@ -551,7 +560,7 @@ public class HelperCollection {
 		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
 	}
 
-	public String getArrayNotSupportedMessage(VariableSymbol var){
+	public String getArrayNotSupportedMessage(VariableSymbol var) {
 		return "Array declaration in lines" + var.getSourcePosition().getLine();
 	}
 
