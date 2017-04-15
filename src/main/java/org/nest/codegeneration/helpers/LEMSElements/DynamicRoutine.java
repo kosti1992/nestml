@@ -103,18 +103,18 @@ public class DynamicRoutine {
 				tempCondition.replaceLhs(condition);
 				tempCondition.replaceRhs(tempRhs);
 				tempCondition.replaceOp(tempOp);
-				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container, tempCondition);
+				tempCondition = HelperCollection.replaceBooleanAtomByExpression(container, tempCondition);
 				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			} else {
 				tempCondition = new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr());
-				tempCondition = container.getHelper().replaceBooleanAtomByExpression(container, tempCondition);
+				tempCondition = HelperCollection.replaceBooleanAtomByExpression(container, tempCondition);
 				tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			}
 			tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
 			//store a new conditional block
-			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
-			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
-			tempCondition = container.getHelper().replaceNotByLogicalEquivalent(container, tempCondition);
+			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = HelperCollection.replaceNotByLogicalEquivalent(container, tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 		//process all elif statements
@@ -142,8 +142,8 @@ public class DynamicRoutine {
 				tempExpr.replaceOp(newOp);
 				tempCondition = tempExpr;
 			}
-			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
-			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
 			tempCondition = Expression.encapsulateInBrackets(tempCondition);//finally encapsulate everything in brackets
 			handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
@@ -164,8 +164,8 @@ public class DynamicRoutine {
 				tempCondition = tempExpr;
 			}
 			//create the corresponding block
-			tempCondition = container.getHelper().replaceConstantsWithReferences(container, tempCondition);
-			tempCondition = container.getHelper().replaceResolutionByConstantReference(container, tempCondition);
+			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
+			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
 			tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getELSE_Clause().get().getBlock(),
 					tempCondition, tempPrettyPrinter.result());
@@ -237,9 +237,9 @@ public class DynamicRoutine {
 		List<Instruction> res = new ArrayList<>();
 		if (input.assignmentIsPresent()) {
 			//check if not supported functions are part of the assignment
-			if (container.getHelper().containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
+			if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
 				//Generate a proper error message
-				container.getHelper().printNotSupportedFunctionInBlock(input);
+				HelperCollection.printNotSupportedFunctionInBlock(input,container);
 				//now generate a expression which indicates that it is not supported
 				Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
 				tempExpression = tempExpression.setNotSupported();
@@ -251,7 +251,7 @@ public class DynamicRoutine {
 				return res;
 			} else {
 				Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
-				tempExpression = container.getHelper().replaceResolutionByConstantReference(container, tempExpression);
+				tempExpression = HelperCollection.replaceResolutionByConstantReference(container, tempExpression);
 				Expression ret = new Expression();
 				Variable tempVar = new Variable(input.getAssignment().get().getLhsVarialbe().getName().toString());
 				Operator tempOp = new Operator();
@@ -262,28 +262,28 @@ public class DynamicRoutine {
 				if (input.getAssignment().get().isCompoundMinus()) {
 					tempOp.setMinusOp(true);
 					ret.replaceOp(tempOp);
-					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
+					ret = HelperCollection.replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x*=y
 				else if (input.getAssignment().get().isCompoundProduct()) {
 					tempOp.setTimesOp(true);
 					ret.replaceOp(tempOp);
-					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
+					ret = HelperCollection.replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x+=y
 				else if (input.getAssignment().get().isCompoundSum()) {
 					tempOp.setPlusOp(true);
 					ret.replaceOp(tempOp);
-					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
+					ret = HelperCollection.replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}//in order to process assignments of type x/=y
 				else if (input.getAssignment().get().isCompoundQuotient()) {
 					tempOp.setDivOp(true);
 					ret.replaceOp(tempOp);
-					ret = container.getHelper().replaceConstantsWithReferences(container, ret);
+					ret = HelperCollection.replaceConstantsWithReferences(container, ret);
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				} else {
-					ret = container.getHelper().replaceConstantsWithReferences(container, new Expression(input.getAssignment().get().getExpr()));
+					ret = HelperCollection.replaceConstantsWithReferences(container, new Expression(input.getAssignment().get().getExpr()));
 					retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
 				}
 				retAssignment.replaceResolutionByConstantReference(container);
@@ -348,7 +348,18 @@ public class DynamicRoutine {
 	private List<ConditionalBlock> handleTernaryOperator(ASTSmall_Stmt input, Expression condition) {
 		List<ConditionalBlock> ret = new ArrayList<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
-		Expression firstSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
+		Expression firstSubCondition;
+		//if it is a boolean literal, e.g. true or false
+		if (input.getAssignment().get().getExpr().getCondition().get().booleanLiteralIsPresent()) {
+			if (input.getAssignment().get().getExpr().getCondition().get().getBooleanLiteral().get().getValue()) {
+				firstSubCondition = Expression.generateTrue();
+			} else {
+				firstSubCondition = Expression.generateFalse();
+			}
+		} else {
+			firstSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
+		}
+
 		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
 		Operator opFirst = new Operator();
 		opFirst.setLogicalAnd(true);
@@ -356,21 +367,20 @@ public class DynamicRoutine {
 		firstCondition.replaceLhs(condition.deepClone());
 		firstCondition.replaceOp(opFirst);
 		firstCondition.replaceRhs(firstSubCondition);
-		firstCondition = container.getHelper().replaceBooleanAtomByExpression(container, firstCondition);
+		firstCondition = HelperCollection.replaceBooleanAtomByExpression(container, firstCondition);
 		//now generate an assignment for the first half
 		Expression firstAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfTrue().get());
-		firstAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container, firstAssignmentExpression);
-		firstAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container, firstAssignmentExpression);
+		firstAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, firstAssignmentExpression);
+		firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, firstAssignmentExpression);
 		Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				firstAssignmentExpression);
 		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
 		ret.add(firstBlock);
 
 		//now create the second part which applies if the condition is not true
-		Expression secondSubCondition = new Expression(input.getAssignment().get().getExpr().getCondition().get());
-		secondSubCondition = container.getHelper().replaceBooleanAtomByExpression(container, secondSubCondition);
+		Expression secondSubCondition = firstSubCondition.deepClone();
+		secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(container, secondSubCondition);
 		secondSubCondition.negateLogic();
-		secondSubCondition = Expression.encapsulateInBrackets(secondSubCondition);
 		Operator opSecond = new Operator();
 		opSecond.setLogicalAnd(true);
 		Expression secondCondition = new Expression();
@@ -379,8 +389,8 @@ public class DynamicRoutine {
 		secondCondition.replaceRhs(secondSubCondition);
 		//now generate an assignment for the second half
 		Expression secondAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfNot().get());
-		secondAssignmentExpression = container.getHelper().replaceConstantsWithReferences(container, secondAssignmentExpression);
-		secondAssignmentExpression = container.getHelper().replaceResolutionByConstantReference(container, secondAssignmentExpression);
+		secondAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, secondAssignmentExpression);
+		secondAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, secondAssignmentExpression);
 		Assignment secondAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
 				secondAssignmentExpression);
 		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
@@ -407,14 +417,14 @@ public class DynamicRoutine {
 			//for all elements in the list, check if an integration directive has been found
 			for (Instruction call : list) {
 				if (call.getClass().equals(Assignment.class) &&
-						((Assignment) call).printAssignedVariable().equals(container.getHelper().PREFIX_ACT + var)) {
+						((Assignment) call).printAssignedVariable().equals(HelperCollection.PREFIX_ACT + var)) {
 					temp = true;
 				}
 			}
 			//add a deactivation assignment to the list of directives if no integrate directive has been found
 			if (!temp) {
 				NumericalLiteral tempLiteral = new NumericalLiteral(0, null);
-				list.add(new Assignment(container.getHelper().PREFIX_ACT + var, tempLiteral));
+				list.add(new Assignment(HelperCollection.PREFIX_ACT + var, tempLiteral));
 			}
 		}
 		return list;
@@ -433,7 +443,7 @@ public class DynamicRoutine {
 			return null;
 		} else {
 			for (StateVariable var : container.getStateVariablesList()) {
-				if (var.getName().equals(container.getHelper().PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
+				if (var.getName().equals(HelperCollection.PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
 					((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
 				}
 			}
@@ -441,7 +451,7 @@ public class DynamicRoutine {
 			NumericalLiteral tempLiteral = new NumericalLiteral(1, null);
 			//the method requires a list of instructions rather than a single instruction
 			List<Instruction> res = new ArrayList<>();
-			res.add(new Assignment(container.getHelper().PREFIX_ACT +
+			res.add(new Assignment(HelperCollection.PREFIX_ACT +
 					functionCall.getArgs().get(0).getVariable().get().getName().toString(), tempLiteral));
 			return res;
 		}
@@ -459,7 +469,7 @@ public class DynamicRoutine {
 		for (String var : container.getEquations().keySet()) {
 			//integrate the corresponding variable in this block
 			tempLiteral = new NumericalLiteral(1, null);
-			res.add(new Assignment(container.getHelper().PREFIX_ACT + var, tempLiteral));
+			res.add(new Assignment(HelperCollection.PREFIX_ACT + var, tempLiteral));
 			//moreover, since a integrate_odes function call has been found, we make all integrations local
 			container.addLocalTimeDerivative(var);
 		}
@@ -618,11 +628,11 @@ public class DynamicRoutine {
 		}
 
 		public void replaceConstantsWithReferences(LEMSCollector container) {
-			this.assignedValue = container.getHelper().replaceConstantsWithReferences(container, this.assignedValue);
+			this.assignedValue = HelperCollection.replaceConstantsWithReferences(container, this.assignedValue);
 		}
 
 		public void replaceResolutionByConstantReference(LEMSCollector container) {
-			this.assignedValue = container.getHelper().replaceResolutionByConstantReference(container, this.assignedValue);
+			this.assignedValue = HelperCollection.replaceResolutionByConstantReference(container, this.assignedValue);
 		}
 
 		public String getClassIdentifier() {

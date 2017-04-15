@@ -28,7 +28,7 @@ public class Unit {
 		symbol = this.unitFormatter(input.prettyPrint());
 		dimension = new Dimension(input);
 		//the power of a unit is set on the 7th block of the array
-		power = LEMSCollector.helper.convertTypeDeclToArray(input.toString())[7];
+		power = HelperCollection.convertTypeDeclToArray(input.toString())[7];
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class Unit {
 	public Unit(String input, Dimension dimension) {
 		this.symbol = input;
 		this.dimension = dimension;
-		this.power = LEMSCollector.helper.powerConverter(symbol);
+		this.power = HelperCollection.powerConverter(symbol);
 	}
 
 	/**

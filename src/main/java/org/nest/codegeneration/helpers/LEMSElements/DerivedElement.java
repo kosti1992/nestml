@@ -29,26 +29,26 @@ public class DerivedElement {
 
 	public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {
 		if (init) {
-			this.name = container.getHelper().PREFIX_INIT + variable.getName();
+			this.name = HelperCollection.PREFIX_INIT + variable.getName();
 		} else {
 			this.name = variable.getName();
 		}
 		this.dynamic = dynamic;
 		//data types boolean and void are not supported by lems
-		if (container.getHelper().dataTypeNotSupported(variable.getType())) {
-			dimension = LEMSCollector.helper.NOT_SUPPORTED;
+		if (HelperCollection.dataTypeNotSupported(variable.getType())) {
+			dimension = HelperCollection.NOT_SUPPORTED;
 			//print an adequate error message
-			container.getHelper().printNotSupportedDataType(variable);
+			HelperCollection.printNotSupportedDataType(variable,container);
 		} else {
-			dimension = container.getHelper().typeToDimensionConverter(variable.getType());
+			dimension = HelperCollection.typeToDimensionConverter(variable.getType());
 		}
 
 		//get the derivation instruction in LEMS format
 		derivationInstruction = new Expression(variable);
 		//replace the resolution function call with a reference to the constant
-		derivationInstruction = container.getHelper().replaceResolutionByConstantReference(container, derivationInstruction);
+		derivationInstruction = HelperCollection.replaceResolutionByConstantReference(container, derivationInstruction);
 		//replace constants with references
-		derivationInstruction = container.getHelper().replaceConstantsWithReferences(container, derivationInstruction);
+		derivationInstruction = HelperCollection.replaceConstantsWithReferences(container, derivationInstruction);
 	}
 
 
@@ -108,8 +108,8 @@ public class DerivedElement {
 	 */
 	public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container, boolean init) {
 		this.name = name;
-		if(init)
-			this.name = container.getHelper().PREFIX_INIT + this.name;
+		if (init)
+			this.name = HelperCollection.PREFIX_INIT + this.name;
 		this.dimension = dimension;
 		this.handleTernaryOp(expr, container);
 	}
@@ -124,21 +124,32 @@ public class DerivedElement {
 	private void handleTernaryOp(ASTExpr expr, LEMSCollector container) {
 		Map<Expression, Expression> tempMap = new HashMap<>();
 		//first create the first part of the expression, namely the one which applies if condition is true
-		Expression firstSubCondition = new Expression(expr.getCondition().get());
-		firstSubCondition = container.getHelper().replaceBooleanAtomByExpression(container,firstSubCondition);
+		Expression firstSubCondition;
+
+		if (expr.getCondition().get().booleanLiteralIsPresent()) {
+			if (expr.getCondition().get().getBooleanLiteral().get().getValue()) {
+				firstSubCondition = Expression.generateTrue();
+			} else {
+				firstSubCondition = Expression.generateFalse();
+			}
+		} else {
+			firstSubCondition = new Expression(expr.getCondition().get());
+		}
+
+		firstSubCondition = HelperCollection.replaceBooleanAtomByExpression(container, firstSubCondition);
 		if (!(firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isLeftParentheses() &&
 				firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isRightParentheses()))
 			firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
 		Expression firstSubValue = new Expression(expr.getIfTrue().get());
-		firstSubValue = container.getHelper().replaceConstantsWithReferences(container, firstSubValue);
-		firstSubValue = container.getHelper().replaceResolutionByConstantReference(container, firstSubValue);
+		firstSubValue = HelperCollection.replaceConstantsWithReferences(container, firstSubValue);
+		firstSubValue = HelperCollection.replaceResolutionByConstantReference(container, firstSubValue);
 		tempMap.put(firstSubCondition, firstSubValue);
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = firstSubCondition.deepClone();
 		secondSubCondition.negateLogic();
 		Expression secondSubValue = new Expression(expr.getIfNot().get());
-		secondSubValue = container.getHelper().replaceConstantsWithReferences(container, secondSubValue);
-		secondSubValue = container.getHelper().replaceResolutionByConstantReference(container, secondSubValue);
+		secondSubValue = HelperCollection.replaceConstantsWithReferences(container, secondSubValue);
+		secondSubValue = HelperCollection.replaceResolutionByConstantReference(container, secondSubValue);
 		tempMap.put(secondSubCondition, secondSubValue);
 		this.conditionalDerivedValues = Optional.of(tempMap);
 		this.dynamic = true;

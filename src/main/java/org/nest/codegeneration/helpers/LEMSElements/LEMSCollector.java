@@ -72,8 +72,6 @@ public class LEMSCollector extends Collector {
 
 	private SimulationConfiguration config = null;// the configuration of the simulation
 
-	public static HelperCollection helper = null;//a set of assisting functions
-
 	private List<String> booleanElements = null;
 
 
@@ -92,7 +90,6 @@ public class LEMSCollector extends Collector {
 		this.localTimeDerivative = new ArrayList<>();
 		this.attachments = new ArrayList<>();
 		this.config = config;
-		this.helper = new HelperCollection(this);
 		this.booleanElements = new ArrayList<>();
 		this.handleNeuron(neuron);
 	}
@@ -132,8 +129,8 @@ public class LEMSCollector extends Collector {
 			//create a new constant in order to achieve a correct dimension of the equation:
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit("ms");
-			this.addConstant(new Constant(helper.PREFIX_CONSTANT + "1ms", helper.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
-			Dimension msDimension = new Dimension(helper.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
+			this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+			Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", msDimension));
 
@@ -178,8 +175,8 @@ public class LEMSCollector extends Collector {
 		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
-				helper.printArrayNotSupportedMessage(var);
-				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
+				HelperCollection.printArrayNotSupportedMessage(var);
+				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				//otherwise process the object to a state variable
 				this.addStateVariable(new StateVariable(var, this));
@@ -229,13 +226,13 @@ public class LEMSCollector extends Collector {
 		checkNotNull(neuronBody);
 		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 			ASTShape eq = neuronBody.getShapes().get(i);
-			if (helper.containsFunctionCall(eq.getRhs(), true)) {
-				this.getHelper().printNotSupportedFunctionCallInEquations(eq.getLhs());
+			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
+				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs());
 				this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 			} else {
-				Expression tempExpression = helper.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
-				DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), helper.DIMENSION_NONE, tempExpression, true, false);
+				Expression tempExpression = HelperCollection.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
+				DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), HelperCollection.DIMENSION_NONE, tempExpression, true, false);
 				//store the shape
 				this.addDerivedElement(shapeVariable);
 			}
@@ -252,32 +249,32 @@ public class LEMSCollector extends Collector {
 		checkNotNull(neuronBody);
 		for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 			ASTEquation eq = neuronBody.getEquations().get(i);
-			if (this.getHelper().containsFunctionCall(eq.getRhs(), true)) {
-				this.getHelper().printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
+			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
+				HelperCollection.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
 				this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
 			} else {
 				List<String> tempList = new ArrayList<>();
 				tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
 				//check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
-				if (this.getHelper().blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock())) {
+				if (HelperCollection.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock(), this)) {
 					Expression expr = new Expression(eq.getRhs());
-					expr = this.getHelper().buildExpressionWithActivator(eq.getLhs().toString(), expr);
-					expr = this.getHelper().extendExpressionByCON1ms(expr);
-					expr = this.getHelper().replaceConstantsWithReferences(this, expr);
-					expr = this.getHelper().replaceResolutionByConstantReference(this, expr);
+					expr = HelperCollection.buildExpressionWithActivator(eq.getLhs().toString(), expr);
+					expr = HelperCollection.extendExpressionByCON1ms(expr);
+					expr = HelperCollection.replaceConstantsWithReferences(this, expr);
+					expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
 					//only ode, i.e. integrate directives have to be manipulated
 					equation.put(eq.getLhs().getSimpleName(), expr);
 					//now generate the corresponding activator
-					this.stateVariablesList.add(new StateVariable(this.getHelper().PREFIX_ACT + eq.getLhs().getSimpleName(),
-							this.getHelper().DIMENSION_NONE, new NumericalLiteral(1, null), this.getHelper().NO_UNIT, this));
+					this.stateVariablesList.add(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
+							HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), HelperCollection.NO_UNIT, this));
 					this.localTimeDerivative.add(eq.getLhs().getSimpleName());
 				} else {
 					//otherwise the integration is global, no further steps required
 					Expression expr = new Expression(eq.getRhs());
-					expr = this.getHelper().extendExpressionByCON1ms(expr);
-					expr = this.getHelper().replaceConstantsWithReferences(this, expr);
-					expr = this.getHelper().replaceResolutionByConstantReference(this, expr);
+					expr = HelperCollection.extendExpressionByCON1ms(expr);
+					expr = HelperCollection.replaceConstantsWithReferences(this, expr);
+					expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
 					equation.put(eq.getLhs().getSimpleName(), expr);
 				}
 			}
@@ -294,15 +291,26 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
 			ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
 			DerivedElement tempDerivedVar;
-			if (tempFunction.getDatatype().getUnitType().isPresent() &&
-					tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
-				int[] dec = helper.convertTypeDeclToArray(
+			if (tempFunction.getDatatype().getUnitType().isPresent()) {
+				Dimension tempDimension;
+				Unit tempUnit;
+				int[] dec = HelperCollection.convertTypeDeclToArray(
 						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
-				//create the required units and dimensions
-				Dimension tempDimension = new Dimension(helper.PREFIX_DIMENSION
-						+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
-						dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-				Unit tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+				if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
+					//create the required units and dimensions
+					tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
+							+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
+							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+					tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+				} else {//it is a combined unit, e.g. mV/s
+					//TODO: e.g. 1/ms still not supported
+					tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
+							+ tempFunction.getDatatype().getUnitType().get().prettyPrint(),
+							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);;
+					tempUnit = null;
+					//-----------------------------------------------------------
+				}
+
 				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
@@ -326,13 +334,13 @@ public class LEMSCollector extends Collector {
 				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
-							helper.DIMENSION_NONE,
+							HelperCollection.DIMENSION_NONE,
 							tempFunction.getExpr(),
 							this, false);
 				} else {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
-							helper.DIMENSION_NONE,
+							HelperCollection.DIMENSION_NONE,
 							new Expression(tempFunction.getExpr()),
 							true,
 							false);
@@ -355,8 +363,8 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
-				this.getHelper().printArrayNotSupportedMessage(var);
-				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
+				HelperCollection.printArrayNotSupportedMessage(var);
+				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				Constant temp = null;
 				DerivedElement tempDerivedElement = null;
@@ -365,7 +373,7 @@ public class LEMSCollector extends Collector {
 					//first check if a ternary operator is used
 					if (var.getDeclaringExpression().get().conditionIsPresent()) {
 						tempDerivedElement = new DerivedElement(var.getName(),
-								this.getHelper().typeToDimensionConverter(var.getType()),
+								HelperCollection.typeToDimensionConverter(var.getType()),
 								var.getDeclaringExpression().get(),
 								this, false);
 						if (var.getType().getType() == TypeSymbol.Type.UNIT) {
@@ -404,7 +412,7 @@ public class LEMSCollector extends Collector {
 				//now, in order to avoid constants which are not used, delete them
 				int tempIndex = -1;
 				for (Constant v : constantsList) {//search for the index
-					if (v.getName().equals(helper.PREFIX_INIT + varName)) {
+					if (v.getName().equals(HelperCollection.PREFIX_INIT + varName)) {
 						tempIndex = constantsList.indexOf(v);
 					}
 				}//delete the the element
@@ -446,8 +454,8 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
-				this.getHelper().printArrayNotSupportedMessage(var);
-				this.addNotConverted(this.getHelper().getArrayNotSupportedMessage(var));
+				HelperCollection.printArrayNotSupportedMessage(var);
+				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {//the declaration does not use arrays
 				//is a right hand side present?
 				if (var.getDeclaringExpression().isPresent()) {
@@ -491,33 +499,33 @@ public class LEMSCollector extends Collector {
 						tempExpr.replaceLhs(lhs);
 						tempExpr.replaceOp(tempOp);
 						tempExpr.replaceRhs(rhs);
-						tempExpr = this.getHelper().replaceConstantsWithReferences(this, tempExpr);
-						tempExpr = this.getHelper().replaceResolutionByConstantReference(this,tempExpr);
-						this.addDerivedElement(new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
+						tempExpr = HelperCollection.replaceConstantsWithReferences(this, tempExpr);
+						tempExpr = HelperCollection.replaceResolutionByConstantReference(this, tempExpr);
+						this.addDerivedElement(new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 								tempExpr, false, false));
 
 					} else {// otherwise it is either an expression or does contain a yet different type of function call.
 						if (var.getDeclaringExpression().get().exprIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());
 							DerivedElement tempElem = new DerivedElement(var.getName(),
-									this.helper.typeToDimensionConverter(var.getType()), tempExpression, true, false);
+									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
 						} else if (var.getDeclaringExpression().get().termIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getTerm().get());
 							DerivedElement tempElem = new DerivedElement(var.getName(),
-									this.helper.typeToDimensionConverter(var.getType()), tempExpression, true, false);
+									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
 							// handle ternary op
 						} else if (var.getDeclaringExpression().get().conditionIsPresent()) {
 							DerivedElement tempElem = new DerivedElement(var.getName(),
-									this.helper.typeToDimensionConverter(var.getType()), var.getDeclaringExpression().get(), this, true);
+									HelperCollection.typeToDimensionConverter(var.getType()), var.getDeclaringExpression().get(), this, true);
 							this.addDerivedElement(tempElem);
 							if (var.getType().getType() == TypeSymbol.Type.UNIT) {
 								Unit tempUnit = new Unit(var.getType());
-								this.addStateVariable(new StateVariable(var.getName(), this.helper.typeToDimensionConverter(var.getType()),
+								this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 										new Variable(tempElem.getName()), tempUnit.getSymbol(), this));
 							} else {
-								this.addStateVariable(new StateVariable(var.getName(), this.helper.typeToDimensionConverter(var.getType()),
+								this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 										new Variable(tempElem.getName()), "", this));
 							}
 							// handle boolean literal or numLiteral, e.g. 1mV
@@ -525,7 +533,7 @@ public class LEMSCollector extends Collector {
 								var.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get());
 							Constant tempConstant = new Constant(var.getName(),
-									helper.typeToDimensionConverter(var.getType()), tempExpression, false);
+									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, false);
 							this.addConstant(tempConstant);
 							//e.g 1mV+50mV or 1mV+V_init
 						} else if (var.getDeclaringExpression().get().getLeft().isPresent() &&
@@ -537,9 +545,9 @@ public class LEMSCollector extends Collector {
 							combined.replaceLhs(leftExpr);
 							combined.replaceOp(op);
 							combined.replaceRhs(rightExpr);
-							combined = this.getHelper().replaceConstantsWithReferences(this, combined);
-							combined = this.getHelper().replaceResolutionByConstantReference(this, combined);
-							DerivedElement tempElem = new DerivedElement(var.getName(), helper.typeToDimensionConverter(var.getType()),
+							combined = HelperCollection.replaceConstantsWithReferences(this, combined);
+							combined = HelperCollection.replaceResolutionByConstantReference(this, combined);
+							DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 									combined, false, false);
 							this.addDerivedElement(tempElem);
 							//e.g. v real = v_init
@@ -594,7 +602,6 @@ public class LEMSCollector extends Collector {
 		}
 
 	}
-
 
 	/**
 	 * Checks if a dynamic routine is present and handles it.
@@ -833,10 +840,6 @@ public class LEMSCollector extends Collector {
 		return this.attachments;
 	}
 
-	public HelperCollection getHelper() {
-		return this.helper;
-	}
-
 	public LEMSSyntaxContainer getSyntaxContainer() {
 		return this.syntax;
 	}
@@ -920,7 +923,7 @@ public class LEMSCollector extends Collector {
 	 * Activates a port for the LEMS simulator, for more details read git hub issue.
 	 */
 	private void addPortActivator() {
-		if (outputPortDefined() && !helper.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
+		if (outputPortDefined() && !HelperCollection.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
 			automaton.addPortActivator();
 		}
 	}

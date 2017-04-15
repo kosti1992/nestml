@@ -32,10 +32,11 @@ public class Constant {
 
 	public Constant(VariableSymbol variable, boolean init, boolean par, LEMSCollector container) {
 		this.name = variable.getName();
-		this.dimension = container.getHelper().typeToDimensionConverter(variable.getType());
+		this.dimension = HelperCollection.typeToDimensionConverter(variable.getType());
+		this.dimension = HelperCollection.dimensionFormatter(dimension);
 		this.parameter = par;
 		if (init) {
-			this.name = container.getHelper().PREFIX_INIT + this.name;//init values are extended by a label in order to indicate as such
+			this.name = HelperCollection.PREFIX_INIT + this.name;//init values are extended by a label in order to indicate as such
 		}
 		if (!parameter) {//a parameter does not have a unit or a value, thus should not be checked
 			//if a declaring expression is present, convert it
@@ -56,9 +57,9 @@ public class Constant {
 					this.value = new Variable("0");
 				}
 			}
-			if (this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
+			if (this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
 				//store an adequate message if the data type is not supported
-				container.getHelper().printNotSupportedDataType(variable);
+				HelperCollection.printNotSupportedDataType(variable,container);
 			}
 		}
 
@@ -93,7 +94,7 @@ public class Constant {
 	 */
 	public Constant(String name, String dimension, Expression value, boolean par) {
 		this.name = name;
-		this.dimension = dimension;
+		this.dimension = HelperCollection.dimensionFormatter(dimension);
 		this.value = value;
 		this.parameter = par;
 	}
@@ -180,8 +181,8 @@ public class Constant {
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
 			return new NumericalLiteral(container.getConfig().getSimulation_steps_length(), tempType);
 		} else {
-			container.getHelper().printNotSupportedFunctionCallInExpression(variable);
-			return new Variable(container.getHelper().NOT_SUPPORTED
+			HelperCollection.printNotSupportedFunctionCallInExpression(variable);
+			return new Variable(HelperCollection.NOT_SUPPORTED
 					+ ":" + variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
 		}
 	}

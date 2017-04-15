@@ -25,22 +25,14 @@ import org.nest.units._ast.ASTUnitType;
  * @author perun
  */
 public class HelperCollection {
-	LEMSCollector container;
-
 	//this is a collection of global constants and prefixes. in case something has to be changed, this is the point where
-	public String NOT_SUPPORTED = "NOT_SUPPORTED";
-	public String NO_UNIT = "";
-	public String DIMENSION_NONE = "none";
-	public String PREFIX_INIT = "INIT";
-	public String PREFIX_DIMENSION = "DimensionOf_";
-	public String PREFIX_CONSTANT = "CON";
-	public String PREFIX_ACT = "ACT";
-
-
-	public HelperCollection(LEMSCollector collector) {
-		container = collector;
-	}
-
+	public static String NOT_SUPPORTED = "NOT_SUPPORTED";
+	public static String NO_UNIT = "";
+	public static String DIMENSION_NONE = "none";
+	public static String PREFIX_INIT = "INIT";
+	public static String PREFIX_DIMENSION = "DimensionOf_";
+	public static String PREFIX_CONSTANT = "CON";
+	public static String PREFIX_ACT = "ACT";
 
 	/**
 	 * Returns all spike input ports of a given set.
@@ -49,7 +41,7 @@ public class HelperCollection {
 	 * @return a list of all spike ports
 	 */
 	@SuppressWarnings("unused")//used in the template
-	public List<String> getSpikePorts(List<String> ports) {
+	public static List<String> getSpikePorts(List<String> ports) {
 		return ports.stream().filter(st -> st.endsWith("spikes")).collect(Collectors.toList());
 	}
 
@@ -60,7 +52,7 @@ public class HelperCollection {
 	 * @return number as string
 	 */
 	@SuppressWarnings("unused")//used in the template
-	public String getNumberFormatted(double input) {
+	public static String getNumberFormatted(double input) {
 		return String.valueOf(input);
 	}
 
@@ -71,7 +63,7 @@ public class HelperCollection {
 	 * @param input the type-symbol of the a variable.
 	 * @return the name of the dimension as String
 	 */
-	public String typeToDimensionConverter(TypeSymbol input) {
+	public static String typeToDimensionConverter(TypeSymbol input) {
 		if (input.getName().equals("void") || input.getName().equals("string")) {
 			return NOT_SUPPORTED;
 		}
@@ -90,7 +82,7 @@ public class HelperCollection {
 	 * @param var_type Name of the unit represented as String.
 	 * @return Power of the prefix as int.
 	 */
-	public int powerConverter(String var_type) {
+	public static int powerConverter(String var_type) {
 		if (var_type == null || var_type.length() < 2) {
 			return 0;
 		}
@@ -140,7 +132,7 @@ public class HelperCollection {
 	 * @param expr The function call name which will be checked.
 	 * @return true, if supported
 	 */
-	public boolean mathematicalFunctionIsSupported(String expr) {
+	public static boolean mathematicalFunctionIsSupported(String expr) {
 		switch (expr) {
 			case "exp":
 				return true;
@@ -190,7 +182,7 @@ public class HelperCollection {
 	 * @param skipSupported if true, all supported function calls will be skipped
 	 * @return true, if expression or sub-expression contains call.
 	 */
-	public boolean containsFunctionCall(ASTExpr expr, boolean skipSupported) {
+	public static boolean containsFunctionCall(ASTExpr expr, boolean skipSupported) {
 		boolean temp = false;
 		//if more functions are supported
 		if (expr.functionCallIsPresent() && !(skipSupported && mathematicalFunctionIsSupported(
@@ -215,9 +207,9 @@ public class HelperCollection {
 	 *
 	 * @param container a container which will be used to store new constants
 	 * @param expr      the expression in which a constant will be replaced
-	 * @return
+	 * @return an expression with replaced constants
 	 */
-	public Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
+	public static Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
 		List<Expression> temp = expr.getNumericals();
 		for (Expression exp : temp) {
 			if (((NumericalLiteral) exp).hasType()) {
@@ -225,7 +217,7 @@ public class HelperCollection {
 						((NumericalLiteral) exp).getType().get()
 								.getSerializedUnit() == null) {
 					//this is an rather bad approach, since it requires that the same unit is already somewhere defined
-					//in the model, however, this part of the method it only invoked for artificialextensionss, thus not critial
+					//in the model, however, this part of the method it only invoked for artificial extensionss, thus not critical
 					Dimension tempDimension = null;
 					for (Unit u : container.getUnitsSet()) {
 						if (u.getSymbol().equals(((NumericalLiteral) exp).getType().get().getUnit().get())) {
@@ -233,13 +225,13 @@ public class HelperCollection {
 							break;
 						}
 					}
-					if (tempDimension!=null) {
+					if (tempDimension != null) {
 						Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
 								tempDimension.getName(), exp, false);
 						container.addConstant(tempConstant);
 						Variable var = new Variable(tempConstant.getName());
 						expr.replaceElement(exp, var);
-					}else{
+					} else {
 						System.err.println("A problematic case occurred during constant replacement!");
 					}
 				} else {
@@ -274,7 +266,7 @@ public class HelperCollection {
 	 * @param expr      the expression in which bool vars will be replaced.
 	 * @return an expression with replaced bool parts.
 	 */
-	public Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
+	public static Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
 		if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
 			NumericalLiteral lit1 = new NumericalLiteral(1, null);
 			Operator op1 = new Operator();
@@ -302,7 +294,7 @@ public class HelperCollection {
 	 * @param functionCall the function-call whose arguments will be extracted.
 	 * @return Arguments as String
 	 */
-	public String getArgs(ASTFunctionCall functionCall) {
+	public static String getArgs(ASTFunctionCall functionCall, LEMSCollector container) {
 		StringBuilder newBuilder = new StringBuilder();
 		for (ASTExpr expr : functionCall.getArgs()) {
 			newBuilder.append(container.getLEMSExpressionsPrettyPrinter().print(expr, false));
@@ -319,7 +311,7 @@ public class HelperCollection {
 	 * @param list     the list which holds instruction
 	 * @return true if function call is present
 	 */
-	public boolean containsNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
+	public static boolean containsNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
 		for (DynamicRoutine.Instruction instr : list) {
 			if (instr.getClass() == DynamicRoutine.FunctionCall.class &&
 					((DynamicRoutine.FunctionCall) instr).printName().equals(funcName)) {
@@ -336,7 +328,7 @@ public class HelperCollection {
 	 * @param list     the list of instructions which will be searched through
 	 * @return a list of function calls with the given name,
 	 */
-	public List<DynamicRoutine.FunctionCall> getNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
+	public static List<DynamicRoutine.FunctionCall> getNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
 		return list.stream()
 				.filter(call -> call.getClass().equals(DynamicRoutine.FunctionCall.class) &&
 						((DynamicRoutine.FunctionCall) call).printName().equals(funcName))
@@ -351,7 +343,7 @@ public class HelperCollection {
 	 * @param block    the block in which a function is possibly contained
 	 * @return true if function call is present
 	 */
-	public boolean blockContainsFunction(String function, List<String> args, ASTBlock block) {
+	public static boolean blockContainsFunction(String function, List<String> args, ASTBlock block, LEMSCollector container) {
 		boolean temp = false;
 		boolean temp2 = false;
 		for (ASTStmt stmt : block.getStmts()) {
@@ -378,14 +370,14 @@ public class HelperCollection {
 				}
 				temp = temp || temp2;
 			} else {
-				temp = temp || this.blockContainsFunction(function, args,
-						stmt.getCompound_Stmt().get().getIF_Stmt().get().getIF_Clause().getBlock());
+				temp = temp || blockContainsFunction(function, args,
+						stmt.getCompound_Stmt().get().getIF_Stmt().get().getIF_Clause().getBlock(), container);
 				for (ASTELIF_Clause clause : stmt.getCompound_Stmt().get().getIF_Stmt().get().getELIF_Clauses()) {
-					temp = temp || blockContainsFunction(function, args, clause.getBlock());
+					temp = temp || blockContainsFunction(function, args, clause.getBlock(), container);
 				}
 				if (stmt.getCompound_Stmt().get().getIF_Stmt().get().eLSE_ClauseIsPresent()) {
 					temp = temp || blockContainsFunction(function, args,
-							stmt.getCompound_Stmt().get().getIF_Stmt().get().getELSE_Clause().get().getBlock());
+							stmt.getCompound_Stmt().get().getIF_Stmt().get().getELSE_Clause().get().getBlock(), container);
 				}
 			}
 		}
@@ -399,7 +391,7 @@ public class HelperCollection {
 	 * @param arrayAsString a string representation of the data type array
 	 * @return an array of data
 	 */
-	public int[] convertTypeDeclToArray(String arrayAsString) {
+	public static int[] convertTypeDeclToArray(String arrayAsString) {
 		int res[] = new int[8];
 		String[] tempArray = (arrayAsString.replaceAll("[^\\d\\-]", ":")).split(":");
 		int tempIndex = 0;
@@ -418,7 +410,7 @@ public class HelperCollection {
 	 * @param type the type symbol of an attribute
 	 * @return true, if the type is not supported
 	 */
-	public boolean dataTypeNotSupported(TypeSymbol type) {
+	public static boolean dataTypeNotSupported(TypeSymbol type) {
 		if ((type.getType() == TypeSymbol.Type.PRIMITIVE) && (
 				type.prettyPrint().equals("void") ||
 						type.prettyPrint().equals("String"))) {
@@ -433,7 +425,7 @@ public class HelperCollection {
 	 *
 	 * @param variable the variable whose type is not supported
 	 */
-	public void printNotSupportedDataType(VariableSymbol variable) {
+	public static void printNotSupportedDataType(VariableSymbol variable, LEMSCollector container) {
 		System.err.println("Not supported data-type found: \"" + variable.getType().getName() + "\".");
 		container.addNotConverted("Not supported data-type "
 				+ variable.getType().prettyPrint() + " in lines "
@@ -448,17 +440,17 @@ public class HelperCollection {
 	 *
 	 * @param variable the variable symbol whose declaration has a function call which is not supportd
 	 */
-	public void printNotSupportedFunctionCallInExpression(VariableSymbol variable) {
+	public static void printNotSupportedFunctionCallInExpression(VariableSymbol variable) {
 		System.err.println("Function call found in (constant|parameter) declaration"
 				+ " in lines " + variable.getSourcePosition().getLine() + ".");
 	}
 
-	public void printNotSupportedFunctionCallInEquations(ASTVariable variable) {
+	public static void printNotSupportedFunctionCallInEquations(ASTVariable variable) {
 		System.err
 				.println("Not supported function call in equation: " + variable.getName().toString());
 	}
 
-	public void printNotSupportedFunctionInBlock(ASTSmall_Stmt input) {
+	public static void printNotSupportedFunctionInBlock(ASTSmall_Stmt input, LEMSCollector container) {
 		System.err.println("Not supported function call(s) found in update block.");
 		container.addNotConverted("Not supported function call in update block, lines " + input.get_SourcePositionStart() + " to " + input.get_SourcePositionEnd());
 	}
@@ -470,7 +462,7 @@ public class HelperCollection {
 	 * @param expr The expression which will be modified by an activator.
 	 * @return the extended expression
 	 */
-	public Expression buildExpressionWithActivator(String var, Expression expr) {
+	public static Expression buildExpressionWithActivator(String var, Expression expr) {
 		String temp = PREFIX_ACT + var.replaceAll("'", "");
 		Expression lhs = new Variable(temp);
 		Expression ret = new Expression();
@@ -494,7 +486,7 @@ public class HelperCollection {
 	 * @param expr the expression which will be extended
 	 * @return the extended expr
 	 */
-	public Expression extendExpressionByCON1ms(Expression expr) {
+	public static Expression extendExpressionByCON1ms(Expression expr) {
 		Expression leftSubExpr = new Expression();
 		Operator parenthesis = new Operator();
 		parenthesis.setLeftParentheses(true);
@@ -520,15 +512,15 @@ public class HelperCollection {
 	 * @param expr      the expression which will be modified
 	 * @return the modified expression
 	 */
-	public Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
+	public static Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
 		if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
 			Function tempFunction = new Function("resolution", new ArrayList<>());
 			NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulation_steps_length(),
 					tempType);
-			Constant tempConstant = new Constant(container.getHelper().PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length_asString() +
-					tempType.getUnit().get().toString(), container.getHelper().PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
+			Constant tempConstant = new Constant(HelperCollection.PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length_asString() +
+					tempType.getUnit().get().toString(), HelperCollection.PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
 			container.addConstant(tempConstant);
 			expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
 			return expr;
@@ -543,7 +535,7 @@ public class HelperCollection {
 	 *
 	 * @param expr the expression whose "not" part will be resolved
 	 */
-	public Expression replaceNotByLogicalEquivalent(LEMSCollector container, Expression expr) {
+	public static Expression replaceNotByLogicalEquivalent(LEMSCollector container, Expression expr) {
 		if (expr.opIsPresent() && expr.getOperator().get().isLogicalNot()) {
 			expr.negateLogic();
 		}
@@ -556,18 +548,27 @@ public class HelperCollection {
 		return expr;
 	}
 
-	public void printArrayNotSupportedMessage(VariableSymbol var) {
+	public static void printArrayNotSupportedMessage(VariableSymbol var) {
 		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
 	}
 
-	public String getArrayNotSupportedMessage(VariableSymbol var) {
+	public static String getArrayNotSupportedMessage(VariableSymbol var) {
 		return "Array declaration in lines" + var.getSourcePosition().getLine();
 	}
 
 
-	public void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter) {
+	public static void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter) {
 		System.err.println("Not supported function call in expression found: " + prettyPrinter.print(eq.getRhs(), false));
 	}
 
+	/**
+	 * Inspects a given dimension and transforms it to a LEMS near representation, e.g.  A / s => DimensionOf_A_per_s
+	 *
+	 * @param unformattedDimension the string representation of a yet unformatted dimension
+	 * @return a formatted string
+	 */
+	public static String dimensionFormatter(String unformattedDimension) {
+		return unformattedDimension.replaceAll("\\*", "_times_").replaceAll("/", "_per_").replaceAll(" ", "");
+	}
 
 }

@@ -25,12 +25,11 @@ public class StateVariable {
 
 	public StateVariable(VariableSymbol variable, LEMSCollector container) {
 		this.name = variable.getName();
-
-		this.dimension = container.getHelper().typeToDimensionConverter(variable.getType());
-
+		this.dimension = HelperCollection.typeToDimensionConverter(variable.getType());
+		this.dimension = HelperCollection.dimensionFormatter(this.dimension);
 		//check whether data type is supported or not and print a message
-		if (container.getHelper().dataTypeNotSupported(variable.getType())) {
-			container.getHelper().printNotSupportedDataType(variable);
+		if (HelperCollection.dataTypeNotSupported(variable.getType())) {
+			HelperCollection.printNotSupportedDataType(variable,container);
 		}
 
 		//check if a standard value is set and an actual dimension is used
@@ -42,7 +41,7 @@ public class StateVariable {
 			//now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
 			//reference to it.
 			else if (variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
-				if (this.dimension.equals(container.getHelper().DIMENSION_NONE)) {
+				if (this.dimension.equals(HelperCollection.DIMENSION_NONE)) {
 					this.defaultValue = Optional.of(new NumericalLiteral(variable.getDeclaringExpression().
 							get().getNESTMLNumericLiteral().get()));
 				} else {
@@ -53,7 +52,7 @@ public class StateVariable {
 				//if it is a ternary op, handle it correctly by means of a derived va
 			} else if (variable.getDeclaringExpression().get().conditionIsPresent()) {
 				DerivedElement temp = new DerivedElement(variable.getName(),
-						container.getHelper().typeToDimensionConverter(variable.getType()),
+						HelperCollection.typeToDimensionConverter(variable.getType()),
 						variable.getDeclaringExpression().get(),
 						container, true);
 				container.addDerivedElement(temp);
@@ -67,22 +66,22 @@ public class StateVariable {
 		} else {
 			//no declaration is present, generate a 0 as init value, but with a unit if present
 
-			if (this.dimension.equals(container.getHelper().DIMENSION_NONE) ||
-					this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
+			if (this.dimension.equals(HelperCollection.DIMENSION_NONE) ||
+					this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
 				this.defaultValue = Optional.of(new NumericalLiteral(0,null));
 			} else{
 				ASTUnitType tempType = new ASTUnitType();
 				tempType.setUnit(variable.getType().prettyPrint());
 				tempType.setSerializedUnit(variable.getType().getName());
-				Constant defaultValue = new Constant(container.getHelper().PREFIX_INIT+variable.getName(),
+				Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT+variable.getName(),
 						this.dimension,new NumericalLiteral(0,tempType),false);
 				container.addConstant(defaultValue);
 				this.defaultValue = Optional.of(new Variable(defaultValue.getName()));
 			}
 		}
 
-		if (!this.dimension.equals(container.getHelper().DIMENSION_NONE)
-				&& !this.dimension.equals(container.getHelper().NOT_SUPPORTED)) {
+		if (!this.dimension.equals(HelperCollection.DIMENSION_NONE)
+				&& !this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
 			//state variables are often generated outside the main routine, thus a processing of units has to be triggered
 			Unit tempUnit = new Unit(variable.getType());
 			this.unit = tempUnit.getSymbol();
@@ -115,9 +114,8 @@ public class StateVariable {
 	public StateVariable(String name, String dimension, Expression defaultValue,
 	                     String unit, LEMSCollector container) {
 		this.name = name;
-		this.dimension = dimension;
+		this.dimension = HelperCollection.dimensionFormatter(dimension);
 		this.defaultValue = Optional.of(defaultValue);
-		//this.defaultValue = container.getHelper().replaceConstantsWithReferences(container,defaultValue);
 		this.unit = unit;
 
 	}
