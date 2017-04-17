@@ -2,6 +2,7 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.nest.codegeneration.helpers.Expressions.*;
@@ -17,6 +18,8 @@ import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class provides a set of methods which are used during the transformation in order to retrieve or
@@ -570,5 +573,80 @@ public class HelperCollection {
 	public static String dimensionFormatter(String unformattedDimension) {
 		return unformattedDimension.replaceAll("\\*", "_times_").replaceAll("/", "_per_").replaceAll(" ", "");
 	}
+
+
+	/**
+	 * This method inspects a handed over unit type declaration and transforms it to an expression. It should only be
+	 * used in case a complex unit is used, e.g. pA*1/mV^2
+	 *
+	 * @param unitType a unit type declaring a combined unit
+	 */
+	public static Expression getExpressionFromUnitType(ASTUnitType unitType) {
+		checkNotNull(unitType);
+		Expression ret = new Expression();
+		if (unitType.isPow()) {
+			Operator op = new Operator();
+			op.setPower(true);
+			ret.replaceOp(op);
+		}
+		if (unitType.isDivOp()) {
+			Operator op = new Operator();
+			op.setDivOp(true);
+			ret.replaceOp(op);
+		}
+		if (unitType.isTimesOp()) {
+			Operator op = new Operator();
+			op.setTimesOp(true);
+			ret.replaceOp(op);
+		}
+		if (unitType.unitIsPresent()) {
+			Variable var = new Variable(unitType.getUnit().get());
+			ret.replaceLhs(var);
+		}
+		if (unitType.unitlessLiteralIsPresent()) {
+			NumericalLiteral lit = new NumericalLiteral(unitType.getUnitlessLiteral().get().getValue(), null);
+			ret.replaceLhs(lit);
+		}
+		if (unitType.baseIsPresent() && unitType.exponentIsPresent()) {
+			Operator op = new Operator();
+			op.setPower(true);
+			ret.replaceLhs(getExpressionFromUnitType(unitType.getBase().get()));
+			ret.replaceOp(op);
+			ret.replaceRhs(new NumericalLiteral(unitType.getExponent().get().getValue(), null));
+		}
+		if (unitType.unitTypeIsPresent()) {
+			ret.replaceLhs(getExpressionFromUnitType(unitType.getUnitType().get()));
+		}
+		if (unitType.leftIsPresent()) {
+			ret.replaceLhs(getExpressionFromUnitType(unitType.getLeft().get()));
+		}
+		if (unitType.rightIsPresent()) {
+			ret.replaceRhs(getExpressionFromUnitType(unitType.getRight().get()));
+		}
+		if (unitType.leftParenthesesIsPresent() && unitType.rightParenthesesIsPresent()) {
+			ret = Expression.encapsulateInBrackets(ret);
+		}
+		return ret;
+	}
+
+	/**
+	 * For a given string,this method formats it to a LEMS processable format by deleting arithmetic operators and
+	 * brackets.
+	 *
+	 * @param expression a yet unformatted expression as string
+	 * @return a formatted string
+	 */
+	public static String formatComplexUnit(String expression) {
+		String temp = expression;
+		temp = temp.replaceAll(" ", "");
+		temp = temp.replaceAll("/", "_per_");
+		temp = temp.replaceAll("\\*", "_times_");
+		temp = temp.replaceAll("\\^", "_to_");
+		temp = temp.replaceAll("\\-", "m_");
+		temp = temp.replace("(", "__");
+		temp = temp.replace(")", "__");
+		return temp;
+	}
+
 
 }

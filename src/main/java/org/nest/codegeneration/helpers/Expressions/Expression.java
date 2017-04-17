@@ -9,8 +9,10 @@ import java.util.Optional;
 import org.nest.codegeneration.helpers.LEMSElements.DynamicRoutine;
 import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 import org.nest.codegeneration.helpers.LEMSElements.LEMSCollector;
+import org.nest.codegeneration.helpers.LEMSElements.Unit;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class represents an internal representation of an expression, e.g
@@ -23,7 +25,7 @@ public class Expression {
 	private Optional<Operator> operator = Optional.empty();
 	private Optional<Expression> rhs = Optional.empty();
 
-	//TODO: this is actually not really nice, a workaround to generate from string would be good
+	//TODO: write a lexer+parser to generate from string
 	public Expression(String value) {
 		this.rhs = Optional.of(new Variable(value));
 	}
@@ -78,9 +80,9 @@ public class Expression {
 		} else {
 			if (expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
 				if (expr.getLeft().get().booleanLiteralIsPresent()) {
-					if(expr.getLeft().get().getBooleanLiteral().get().getValue()){
+					if (expr.getLeft().get().getBooleanLiteral().get().getValue()) {
 						this.lhs = Optional.of(Expression.generateTrue());
-					}else{
+					} else {
 						this.lhs = Optional.of(Expression.generateFalse());
 					}
 				} else {
@@ -91,9 +93,9 @@ public class Expression {
 			if (expr.rightIsPresent()) {//check if the right hand side is a single boolean atom, e.g.: 1<2 and true
 				if (expr.getRight().get().booleanLiteralIsPresent()) {
 					//if it is a boolean atom, generate true, respectively false according to the model
-					if(expr.getRight().get().getBooleanLiteral().get().getValue()){
+					if (expr.getRight().get().getBooleanLiteral().get().getValue()) {
 						this.rhs = Optional.of(Expression.generateTrue());
-					}else{
+					} else {
 						this.rhs = Optional.of(Expression.generateFalse());
 					}
 				} else {

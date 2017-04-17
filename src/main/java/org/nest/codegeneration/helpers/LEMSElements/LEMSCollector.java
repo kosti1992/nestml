@@ -303,14 +303,14 @@ public class LEMSCollector extends Collector {
 							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
 					tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
 				} else {//it is a combined unit, e.g. mV/s
-					//TODO: e.g. 1/ms still not supported
+					Expression tempExr = HelperCollection.getExpressionFromUnitType(tempFunction.getDatatype().
+							getUnitType().get());
 					tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
-							+ tempFunction.getDatatype().getUnitType().get().prettyPrint(),
-							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);;
-					tempUnit = null;
-					//-----------------------------------------------------------
+							+ (HelperCollection.formatComplexUnit(tempExr.print())),
+							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+					//in order to retrieve the name of the unit getExpressionFromUnitType is called
+					tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), tempDimension);
 				}
-
 				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),

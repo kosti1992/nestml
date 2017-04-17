@@ -52,7 +52,7 @@ The NESTML2LEMS framework supports almost all characteristics of the NestML spec
 Currently supported functions are:
 
 - **integrate(VAR)** : the integration of a variable VAR.
-- **integrate_odes() : instructs the simulator to integrate all ODEs. 
+- **integrate_odes()** : instructs the simulator to integrate all ODEs. 
 - **emit_spike()**: instructs the component to emit an event/spike.
 - **step(VAR)**: calculates the amount of steps that can be done during a VAR amount of time. This function call is replaced by a explicitly derived value during the transformation process.
 

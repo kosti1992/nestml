@@ -59,10 +59,9 @@ public class Constant {
 			}
 			if (this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
 				//store an adequate message if the data type is not supported
-				HelperCollection.printNotSupportedDataType(variable,container);
+				HelperCollection.printNotSupportedDataType(variable, container);
 			}
 		}
-
 	}
 
 	/**

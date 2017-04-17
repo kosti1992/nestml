@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.Expressions;
 
 import org.nest.codegeneration.LEMSCodeGenerator;
+import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 
 import static de.se_rwth.commons.logging.Log.info;
 
@@ -19,8 +20,9 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 				return String.valueOf((int) expr.getValue());
 			}
 		}
-		if (expr.hasType() && expr.getType().isPresent() && expr.getType().get().getUnit().isPresent()) {
-			return String.valueOf(expr.getValue()) + expr.getType().get().getUnit().get().toString();
+		if (expr.hasType()) {
+			return String.valueOf(expr.getValue()) +" "+
+					HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
 		} else {
 			return String.valueOf(expr.getValue());
 		}
