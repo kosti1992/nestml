@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class represents a concrete Unit used in the model.
@@ -25,11 +26,17 @@ public class Unit {
 	private int power;
 
 	public Unit(TypeSymbol input) {
-		symbol = this.unitFormatter(input.prettyPrint());
+		symbol = HelperCollection.formatComplexUnit(input.prettyPrint());
 		dimension = new Dimension(input);
-		//the power of a unit is set on the 7th block of the array
 		power = HelperCollection.convertTypeDeclToArray(input.toString())[7];
 	}
+
+	public Unit(ASTUnitType input){
+		symbol = HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
+		dimension = new Dimension(input);
+		power = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit())[7];
+	}
+
 
 	/**
 	 * This constructor can be used to generate handmade units.
@@ -37,7 +44,7 @@ public class Unit {
 	 * @param input a string containing a unit symbol
 	 */
 	public Unit(String input, Dimension dimension) {
-		this.symbol = input;
+		this.symbol =  HelperCollection.formatComplexUnit(input);
 		this.dimension = dimension;
 		this.power = HelperCollection.powerConverter(symbol);
 	}

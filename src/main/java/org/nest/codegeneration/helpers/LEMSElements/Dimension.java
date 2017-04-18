@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class represents a dimension required for constants and other constructs in the model.
@@ -21,7 +22,7 @@ public class Dimension {
 			LUMINOUS_INTENSITY;
 
 	protected Dimension(TypeSymbol input) {
-		this.name = HelperCollection.dimensionFormatter(HelperCollection.typeToDimensionConverter(input));
+		this.name = HelperCollection.formatComplexUnit(HelperCollection.typeToDimensionConverter(input));
 		int[] definition = HelperCollection.convertTypeDeclToArray(input.toString());
 		this.THERMODYNAMIC_TEMPERATURE = definition[0];
 		this.TIME = definition[1];
@@ -30,13 +31,27 @@ public class Dimension {
 		this.LUMINOUS_INTENSITY = definition[4];
 		this.AMOUNT_OF_SUBSTANCE = definition[5];
 		this.ELECTRIC_CURRENT = definition[6];
-		;
 	}
+
+	protected Dimension(ASTUnitType input){
+		this.name = HelperCollection.PREFIX_DIMENSION +
+				HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
+		int[] definition = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit());
+		this.THERMODYNAMIC_TEMPERATURE = definition[0];
+		this.TIME = definition[1];
+		this.LENGTH = definition[2];
+		this.MASS = definition[3];
+		this.LUMINOUS_INTENSITY = definition[4];
+		this.AMOUNT_OF_SUBSTANCE = definition[5];
+		this.ELECTRIC_CURRENT = definition[6];
+	}
+
+
 
 	public Dimension(String name, int LENGTH, int MASS, int TIME,
 	                 int ELECTRIC_CURRENT, int THERMODYNAMIC_TEMPERATURE, int AMOUNT_OF_SUBSTANCE, int LUMINOUS_INTENSITY) {
 		this.name = name;
-		this.name = HelperCollection.dimensionFormatter(this.name);
+		this.name = HelperCollection.formatComplexUnit(this.name);
 		this.LENGTH = LENGTH;
 		this.MASS = MASS;
 		this.TIME = TIME;

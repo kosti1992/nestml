@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.types.prettyprint.TypesPrettyPrinterConcreteVisitor;
+import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 import org.nest.commons._ast.ASTNESTMLNumericLiteral;
 import org.nest.units._ast.ASTUnitType;
 
@@ -64,9 +65,11 @@ public class NumericalLiteral extends Expression {
 	public String printValueType() {
 		if (this.type.isPresent()) {
 			if (this.value - (int) this.value == 0) {
-				return String.valueOf((int) this.value) + type.get().getUnit().get();
+				return String.valueOf((int) this.value) + "_" +
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.type.get()).print());
 			} else {
-				return String.valueOf(this.value) + type.get().getUnit().get();
+				return String.valueOf(this.value) + "_" +
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.type.get()).print());
 			}
 		} else {
 			if (this.value - (int) this.value == 0) {
@@ -110,9 +113,9 @@ public class NumericalLiteral extends Expression {
 	 * @return a deep clone of this
 	 */
 	public NumericalLiteral deepClone() {
-		if(this.type.isPresent()) {
+		if (this.type.isPresent()) {
 			return new NumericalLiteral(this.value, this.type.get());
-		}else{
+		} else {
 			return new NumericalLiteral(this.value, null);
 		}
 	}

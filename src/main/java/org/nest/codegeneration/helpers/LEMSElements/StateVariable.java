@@ -1,5 +1,6 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
@@ -27,6 +28,7 @@ public class StateVariable {
 		this.name = variable.getName();
 		this.dimension = HelperCollection.typeToDimensionConverter(variable.getType());
 		this.dimension = HelperCollection.dimensionFormatter(this.dimension);
+
 		//check whether data type is supported or not and print a message
 		if (HelperCollection.dataTypeNotSupported(variable.getType())) {
 			HelperCollection.printNotSupportedDataType(variable,container);
@@ -65,7 +67,6 @@ public class StateVariable {
 			}
 		} else {
 			//no declaration is present, generate a 0 as init value, but with a unit if present
-
 			if (this.dimension.equals(HelperCollection.DIMENSION_NONE) ||
 					this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
 				this.defaultValue = Optional.of(new NumericalLiteral(0,null));
@@ -93,7 +94,7 @@ public class StateVariable {
 	/**
 	 * This constructor can be used to generate new StateVariables from an external artifact stored as an xml file
 	 *
-	 * @param xmlNode the xml node of a state varaibel artifact
+	 * @param xmlNode the xml node of a state variable artifact
 	 */
 	public StateVariable(Node xmlNode) {
 		this.name = xmlNode.getAttributes().getNamedItem("name").getNodeValue();

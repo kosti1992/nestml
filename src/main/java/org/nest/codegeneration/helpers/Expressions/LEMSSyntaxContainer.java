@@ -15,7 +15,12 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 	public String print(NumericalLiteral expr) {
 		if (expr.getValue() - (int) expr.getValue() == 0) {
 			if (expr.hasType()) {
-				return String.valueOf((int) expr.getValue()) + expr.getType().get().getUnit().get().toString();
+				/*
+				return String.valueOf((int) expr.getValue()) +" "+ HelperCollection.formatComplexUnit(
+						expr.getType().get().getUnit().get().toString());
+						*/
+				return String.valueOf((int) expr.getValue()) +" "+
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
 			} else {
 				return String.valueOf((int) expr.getValue());
 			}

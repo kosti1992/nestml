@@ -1,5 +1,6 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
+import org.eclipse.emf.ecore.xmi.impl.EMOFHandler;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
 import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
@@ -33,7 +34,7 @@ public class Constant {
 	public Constant(VariableSymbol variable, boolean init, boolean par, LEMSCollector container) {
 		this.name = variable.getName();
 		this.dimension = HelperCollection.typeToDimensionConverter(variable.getType());
-		this.dimension = HelperCollection.dimensionFormatter(dimension);
+		this.dimension = HelperCollection.dimensionFormatter(dimension);//format the dimension to make it LEMS readable
 		this.parameter = par;
 		if (init) {
 			this.name = HelperCollection.PREFIX_INIT + this.name;//init values are extended by a label in order to indicate as such
@@ -46,21 +47,24 @@ public class Constant {
 					this.value = this.processFunctionCallInConstantDefinition(variable, container);
 				} else {
 					this.value = new Expression(variable);
+					HelperCollection.retrieveUnitsFromExpression(this.value,container);
 				}
 			} else {//otherwise this is an initialization, thus create a new numerical literal or variable
 				if (variable.getType().getType() == TypeSymbol.Type.UNIT) {// in case a unit is used, we have to create num
+					/*
 					ASTUnitType tempType = new ASTUnitType();
 					tempType.setUnit(variable.getType().prettyPrint());
-					NumericalLiteral literal = new NumericalLiteral(0, tempType);
-					this.value = literal;
+					NumericalLiteral literal = new NumericalLiteral(0, tempType);*/
+					this.value = new Expression(variable.getDeclaringExpression().get());
 				} else {//var does not have unit, a variable with value 0 is sufficient
-					this.value = new Variable("0");
+					this.value = new NumericalLiteral(0, null);
 				}
 			}
-			if (this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
-				//store an adequate message if the data type is not supported
-				HelperCollection.printNotSupportedDataType(variable, container);
-			}
+		}
+
+		//store an adequate message if the data type is not supported
+		if (this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
+			HelperCollection.printNotSupportedDataType(variable, container);
 		}
 	}
 
@@ -93,7 +97,7 @@ public class Constant {
 	 */
 	public Constant(String name, String dimension, Expression value, boolean par) {
 		this.name = name;
-		this.dimension = HelperCollection.dimensionFormatter(dimension);
+		this.dimension = HelperCollection.formatComplexUnit(dimension);
 		this.value = value;
 		this.parameter = par;
 	}
@@ -130,13 +134,6 @@ public class Constant {
 	@SuppressWarnings("unused")//used in the template
 	public String getValueUnit() {
 		return this.value.print(new LEMSSyntaxContainer());
-	/*
-	if(!this.unit.equals("")){
-      return this.value+this.unit;
-    }
-    else{
-      return this.value.print(new LEMSSyntaxContainer());
-    }*/
 	}
 
 	public boolean isParameter() {
@@ -174,6 +171,13 @@ public class Constant {
 		return result;
 	}
 
+	/**
+	 * Processes a given function call and returns, if the corresponding function call is supported, a corresponding
+	 * expression.
+	 * @param variable a variable containing a function call
+	 * @param container a LEMSCollector for storage of error messages
+	 * @return a new expression
+	 */
 	private Expression processFunctionCallInConstantDefinition(VariableSymbol variable, LEMSCollector container) {
 		if (variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
 			ASTUnitType tempType = new ASTUnitType();

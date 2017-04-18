@@ -240,10 +240,22 @@ public class HelperCollection {
 				} else {
 					int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
 					//create the required units and dimensions
+					/*
 					Dimension tempDimension =
 							new Dimension(PREFIX_DIMENSION + ((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
 									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+					*/
+					Dimension tempDimension =
+							new Dimension(PREFIX_DIMENSION +
+									HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
+									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+
+
+					/*
 					Unit tempUnit = new Unit(((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
+							tempDimension);
+					*/
+					Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
 							tempDimension);
 					container.addDimension(tempDimension);
 					container.addUnit(tempUnit);
@@ -647,6 +659,32 @@ public class HelperCollection {
 		temp = temp.replace(")", "__");
 		return temp;
 	}
+
+	/**
+	 * Collects all units from a handed over numerical. This method is required in order to process
+	 * complex units stated as part of constants in expressions.
+	 * @return a list of ASTUnitTypes of the numerical stated in a given expression.
+	 */
+	public static List<ASTUnitType> collectUnitsFromNumericals(Expression expr){
+		List<ASTUnitType> ret = new ArrayList<>();
+		for(Expression lit: expr.getNumericals()){
+			if(((NumericalLiteral)lit).hasType()){
+				ret.add(((NumericalLiteral)lit).getType().get());
+			}
+		}
+		return ret;
+	}
+
+	public static void retrieveUnitsFromExpression(Expression expr,LEMSCollector container){
+		for(Expression numerical:expr.getNumericals()){
+			if(((NumericalLiteral)numerical).hasType()){
+				Unit temp = new Unit(((NumericalLiteral)numerical).getType().get());
+				container.addUnit(temp);
+				container.addDimension(temp.getDimension());
+			}
+		}
+	}
+
 
 
 }
