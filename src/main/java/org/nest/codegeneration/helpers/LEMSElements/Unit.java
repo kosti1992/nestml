@@ -37,16 +37,15 @@ public class Unit {
 		power = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit())[7];
 	}
 
-
 	/**
 	 * This constructor can be used to generate handmade units.
 	 *
 	 * @param input a string containing a unit symbol
 	 */
-	public Unit(String input, Dimension dimension) {
+	public Unit(String input,int power , Dimension dimension) {
 		this.symbol =  HelperCollection.formatComplexUnit(input);
 		this.dimension = dimension;
-		this.power = HelperCollection.powerConverter(symbol);
+		this.power = power;
 	}
 
 	/**

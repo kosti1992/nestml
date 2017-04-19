@@ -219,8 +219,8 @@ public class HelperCollection {
 				if (((NumericalLiteral) exp).getType().isPresent() &&
 						((NumericalLiteral) exp).getType().get()
 								.getSerializedUnit() == null) {
-					//this is an rather bad approach, since it requires that the same unit is already somewhere defined
-					//in the model, however, this part of the method it only invoked for artificial extensionss, thus not critical
+					//this is a rather bad approach, since it requires that the same unit is already somewhere defined
+					//in the model, however, this part of the method it only invoked for artificial extensions, thus not critical
 					Dimension tempDimension = null;
 					for (Unit u : container.getUnitsSet()) {
 						if (u.getSymbol().equals(((NumericalLiteral) exp).getType().get().getUnit().get())) {
@@ -240,26 +240,15 @@ public class HelperCollection {
 				} else {
 					int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
 					//create the required units and dimensions
-					/*
-					Dimension tempDimension =
-							new Dimension(PREFIX_DIMENSION + ((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
-									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-					*/
 					Dimension tempDimension =
 							new Dimension(PREFIX_DIMENSION +
 									HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
 									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-
-
-					/*
-					Unit tempUnit = new Unit(((NumericalLiteral) exp).getType().get().getUnit().get().toString(),
-							tempDimension);
-					*/
 					Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
-							tempDimension);
+							dec[7],tempDimension);
 					container.addDimension(tempDimension);
 					container.addUnit(tempUnit);
-
+					//finally a constant representing the concrete value, a reference is set to this constant
 					Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
 							tempDimension.getName(), exp, false);
 					container.addConstant(tempConstant);
@@ -649,6 +638,10 @@ public class HelperCollection {
 	 * @return a formatted string
 	 */
 	public static String formatComplexUnit(String expression) {
+		if(expression.equals(HelperCollection.DIMENSION_NONE)||
+				expression.equals(HelperCollection.NOT_SUPPORTED)){
+			return expression;
+		}
 		String temp = expression;
 		temp = temp.replaceAll(" ", "");
 		temp = temp.replaceAll("/", "_per_");

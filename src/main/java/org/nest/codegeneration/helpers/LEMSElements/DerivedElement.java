@@ -38,9 +38,10 @@ public class DerivedElement {
 		if (HelperCollection.dataTypeNotSupported(variable.getType())) {
 			dimension = HelperCollection.NOT_SUPPORTED;
 			//print an adequate error message
-			HelperCollection.printNotSupportedDataType(variable,container);
+			HelperCollection.printNotSupportedDataType(variable, container);
 		} else {
 			dimension = HelperCollection.typeToDimensionConverter(variable.getType());
+			dimension = HelperCollection.formatComplexUnit(dimension);
 		}
 
 		//get the derivation instruction in LEMS format
@@ -63,7 +64,7 @@ public class DerivedElement {
 	public DerivedElement(String name, String dimension,
 	                      Expression derivationInstruction, boolean dynamic, boolean external) {
 		this.name = name;
-		this.dimension = dimension;
+		this.dimension = HelperCollection.formatComplexUnit(dimension);
 		this.derivationInstruction = derivationInstruction;
 		this.dynamic = dynamic;
 		this.external = external;
@@ -108,9 +109,10 @@ public class DerivedElement {
 	 */
 	public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container, boolean init) {
 		this.name = name;
-		if (init)
+		if (init) {
 			this.name = HelperCollection.PREFIX_INIT + this.name;
-		this.dimension = dimension;
+		}
+		this.dimension = HelperCollection.formatComplexUnit(dimension);
 		this.handleTernaryOp(expr, container);
 	}
 

@@ -27,17 +27,17 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY));
     //test constants
     if(true) {
-      Assert.assertEquals(11, testant.getListOfNeurons().get(0).getConstantsList().size());
+      Assert.assertEquals(12, testant.getListOfNeurons().get(0).getConstantsList().size());
       Assert.assertEquals("INITV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
-      Assert.assertEquals("0mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
+      Assert.assertEquals("0 mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
       Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());
-      Assert.assertEquals("55mV", testant.getListOfNeurons().get(0).getConstantsList().get(10).getValueUnit());
+      Assert.assertEquals("55 mV", testant.getListOfNeurons().get(0).getConstantsList().get(10).getValueUnit());
 
       //test derived parameter
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getDerivedParametersList().size());
       Assert.assertEquals("V_reset", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getName());
       Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDimension());
-      Assert.assertEquals("-CON70mV-E_L", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDerivationInstruction().print());
+      Assert.assertEquals("-CON70_mV-E_L", testant.getListOfNeurons().get(0).getDerivedParametersList().get(0).getDerivationInstruction().print());
       //not supported elements found
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getNotConvertedElements().size() > 0);
       //test event ports

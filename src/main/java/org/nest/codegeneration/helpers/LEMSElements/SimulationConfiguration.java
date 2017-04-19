@@ -48,7 +48,8 @@ public class SimulationConfiguration {
 		if (configPath == null) {
 			//if no artifact has been provided, use some standard settings:
 			this.simulation_steps_length = 10;
-			this.simulation_steps_unit = new Unit("ms", new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
+			this.simulation_steps_unit = new Unit("ms",HelperCollection.powerConverter("ms"),
+					new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 			return;
 		}
 		try {
@@ -105,7 +106,7 @@ public class SimulationConfiguration {
 							//if it matches a value declaration, e.g. 10ms (value:unit)
 							if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().matches("[0-9]+[a-zA-Z]+")) {
 								String unit = outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[0-9]", "");
-								simulation_steps_unit = new Unit(unit, new Dimension(HelperCollection.PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
+								simulation_steps_unit = new Unit(unit,HelperCollection.powerConverter(unit),new Dimension(HelperCollection.PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
 								simulation_steps_length = Double.parseDouble(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[a-zA-Z]", ""));
 								container.addUnit(simulation_steps_unit);
 								container.addDimension(simulation_steps_unit.getDimension());
@@ -125,7 +126,7 @@ public class SimulationConfiguration {
 		//in the case that a correct artifact has been provided but without steps length and unit stated
 		if (this.simulation_steps_length == -1 && this.simulation_steps_unit == null) {
 			this.simulation_steps_length = 10;
-			this.simulation_steps_unit = new Unit("ms", new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
+			this.simulation_steps_unit = new Unit("ms",HelperCollection.powerConverter("ms"),new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 		}
 
 	}

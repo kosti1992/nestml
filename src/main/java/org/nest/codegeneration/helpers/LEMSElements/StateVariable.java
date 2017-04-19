@@ -86,6 +86,7 @@ public class StateVariable {
 			//state variables are often generated outside the main routine, thus a processing of units has to be triggered
 			Unit tempUnit = new Unit(variable.getType());
 			this.unit = tempUnit.getSymbol();
+			container.addDimension(tempUnit.getDimension());
 			container.addUnit(tempUnit);
 		}
 

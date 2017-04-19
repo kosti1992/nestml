@@ -132,7 +132,7 @@ public class LEMSCollector extends Collector {
 			this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
 			Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
-			this.addUnit(new Unit("ms", msDimension));
+			this.addUnit(new Unit("ms",HelperCollection.powerConverter("ms"), msDimension));
 
 			//first process all shapes of the model
 			this.handleShapes(neuronBody);
@@ -296,12 +296,14 @@ public class LEMSCollector extends Collector {
 				Unit tempUnit;
 				int[] dec = HelperCollection.convertTypeDeclToArray(
 						tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
+
 				if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
 					//create the required units and dimensions
 					tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
 							+ tempFunction.getDatatype().getUnitType().get().getUnit().get(),
 							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-					tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(), tempDimension);
+					tempUnit = new Unit(tempFunction.getDatatype().getUnitType().get().getUnit().get(),
+							dec[7], tempDimension);
 				} else {//it is a combined unit, e.g. mV/s
 					Expression tempExr = HelperCollection.getExpressionFromUnitType(tempFunction.getDatatype().
 							getUnitType().get());
@@ -309,7 +311,7 @@ public class LEMSCollector extends Collector {
 							+ (HelperCollection.formatComplexUnit(tempExr.print())),
 							dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
 					//in order to retrieve the name of the unit getExpressionFromUnitType is called
-					tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), tempDimension);
+					tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), dec[7], tempDimension);
 				}
 				if (tempFunction.getExpr().conditionIsPresent()) {
 					tempDerivedVar = new DerivedElement(
@@ -318,10 +320,13 @@ public class LEMSCollector extends Collector {
 							tempFunction.getExpr(),
 							this, false);
 				} else {
+					Expression tempExpression = new Expression(tempFunction.getExpr());
+					tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+					tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
 							tempDimension.getName(),
-							new Expression(tempFunction.getExpr()),
+							tempExpression,
 							true,
 							false);
 				}
