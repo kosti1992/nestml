@@ -2,19 +2,8 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.*;
 
-import org.eclipse.emf.ecore.xmi.impl.EMOFHandler;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
-import org.nest.codegeneration.helpers.LEMSElements.ConditionalBlock;
-import org.nest.codegeneration.helpers.LEMSElements.Constant;
-import org.nest.codegeneration.helpers.LEMSElements.DerivedElement;
-import org.nest.codegeneration.helpers.LEMSElements.Dimension;
-import org.nest.codegeneration.helpers.LEMSElements.DynamicRoutine;
-import org.nest.codegeneration.helpers.LEMSElements.EventPort;
-import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
-import org.nest.codegeneration.helpers.LEMSElements.SimulationConfiguration;
-import org.nest.codegeneration.helpers.LEMSElements.StateVariable;
-import org.nest.codegeneration.helpers.LEMSElements.Unit;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.ASTBody;
 import org.nest.nestml._ast.ASTFunction;
@@ -48,7 +37,7 @@ public class LEMSCollector extends Collector {
 
 	private LEMSExpressionsPrettyPrinter prettyPrint;//used in order to convert expressions to LEMS syntax
 
-	private DynamicRoutine automaton;//An internal representation of the update-block.
+	private DynamicRoutine routine;//An internal representation of the update-block.
 
 	private Set<Unit> unitsSet = null;//Collects all units
 
@@ -159,7 +148,7 @@ public class LEMSCollector extends Collector {
 		//process the buffers
 		this.handleBuffers(neuronBody);
 
-		//check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding automaton
+		//check whether the modeled neuron contains a dynamic routine, and if so, generate a corresponding routine
 		this.handleDynamicsBlock(neuronBody);
 
 		//if no spike directive is present, an artificial event out directive has to be added in order to activate the port
@@ -388,6 +377,25 @@ public class LEMSCollector extends Collector {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									"", this);//no unit,therefore "" as 4th arg
 						}
+					} else if(var.getDeclaringExpression().get().exprIsPresent()) {
+						//in the case it is an expression, e.g. 10mV+V_m
+						tempDerivedElement = new DerivedElement(var, this, false, false);
+
+						//in the case it is a expression consisting of a left and a right hand side
+					} else if(var.getDeclaringExpression().get().leftIsPresent()&&var.getDeclaringExpression().get().rightIsPresent()) {
+						Expression tempExpression = new Expression(var);
+						tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
+						tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
+						tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
+								tempExpression, false, false);
+						//in the case it is an exponential expression
+					} else if(var.getDeclaringExpression().get().baseIsPresent()&&var.getDeclaringExpression().get().exponentIsPresent()){
+						Expression tempExpression = new Expression(var);
+						tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
+						tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+						tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
+								tempExpression, false, false);
+
 					} else {
 						//if a declaring value is present -> generate a constant
 						temp = new Constant(var, false, false, this);
@@ -395,34 +403,6 @@ public class LEMSCollector extends Collector {
 				} else {
 					//otherwise generate a parameter
 					temp = new Constant(var, false, true, this);
-				}
-				String varName = null;
-				//now check if a state variable has been initialized with this value
-				for (VariableSymbol tempVar : neuronBody.getStateNonAliasSymbols()) {
-					if (tempVar.getDeclaringExpression().isPresent()
-							&& var.getName().equals(this.prettyPrint.print(tempVar.getDeclaringExpression().get(), false))) {
-						varName = tempVar.getName();
-					}
-				}
-				//if a variable has been initialized with this value, reset its default value
-				if (varName != null) {
-					for (StateVariable stateVar : stateVariablesList) {
-						if (stateVar.getName().equals(varName)) {
-							Variable tempVar = new Variable(temp.getName());
-							stateVar.setDefaultValue(tempVar);
-						}
-					}
-				}
-
-				//now, in order to avoid constants which are not used, delete them
-				int tempIndex = -1;
-				for (Constant v : constantsList) {//search for the index
-					if (v.getName().equals(HelperCollection.PREFIX_INIT + varName)) {
-						tempIndex = constantsList.indexOf(v);
-					}
-				}//delete the the element
-				if (tempIndex != -1) {
-					constantsList.remove(tempIndex);//remove the previously generated init value
 				}
 				//finally add the new constant
 				if (temp != null)
@@ -512,11 +492,15 @@ public class LEMSCollector extends Collector {
 					} else {// otherwise it is either an expression or does contain a yet different type of function call.
 						if (var.getDeclaringExpression().get().exprIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());
+							tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
+							tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
 							DerivedElement tempElem = new DerivedElement(var.getName(),
 									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
 						} else if (var.getDeclaringExpression().get().termIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getTerm().get());
+							tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
+							tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
 							DerivedElement tempElem = new DerivedElement(var.getName(),
 									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
@@ -616,7 +600,7 @@ public class LEMSCollector extends Collector {
 	private void handleDynamicsBlock(ASTBody neuronBody) {
 		checkNotNull(neuronBody);
 		if (neuronBody.getDynamicsBlock().isPresent()) {
-			automaton = new DynamicRoutine(neuronBody.getDynamics(), this);
+			routine = new DynamicRoutine(neuronBody.getDynamics(), this);
 		}
 	}
 
@@ -695,12 +679,12 @@ public class LEMSCollector extends Collector {
 
 	@SuppressWarnings("unused")//Used in the template
 	public boolean getDynamicElementsArePresent() {
-		return this.automaton != null;
+		return this.routine != null;
 	}
 
 	@SuppressWarnings("unused")//Used in the template
 	public DynamicRoutine getAutomaton() {
-		return this.automaton;
+		return this.routine;
 	}
 
 	@SuppressWarnings("unused")//Used in the template
@@ -710,7 +694,7 @@ public class LEMSCollector extends Collector {
 
 	@SuppressWarnings("unused")//Used in the template
 	public boolean conditionsPresent() {
-		return (this.automaton != null) && (this.automaton.getConditionalBlocks().size() > 0);
+		return (this.routine != null) && (this.routine.getConditionalBlocks().size() > 0);
 	}
 
 	@SuppressWarnings("unused")//Used in the template
@@ -928,8 +912,8 @@ public class LEMSCollector extends Collector {
 	 * Activates a port for the LEMS simulator, for more details read git hub issue.
 	 */
 	private void addPortActivator() {
-		if (outputPortDefined() && !HelperCollection.containsNamedFunction("emit_spike", automaton.getAllInstructions())) {
-			automaton.addPortActivator();
+		if (outputPortDefined() && !HelperCollection.containsNamedFunction("emit_spike", routine.getAllInstructions())) {
+			routine.addPortActivator();
 		}
 	}
 

@@ -3,7 +3,6 @@ package org.nest.codegeneration.LEMSTests;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.frontend.NestmlFrontend;
-//import org.nest.frontend.NESTMLFrontend;
 
 /**
  * Tests whether model can be generated without any critical errors (e.g. exceptions) and whether
