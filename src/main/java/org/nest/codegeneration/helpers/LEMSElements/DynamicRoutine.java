@@ -20,13 +20,10 @@ import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTDynamics;
 import org.nest.nestml._ast.ASTFunction;
-import org.nest.spl._ast.ASTBlock;
-import org.nest.spl._ast.ASTCompound_Stmt;
-import org.nest.spl._ast.ASTELIF_Clause;
-import org.nest.spl._ast.ASTSmall_Stmt;
-import org.nest.spl._ast.ASTStmt;
+import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
 import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
+import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class represents a transformed representation of the dynamic routine extracted from the source-model
@@ -239,7 +236,7 @@ public class DynamicRoutine {
 			//check if not supported functions are part of the assignment
 			if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
 				//Generate a proper error message
-				HelperCollection.printNotSupportedFunctionInBlock(input,container);
+				HelperCollection.printNotSupportedFunctionInBlock(input, container);
 				//now generate a expression which indicates that it is not supported
 				Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
 				tempExpression = tempExpression.setNotSupported();
@@ -294,9 +291,12 @@ public class DynamicRoutine {
 		if (input.functionCallIsPresent()) {
 			return handleFunctionCall(input.getFunctionCall().get());
 		}
+		if (input.declarationIsPresent()){
+			return handleASTDeclaration(input.getDeclaration().get(),this.container);
+		}
 		System.err.println("Something went wrong in small statement processing." +
-				" Position in source: " + input.get_SourcePositionStart());
-		res.add(new Assignment("", null));
+				" Position in source: " + input.get_SourcePositionStart() + " in model " + this.container.getNeuronName()+".");
+		//res.add(new Assignment("", null));
 		return res;
 	}
 
@@ -319,10 +319,64 @@ public class DynamicRoutine {
 			default:
 				this.container.addNotConverted("Not supported function call "
 						+ functionCall.getName().toString() + " in lines "
-						+ functionCall.get_SourcePositionStart() + " to " + functionCall.get_SourcePositionEnd());
+						+ functionCall.get_SourcePositionStart() + " to " + functionCall.get_SourcePositionEnd()
+				+ " in model " + this.container.getNeuronName());
 				return new ArrayList<>();
 		}
 	}
+
+
+	/**
+	 * Deals with variable declarations inside the update block. This method generates state variables and instructions
+	 * to set variables to the values in each iteration.
+	 * @param declaration a ASTDeclaration containing a declaration of a variable inside the update block
+	 * @param container a LEMSCollector for adding the state variables
+	 * @return a list of instructions
+	 */
+	private List<Instruction> handleASTDeclaration(ASTDeclaration declaration, LEMSCollector container){
+		List<Instruction> ret = new ArrayList<>();
+		String dimension = HelperCollection.DIMENSION_NONE;
+		String unit = "";
+		//if a data type is present,we have to add this type to the container
+		if(declaration.getDatatype().getUnitType().isPresent()){
+			int[] dec = HelperCollection.convertTypeDeclToArray(
+					declaration.getDatatype().getUnitType().get().getSerializedUnit());
+			Expression tempExr = HelperCollection.getExpressionFromUnitType(declaration.getDatatype().
+					getUnitType().get());
+			Dimension tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
+					+ (HelperCollection.formatComplexUnit(tempExr.print())),
+					dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+			Unit tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), dec[7], tempDimension);
+			container.addDimension(tempDimension);
+			container.addUnit(tempUnit);
+			dimension = tempDimension.getName();
+			unit = tempUnit.getSymbol();
+		}
+		Expression tempExpression = null;
+		//now check if a declaration is present
+		if(declaration.getExpr().isPresent()){
+			tempExpression = new Expression(declaration.getExpr().get());
+		}
+		else{//if no (this case is quite absurd, but a handling should be present
+			if(declaration.getDatatype().unitTypeIsPresent()){
+				ASTUnitType tempType = new ASTUnitType();
+				tempType.setUnit(declaration.getDatatype().getUnitType().get().getUnit().get());
+				tempType.setSerializedUnit(declaration.getDatatype().getUnitType().get().getSerializedUnit());
+				tempExpression = new NumericalLiteral(0,tempType);
+			}
+			else{
+				tempExpression = new NumericalLiteral(0,null);
+			}
+		}
+		Instruction tempInstruction = null;
+		for(String var:declaration.getVars()){
+			container.addStateVariable(new StateVariable(var,dimension,tempExpression,unit,container));
+			tempInstruction = new Assignment(var,tempExpression);
+			ret.add(tempInstruction);
+		}
+		return ret;
+	}
+
 
 	/**
 	 * Emit spike calls are simply transformed to a new function call.

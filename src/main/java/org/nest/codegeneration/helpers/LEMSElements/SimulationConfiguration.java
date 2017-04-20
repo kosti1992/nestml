@@ -45,7 +45,7 @@ public class SimulationConfiguration {
 	 * @throws IOException thrown if non file is given.
 	 */
 	public void adaptSettings(LEMSCollector container) {
-		if (configPath == null) {
+		if (configPath == null || configPath.hashCode()==0) {// a hash of 0 means that there is no path
 			//if no artifact has been provided, use some standard settings:
 			this.simulation_steps_length = 10;
 			this.simulation_steps_unit = new Unit("ms",HelperCollection.powerConverter("ms"),
@@ -121,6 +121,8 @@ public class SimulationConfiguration {
 		} catch (ParserConfigurationException e) {
 			System.err.println("Artifact skipped (invalid): " + configPath);
 		} catch (IOException e) {
+			System.err.println("Artifact skipped (not found): " + configPath);
+		} catch (Exception e){
 			System.err.println("Artifact skipped (not found): " + configPath);
 		}
 		//in the case that a correct artifact has been provided but without steps length and unit stated
