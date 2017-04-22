@@ -79,7 +79,6 @@ public class LEMSCodeGenerator {
 		checkArgument(!neurons.isEmpty());
 		//set the system language to english in order to avoid problems with "," instead of "."
 		Locale.setDefault(Locale.ENGLISH);
-
 		final GeneratorSetup setup = new GeneratorSetup(new File(outputDirectory.toString()));
 		setup.setTracing(false);
 		final GlobalExtensionManagement glex = getGlexConfiguration();
@@ -97,6 +96,8 @@ public class LEMSCodeGenerator {
 		LEMSCollector collector;
 		//transform each given neuron
 		for (ASTNeuron neuron : neurons) {
+			System.out.println("-------------------------------------------------");
+			System.out.println("Starting processing of: " + neuron.getName());
 			collector = new LEMSCollector(neuron, config);//process the neuron
 			glex.setGlobalValue("container", collector);
 			if (config.isUnitsExternal()) {

@@ -451,6 +451,16 @@ public class Expression {
 		return ret;
 	}
 
+	public boolean isEmpty(){
+		return !this.lhsIsPresent() && !this.opIsPresent() && !this.rhsIsPresent();
+	}
+
+	public boolean isExpression(){
+		return this.lhsIsPresent() && this.opIsPresent() && this.rhsIsPresent();
+	}
+
+
+
 	private void parseStringToExpression(String expressionAsString) {
 		//TODO: write a parser+lexer for expression in string form
 	}

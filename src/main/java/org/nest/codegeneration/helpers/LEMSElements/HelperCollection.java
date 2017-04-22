@@ -242,10 +242,10 @@ public class HelperCollection {
 					//create the required units and dimensions
 					Dimension tempDimension =
 							new Dimension(PREFIX_DIMENSION +
-									HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
+									HelperCollection.getExpressionFromUnitType(((NumericalLiteral) exp).getType().get()).print(),
 									dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-					Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral)exp).getType().get()).print(),
-							dec[7],tempDimension);
+					Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral) exp).getType().get()).print(),
+							dec[7], tempDimension);
 					container.addDimension(tempDimension);
 					container.addUnit(tempUnit);
 					//finally a constant representing the concrete value, a reference is set to this constant
@@ -638,8 +638,8 @@ public class HelperCollection {
 	 * @return a formatted string
 	 */
 	public static String formatComplexUnit(String expression) {
-		if(expression.equals(HelperCollection.DIMENSION_NONE)||
-				expression.equals(HelperCollection.NOT_SUPPORTED)){
+		if (expression.equals(HelperCollection.DIMENSION_NONE) ||
+				expression.equals(HelperCollection.NOT_SUPPORTED)) {
 			return expression;
 		}
 		String temp = expression;
@@ -656,28 +656,58 @@ public class HelperCollection {
 	/**
 	 * Collects all units from a handed over numerical. This method is required in order to process
 	 * complex units stated as part of constants in expressions.
+	 *
 	 * @return a list of ASTUnitTypes of the numerical stated in a given expression.
 	 */
-	public static List<ASTUnitType> collectUnitsFromNumericals(Expression expr){
+	public static List<ASTUnitType> collectUnitsFromNumericals(Expression expr) {
 		List<ASTUnitType> ret = new ArrayList<>();
-		for(Expression lit: expr.getNumericals()){
-			if(((NumericalLiteral)lit).hasType()){
-				ret.add(((NumericalLiteral)lit).getType().get());
+		for (Expression lit : expr.getNumericals()) {
+			if (((NumericalLiteral) lit).hasType()) {
+				ret.add(((NumericalLiteral) lit).getType().get());
 			}
 		}
 		return ret;
 	}
 
-	public static void retrieveUnitsFromExpression(Expression expr,LEMSCollector container){
-		for(Expression numerical:expr.getNumericals()){
-			if(((NumericalLiteral)numerical).hasType()){
-				Unit temp = new Unit(((NumericalLiteral)numerical).getType().get());
+	public static void retrieveUnitsFromExpression(Expression expr, LEMSCollector container) {
+		for (Expression numerical : expr.getNumericals()) {
+			if (((NumericalLiteral) numerical).hasType()) {
+				Unit temp = new Unit(((NumericalLiteral) numerical).getType().get());
 				container.addUnit(temp);
 				container.addDimension(temp.getDimension());
 			}
 		}
 	}
 
+	/**
+	 * Checks if the given expression consists of a logical operator and replaces all occurrences of a expression on
+	 * one side of the expression by the same expression but encapsulated in brackets in order to enable LEMS to read
+	 * the expression and process it.
+	 *
+	 * @return a Expression with references where needed
+	 */
+	public static Expression replaceExpressionsByReferences(Expression expression) {
+		if (expression.opIsPresent()) {
+			if (expression.getOperator().get().isLt() || expression.getOperator().get().isLe() ||
+					expression.getOperator().get().isEq() || expression.getOperator().get().isNe() ||
+					expression.getOperator().get().isGt() || expression.getOperator().get().isGe()) {
+				Expression tempExpression = null;
+				if(expression.getLhs().get().isExpression()){
+					expression.replaceLhs(Expression.encapsulateInBrackets((expression.getLhs().get())));
+				}
+				if(expression.getRhs().get().isExpression()){
+					expression.replaceRhs(Expression.encapsulateInBrackets((expression.getRhs().get())));
+				}
+			}
+			if (expression.lhsIsPresent()) {
+				expression.replaceLhs(replaceExpressionsByReferences(expression.getLhs().get()));
+			}
+			if (expression.rhsIsPresent()) {
+				expression.replaceRhs(replaceExpressionsByReferences(expression.getRhs().get()));
+			}
+		}
+		return expression;
+	}
 
 
 }
