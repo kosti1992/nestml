@@ -2,7 +2,6 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.nest.codegeneration.helpers.Expressions.*;
@@ -271,6 +270,7 @@ public class HelperCollection {
 	 * @return an expression with replaced bool parts.
 	 */
 	public static Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
+
 		if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
 			NumericalLiteral lit1 = new NumericalLiteral(1, null);
 			Operator op1 = new Operator();
@@ -686,12 +686,11 @@ public class HelperCollection {
 	 *
 	 * @return a Expression with references where needed
 	 */
-	public static Expression replaceExpressionsByReferences(Expression expression) {
+	public static Expression encapsulateExpressionInConditions(Expression expression) {
 		if (expression.opIsPresent()) {
 			if (expression.getOperator().get().isLt() || expression.getOperator().get().isLe() ||
 					expression.getOperator().get().isEq() || expression.getOperator().get().isNe() ||
 					expression.getOperator().get().isGt() || expression.getOperator().get().isGe()) {
-				Expression tempExpression = null;
 				if(expression.getLhs().get().isExpression()){
 					expression.replaceLhs(Expression.encapsulateInBrackets((expression.getLhs().get())));
 				}
@@ -700,10 +699,10 @@ public class HelperCollection {
 				}
 			}
 			if (expression.lhsIsPresent()) {
-				expression.replaceLhs(replaceExpressionsByReferences(expression.getLhs().get()));
+				expression.replaceLhs(encapsulateExpressionInConditions(expression.getLhs().get()));
 			}
 			if (expression.rhsIsPresent()) {
-				expression.replaceRhs(replaceExpressionsByReferences(expression.getRhs().get()));
+				expression.replaceRhs(encapsulateExpressionInConditions(expression.getRhs().get()));
 			}
 		}
 		return expression;

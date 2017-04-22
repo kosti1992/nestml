@@ -2,14 +2,12 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import de.monticore.emf._ast.ASTECNode;
-import de.monticore.types.types._ast.ASTQualifiedName;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.Function;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
@@ -19,7 +17,6 @@ import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTDynamics;
-import org.nest.nestml._ast.ASTFunction;
 import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
 import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
@@ -112,7 +109,7 @@ public class DynamicRoutine {
 			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
 			tempCondition = HelperCollection.replaceNotByLogicalEquivalent(container, tempCondition);
-			tempCondition = HelperCollection.replaceExpressionsByReferences(tempCondition);
+			tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
 		//process all elif statements
@@ -142,7 +139,7 @@ public class DynamicRoutine {
 			}
 			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
-			tempCondition = HelperCollection.replaceExpressionsByReferences(tempCondition);
+			tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
 			tempCondition = Expression.encapsulateInBrackets(tempCondition);//finally encapsulate everything in brackets
 			handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
 		}
@@ -165,7 +162,7 @@ public class DynamicRoutine {
 			//create the corresponding block
 			tempCondition = HelperCollection.replaceConstantsWithReferences(container, tempCondition);
 			tempCondition = HelperCollection.replaceResolutionByConstantReference(container, tempCondition);
-			tempCondition = HelperCollection.replaceExpressionsByReferences(tempCondition);
+			tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
 			tempCondition = Expression.encapsulateInBrackets(tempCondition);
 			handleASTBlock(input.getIF_Stmt().get().getELSE_Clause().get().getBlock(),
 					tempCondition, tempPrettyPrinter.result());
@@ -431,7 +428,7 @@ public class DynamicRoutine {
 		} else {
 			firstCondition = firstSubCondition;
 		}
-		firstCondition = HelperCollection.replaceExpressionsByReferences(firstCondition);
+		firstCondition = HelperCollection.encapsulateExpressionInConditions(firstCondition);
 		//now generate an assignment for the first half
 		Expression firstAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfTrue().get());
 		firstAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, firstAssignmentExpression);
@@ -455,7 +452,7 @@ public class DynamicRoutine {
 		} else {
 			secondCondition = secondSubCondition;
 		}
-		secondCondition = HelperCollection.replaceExpressionsByReferences(secondCondition);
+		secondCondition = HelperCollection.encapsulateExpressionInConditions(secondCondition);
 		//now generate an assignment for the second half
 		Expression secondAssignmentExpression = new Expression(input.getAssignment().get().getExpr().getIfNot().get());
 		secondAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, secondAssignmentExpression);

@@ -1,7 +1,6 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.w3c.dom.NamedNodeMap;
@@ -145,6 +144,7 @@ public class DerivedElement {
 		Expression firstSubValue = new Expression(expr.getIfTrue().get());
 		firstSubValue = HelperCollection.replaceConstantsWithReferences(container, firstSubValue);
 		firstSubValue = HelperCollection.replaceResolutionByConstantReference(container, firstSubValue);
+		firstSubCondition = HelperCollection.encapsulateExpressionInConditions(firstSubCondition);
 		tempMap.put(firstSubCondition, firstSubValue);
 		//now create the second part which applies if the condition is not true
 		Expression secondSubCondition = firstSubCondition.deepClone();
