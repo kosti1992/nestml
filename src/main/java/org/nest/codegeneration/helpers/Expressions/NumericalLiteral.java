@@ -49,6 +49,10 @@ public class NumericalLiteral extends Expression {
 		return new TypesPrettyPrinterConcreteVisitor(printer);
 	}
 
+	public void setType(Optional<ASTUnitType> type) {
+		this.type = type;
+	}
+
 	public String print(SyntaxContainer container) {
 		return container.print(this);
 	}

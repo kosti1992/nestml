@@ -2,10 +2,7 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 import de.monticore.emf._ast.ASTECNode;
 import org.nest.codegeneration.helpers.Expressions.Expression;
@@ -58,8 +55,15 @@ public class DynamicRoutine {
 					//some function calls do not generate an instruction, thus it is not required to add null to the list
 					tempList.addAll(notNullCheck);
 				}
-			} else {
-				tempList.addAll(handleSmallStatement(input.getSmall_Stmt().get()));
+			} else {//first check if it is a declaration where the ternary OP is used
+				if (input.getSmall_Stmt().get().getDeclaration().isPresent() &&
+						input.getSmall_Stmt().get().getDeclaration().get().getExpr().isPresent() &&
+						input.getSmall_Stmt().get().getDeclaration().get().getExpr().get().conditionIsPresent()) {
+					//if it is a ternary OP we have to handle it in a special way
+					this.blocks.addAll(this.handleASTDeclarationTernaryOperator(input.getSmall_Stmt().get(), new Expression()));//the null is a big TODO
+				} else {
+					tempList.addAll(handleSmallStatement(input.getSmall_Stmt().get()));
+				}
 			}
 			//generate a description header
 			SPLPrettyPrinter tempPrettyPrinter = SPLPrettyPrinterFactory.createDefaultPrettyPrinter();
@@ -420,7 +424,7 @@ public class DynamicRoutine {
 		Operator opFirst = new Operator();
 		opFirst.setLogicalAnd(true);
 		Expression firstCondition = new Expression();
-		if (!condition.isEmpty()) {
+		if (!condition.isEmpty() && !condition.isEmpty()) {
 			firstCondition.replaceLhs(condition.deepClone());
 			firstCondition.replaceOp(opFirst);
 			firstCondition.replaceRhs(firstSubCondition);
@@ -461,6 +465,99 @@ public class DynamicRoutine {
 				secondAssignmentExpression);
 		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
 		ret.add(secondBlock);
+		return ret;
+	}
+
+	/**
+	 * For a given conditional block and an assignment inside which uses the ternary operator, this method
+	 * replaces it by means of two sub blocks with corresponding conditions.
+	 *
+	 * @param input     the input small statement with ternary operator
+	 * @param condition the condition, if one is present, of the super block containing the assignment
+	 * @return the list containing two conditions
+	 */
+	private List<ConditionalBlock> handleASTDeclarationTernaryOperator(ASTSmall_Stmt input, Expression condition) {
+		List<ConditionalBlock> ret = new ArrayList<>();
+		//first create the first part of the expression, namely the one which applies if condition is true
+		Expression firstSubCondition;
+		//if it is a boolean literal, e.g. true or false
+		if (input.getDeclaration().get().getExpr().get().getCondition().get().booleanLiteralIsPresent()) {
+			if (input.getDeclaration().get().getExpr().get().getCondition().get().getBooleanLiteral().get().getValue()) {
+				firstSubCondition = Expression.generateTrue();
+			} else {
+				firstSubCondition = Expression.generateFalse();
+			}
+		} else {
+			firstSubCondition = new Expression(input.getDeclaration().get().getExpr().get().getCondition().get());
+		}
+
+		String dimension = "";
+		String unit = "";
+		if (input.getDeclaration().get().getDatatype().getUnitType().isPresent()) {
+			int[] dec = HelperCollection.convertTypeDeclToArray(
+					input.getDeclaration().get().getDatatype().getUnitType().get().getSerializedUnit());
+			Expression tempExr = HelperCollection.getExpressionFromUnitType(input.getDeclaration().get().getDatatype().
+					getUnitType().get());
+			Dimension tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
+					+ (HelperCollection.formatComplexUnit(tempExr.print())),
+					dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+			Unit tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), dec[7], tempDimension);
+			container.addDimension(tempDimension);
+			container.addUnit(tempUnit);
+			dimension = tempDimension.getName();
+			unit = tempUnit.getSymbol();
+		}
+		firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
+		Operator opFirst = new Operator();
+		opFirst.setLogicalAnd(true);
+		Expression firstCondition = new Expression();
+		if (!condition.isEmpty() && !condition.isEmpty()) {
+			firstCondition.replaceLhs(condition.deepClone());
+			firstCondition.replaceOp(opFirst);
+			firstCondition.replaceRhs(firstSubCondition);
+			firstCondition = HelperCollection.replaceBooleanAtomByExpression(container, firstCondition);
+		} else {
+			firstCondition = firstSubCondition;
+		}
+		firstCondition = HelperCollection.encapsulateExpressionInConditions(firstCondition);
+		//now generate an assignment for the first half
+		Expression firstAssignmentExpression = new Expression(input.getDeclaration().get().getExpr().get().getIfTrue().get());
+		firstAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, firstAssignmentExpression);
+		firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, firstAssignmentExpression);
+		Assignment firstAssignment = new Assignment(input.getDeclaration().get().getVars().get(0),//TODO: here only the first is regarded
+				firstAssignmentExpression);
+		ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
+		ret.add(firstBlock);
+
+		//now create the second part which applies if the condition is not true
+		Expression secondSubCondition = firstSubCondition.deepClone();
+		secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(container, secondSubCondition);
+		secondSubCondition.negateLogic();
+		Operator opSecond = new Operator();
+		opSecond.setLogicalAnd(true);
+		Expression secondCondition = new Expression();
+		if (!condition.isEmpty()) {
+			secondCondition.replaceLhs(condition.deepClone());
+			secondCondition.replaceOp(opSecond);
+			secondCondition.replaceRhs(secondSubCondition);
+		} else {
+			secondCondition = secondSubCondition;
+		}
+		secondCondition = HelperCollection.encapsulateExpressionInConditions(secondCondition);
+		//now generate an assignment for the second half
+		Expression secondAssignmentExpression = new Expression(input.getDeclaration().get().getExpr().get().getIfNot().get());
+		secondAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, secondAssignmentExpression);
+		secondAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, secondAssignmentExpression);
+		Assignment secondAssignment = new Assignment(input.getDeclaration().get().getVars().get(0),
+				secondAssignmentExpression);
+		ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
+		ret.add(secondBlock);
+		NumericalLiteral tempLiteral = new NumericalLiteral(0, null);
+		if (input.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
+			tempLiteral.setType(Optional.of(input.getDeclaration().get().getDatatype().getUnitType().get()));
+		}
+		container.addStateVariable(new StateVariable(input.getDeclaration().get().getVars().get(0),
+				dimension, tempLiteral, unit, container));//TODO
 		return ret;
 	}
 
