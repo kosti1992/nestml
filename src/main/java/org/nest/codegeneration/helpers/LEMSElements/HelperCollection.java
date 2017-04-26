@@ -28,13 +28,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HelperCollection {
 	//this is a collection of global constants and prefixes. in case something has to be changed, this is the point where
-	public static String NOT_SUPPORTED = "NOT_SUPPORTED";
-	public static String NO_UNIT = "";
-	public static String DIMENSION_NONE = "none";
-	public static String PREFIX_INIT = "INIT";
-	public static String PREFIX_DIMENSION = "DimensionOf_";
-	public static String PREFIX_CONSTANT = "CON";
-	public static String PREFIX_ACT = "ACT";
+	public static final String NOT_SUPPORTED = "NOT_SUPPORTED";
+	public static final String NO_UNIT = "";
+	public static final String DIMENSION_NONE = "none";
+	public static final String PREFIX_INIT = "INIT";
+	public static final String PREFIX_DIMENSION = "DimensionOf_";
+	public static final String PREFIX_CONSTANT = "CON";
+	public static final String PREFIX_ACT = "ACT";
 
 	/**
 	 * Returns all spike input ports of a given set.
@@ -444,20 +444,47 @@ public class HelperCollection {
 	 *
 	 * @param variable the variable symbol whose declaration has a function call which is not supportd
 	 */
-	public static void printNotSupportedFunctionCallInExpression(VariableSymbol variable) {
-		System.err.println("Function call found in (constant|parameter) declaration"
-				+ " in lines " + variable.getSourcePosition().getLine() + ".");
+	public static void printNotSupportedFunctionCallInExpression(VariableSymbol variable, LEMSCollector container) {
+		System.err.println(
+				"LEMS Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ variable.getSourcePosition().getLine()
+						+ "):"
+						+ " Function call found in (constant|parameter) declaration." + "("
+						+ container.getPrettyPrint().print(variable.getDeclaringExpression().get(), false) + ")");
 	}
 
-	public static void printNotSupportedFunctionCallInEquations(ASTVariable variable) {
-		System.err
-				.println("Not supported function call in equation: " + variable.getName().toString());
+	public static void printNotSupportedFunctionCallInEquations(ASTVariable variable, LEMSCollector container) {
+		System.err.println(
+				"LEMS-Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ variable.get_SourcePositionStart().getLine()
+						+ "):"
+						+ " Not supported function call in equation. (" +
+						variable.getName().toString()
+						+ ")");
 	}
 
 	public static void printNotSupportedFunctionInBlock(ASTSmall_Stmt input, LEMSCollector container) {
-		System.err.println("Not supported function call(s) found in update block.");
+		System.err.print(
+				"LEMS-Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ input.get_SourcePositionStart().getLine()
+						+ "):"
+						+ " Not supported function call found. ");
+
+		if(input.getAssignment().isPresent()){
+			System.err.print("("+container.getPrettyPrint().print(input.getAssignment().get().getExpr(),false) +")\n");
+		}
+		if(input.getDeclaration().isPresent()){
+			System.err.print("("+container.getPrettyPrint().print(input.getDeclaration().get().getExpr().get(),false) +")\n");
+		}
+		if(input.getFunctionCall().isPresent()){
+			System.err.print("("+input.getFunctionCall().get().getCalleeName() +")\n");
+		}
 		container.addNotConverted("Not supported function call in update block, lines " + input.get_SourcePositionStart() + " to " + input.get_SourcePositionEnd());
 	}
+
 
 	/**
 	 * Extends the input by an activator variable whose name is handed over.
@@ -552,8 +579,16 @@ public class HelperCollection {
 		return expr;
 	}
 
-	public static void printArrayNotSupportedMessage(VariableSymbol var) {
-		System.err.println("Not supported array-declaration found \"" + var.getName() + "\".");
+	public static void printArrayNotSupportedMessage(VariableSymbol var, LEMSCollector container) {
+		System.err.println(
+				"LEMS Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ var.getSourcePosition().getLine()
+						+ "):"
+						+ " Array declaration found. ("
+						+ var.getName()
+						+ ")");
+
 	}
 
 	public static String getArrayNotSupportedMessage(VariableSymbol var) {
@@ -561,8 +596,16 @@ public class HelperCollection {
 	}
 
 
-	public static void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSExpressionsPrettyPrinter prettyPrinter) {
-		System.err.println("Not supported function call in expression found: " + prettyPrinter.print(eq.getRhs(), false));
+	public static void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSCollector container) {
+		System.err.println(
+				"LEMS Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ eq.get_SourcePositionStart().getLine()
+						+ "):"
+						+ " Not supported function call in expression found. ("
+						+ container.getPrettyPrint().print(eq.getRhs(), false)
+						+ ")");
+
 	}
 
 	/**
@@ -691,10 +734,10 @@ public class HelperCollection {
 			if (expression.getOperator().get().isLt() || expression.getOperator().get().isLe() ||
 					expression.getOperator().get().isEq() || expression.getOperator().get().isNe() ||
 					expression.getOperator().get().isGt() || expression.getOperator().get().isGe()) {
-				if(expression.getLhs().get().isExpression()){
+				if (expression.getLhs().get().isExpression()) {
 					expression.replaceLhs(Expression.encapsulateInBrackets((expression.getLhs().get())));
 				}
-				if(expression.getRhs().get().isExpression()){
+				if (expression.getRhs().get().isExpression()) {
 					expression.replaceRhs(Expression.encapsulateInBrackets((expression.getRhs().get())));
 				}
 			}

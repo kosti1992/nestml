@@ -84,7 +84,7 @@ public class Constant {
 				this.value = new Expression(xmlNode.getAttributes().getNamedItem("value").getNodeValue());
 			}
 		} catch (Exception e) {
-			System.err.println("Constant artifact wrongly formatted.");
+			System.err.println("Constant artifact/xmlNode wrongly formatted.");
 		}
 	}
 
@@ -184,7 +184,7 @@ public class Constant {
 			tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
 			return new NumericalLiteral(container.getConfig().getSimulation_steps_length(), tempType);
 		} else {
-			HelperCollection.printNotSupportedFunctionCallInExpression(variable);
+			HelperCollection.printNotSupportedFunctionCallInExpression(variable,container);
 			return new Variable(HelperCollection.NOT_SUPPORTED
 					+ ":" + variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
 		}

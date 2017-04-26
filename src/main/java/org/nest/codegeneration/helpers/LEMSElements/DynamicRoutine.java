@@ -75,7 +75,12 @@ public class DynamicRoutine {
 		} else if (input.compound_StmtIsPresent()) {
 			handleCompoundStatement(input.getCompound_Stmt().get(), null);
 		} else {
-			System.err.println("Not supported type of statement in line " + input.get_SourcePositionStart());
+			System.err.println(
+					"LEMS Error (Line: "
+							+ container.getNeuronName() + "/"
+							+ input.get_SourcePositionStart().getLine()
+							+ "):"
+							+ " Not supported type of statement.");
 		}
 	}
 
@@ -174,9 +179,19 @@ public class DynamicRoutine {
 
 		//TODO: are these blocks really not supported?
 		else if (input.getWHILE_Stmt().isPresent()) {//the block is a while block-> not supported yet
-			System.err.println("WHILE blocks are not yet supported.");
+			System.err.println(
+					"LEMS Error (Line: "
+							+ container.getNeuronName() + "/"
+							+ input.getWHILE_Stmt().get().get_SourcePositionStart().getLine()
+							+ "):"
+							+ " WHILE blocks are not yet supported.");
 		} else if (input.getFOR_Stmt().isPresent()) {//the block is a for block-> not supported yet
-			System.err.println("FOR blocks are not yet supported.");
+			System.err.println(
+					"LEMS Error (Line: "
+							+ container.getNeuronName() + "/"
+							+ input.getFOR_Stmt().get().get_SourcePositionStart().getLine()
+							+ "):"
+							+ " FOR blocks are not yet supported.");
 		}
 	}
 
@@ -216,7 +231,14 @@ public class DynamicRoutine {
 					tempInstruction.addAll(notNullCheck);
 				}
 			} else {
-				System.err.println("Error in if-processing. Neither small nor compound statement found.");
+				System.err.println(
+						"LEMS Error (Line: "
+								+ container.getNeuronName() + "/"
+								+ stmt.get_SourcePositionStart().getLine()
+								+ "):"
+								+ " if-processing. Neither small nor compound statement found.");
+
+
 			}
 		}
 		//if no "integrate" directives have been found in this block but there exist some local "integrates", we
@@ -301,8 +323,13 @@ public class DynamicRoutine {
 		if (input.declarationIsPresent()) {
 			return handleASTDeclaration(input.getDeclaration().get(), this.container);
 		}
-		System.err.println("Something went wrong in small statement processing." +
-				" Position in source: " + input.get_SourcePositionStart() + " in model " + this.container.getNeuronName() + ".");
+
+		System.err.println(
+				"LEMS Error (Line: "
+						+ container.getNeuronName() + "/"
+						+ input.get_SourcePositionStart().getLine()
+						+ "):"
+						+ " Something went wrong in small statement processing.");
 		//res.add(new Assignment("", null));
 		return res;
 	}
@@ -602,8 +629,13 @@ public class DynamicRoutine {
 	private List<Instruction> handleIntegrate(ASTFunctionCall functionCall) {
 		//add a new state variable which symbolize that integration should be activated in necessary
 		if (functionCall.getArgs().size() != 1) {
-			System.err.println("Integrate is wrongly declared, <>1 arguments provided!");
-			return null;
+			System.err.println(
+					"LEMS Error (Line: "
+							+ container.getNeuronName() + "/"
+							+ functionCall.get_SourcePositionStart().getLine()
+							+ "):"
+							+ " Integrate is wrongly declared, <>1 arguments provided.");
+			return new ArrayList<>();
 		} else {
 			for (StateVariable var : container.getStateVariablesList()) {
 				if (var.getName().equals(HelperCollection.PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {

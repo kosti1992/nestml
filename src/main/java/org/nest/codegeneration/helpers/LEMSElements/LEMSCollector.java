@@ -164,7 +164,7 @@ public class LEMSCollector extends Collector {
 		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
-				HelperCollection.printArrayNotSupportedMessage(var);
+				HelperCollection.printArrayNotSupportedMessage(var,this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				//otherwise process the object to a state variable
@@ -216,7 +216,7 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 			ASTShape eq = neuronBody.getShapes().get(i);
 			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
-				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs());
+				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs(),this);
 				this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 			} else {
@@ -239,7 +239,7 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getEquations().size(); i++) {
 			ASTEquation eq = neuronBody.getEquations().get(i);
 			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
-				HelperCollection.printNotSupportedFunctionCallFoundMessage(eq, prettyPrint);
+				HelperCollection.printNotSupportedFunctionCallFoundMessage(eq, this);
 				this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
 			} else {
@@ -357,7 +357,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
-				HelperCollection.printArrayNotSupportedMessage(var);
+				HelperCollection.printArrayNotSupportedMessage(var,this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				Constant temp = null;
@@ -439,7 +439,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
-				HelperCollection.printArrayNotSupportedMessage(var);
+				HelperCollection.printArrayNotSupportedMessage(var,this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {//the declaration does not use arrays
 				//is a right hand side present?
@@ -489,6 +489,9 @@ public class LEMSCollector extends Collector {
 						this.addDerivedElement(new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 								tempExpr, false, false));
 
+
+					} else if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(),true)){
+						HelperCollection.printNotSupportedFunctionCallInExpression(var,this);
 					} else {// otherwise it is either an expression or does contain a yet different type of function call.
 						if (var.getDeclaringExpression().get().exprIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());
