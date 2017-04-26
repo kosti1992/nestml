@@ -237,8 +237,6 @@ public class DynamicRoutine {
 								+ stmt.get_SourcePositionStart().getLine()
 								+ "):"
 								+ " if-processing. Neither small nor compound statement found.");
-
-
 			}
 		}
 		//if no "integrate" directives have been found in this block but there exist some local "integrates", we

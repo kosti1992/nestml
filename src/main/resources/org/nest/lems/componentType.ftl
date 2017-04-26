@@ -77,6 +77,13 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
               </OnStart>
           </#if>
 
+            <#list (container.getGuards())?keys as cond>
+                <OnCondition test="${cond.print()}">
+                    <StateAssignment variable="${container.printGuardName(cond)}" value="log(-1)"/><!--guard broken-->
+                </OnCondition>
+            </#list>
+
+
           <#list (container.getEquations())?keys as var>
               <TimeDerivative variable="${var}" value="${container.getEquations()[var].print()}"/>
           </#list>

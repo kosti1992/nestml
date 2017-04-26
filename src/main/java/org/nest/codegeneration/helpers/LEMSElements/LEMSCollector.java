@@ -63,6 +63,8 @@ public class LEMSCollector extends Collector {
 
 	private List<String> booleanElements = null;
 
+	private Map<Expression,String> guards = null;
+
 
 	public LEMSCollector(ASTNeuron neuron, SimulationConfiguration config) {
 		//set the system language to english in order to avoid problems with "," instead of "." in double representation
@@ -80,6 +82,7 @@ public class LEMSCollector extends Collector {
 		this.attachments = new ArrayList<>();
 		this.config = config;
 		this.booleanElements = new ArrayList<>();
+		this.guards = new HashMap<>();
 		this.handleNeuron(neuron);
 	}
 
@@ -121,7 +124,7 @@ public class LEMSCollector extends Collector {
 			this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
 			Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
-			this.addUnit(new Unit("ms",HelperCollection.powerConverter("ms"), msDimension));
+			this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
 
 			//first process all shapes of the model
 			this.handleShapes(neuronBody);
@@ -164,7 +167,7 @@ public class LEMSCollector extends Collector {
 		checkNotNull(neuronBody);
 		for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
-				HelperCollection.printArrayNotSupportedMessage(var,this);
+				HelperCollection.printArrayNotSupportedMessage(var, this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				//otherwise process the object to a state variable
@@ -172,6 +175,7 @@ public class LEMSCollector extends Collector {
 				handleType(var.getType());//handle the type of the variable
 			}
 		}
+
 	}
 
 
@@ -216,7 +220,7 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 			ASTShape eq = neuronBody.getShapes().get(i);
 			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
-				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs(),this);
+				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs(), this);
 				this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 			} else {
@@ -310,8 +314,8 @@ public class LEMSCollector extends Collector {
 							this, false);
 				} else {
 					Expression tempExpression = new Expression(tempFunction.getExpr());
-					tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
-					tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
+					tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
+					tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
 					tempDerivedVar = new DerivedElement(
 							tempFunction.getVariableName(),
 							tempDimension.getName(),
@@ -357,7 +361,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
 			if (var.isVector()) {//arrays are not supported by LEMS
 				//print error message
-				HelperCollection.printArrayNotSupportedMessage(var,this);
+				HelperCollection.printArrayNotSupportedMessage(var, this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {
 				Constant temp = null;
@@ -377,22 +381,22 @@ public class LEMSCollector extends Collector {
 							tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
 									"", this);//no unit,therefore "" as 4th arg
 						}
-					} else if(var.getDeclaringExpression().get().exprIsPresent()) {
+					} else if (var.getDeclaringExpression().get().exprIsPresent()) {
 						//in the case it is an expression, e.g. 10mV+V_m
 						tempDerivedElement = new DerivedElement(var, this, false, false);
 
 						//in the case it is a expression consisting of a left and a right hand side
-					} else if(var.getDeclaringExpression().get().leftIsPresent()&&var.getDeclaringExpression().get().rightIsPresent()) {
+					} else if (var.getDeclaringExpression().get().leftIsPresent() && var.getDeclaringExpression().get().rightIsPresent()) {
 						Expression tempExpression = new Expression(var);
 						tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
 						tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
 						tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 								tempExpression, false, false);
 						//in the case it is an exponential expression
-					} else if(var.getDeclaringExpression().get().baseIsPresent()&&var.getDeclaringExpression().get().exponentIsPresent()){
+					} else if (var.getDeclaringExpression().get().baseIsPresent() && var.getDeclaringExpression().get().exponentIsPresent()) {
 						Expression tempExpression = new Expression(var);
-						tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
-						tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+						tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
+						tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
 						tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
 								tempExpression, false, false);
 
@@ -413,6 +417,22 @@ public class LEMSCollector extends Collector {
 					this.addStateVariable(tempStateVariable);
 			}
 			handleType(var.getType());
+		}
+		//now check all guards and generate corresponding counter pieces in LEMS
+		if (!neuronBody.getParameterInvariants().isEmpty()) {
+			StateVariable tempVar = new StateVariable(HelperCollection.STATIC_GUARD_NAME,HelperCollection.DIMENSION_NONE,
+					new NumericalLiteral(0,null),"",this);
+			this.addStateVariable(tempVar);
+
+			Expression tempExpression = null;
+
+			for (ASTExpr expr : neuronBody.getParameterInvariants()) {
+				tempExpression = new Expression(expr);
+				tempExpression.negateLogic();
+				tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+				tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
+				this.addGuard(HelperCollection.STATIC_GUARD_NAME,tempExpression);
+			}
 		}
 	}
 
@@ -439,7 +459,7 @@ public class LEMSCollector extends Collector {
 		for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
 			if (var.isVector()) {//lems does not support arrays
 				//print an adequate message
-				HelperCollection.printArrayNotSupportedMessage(var,this);
+				HelperCollection.printArrayNotSupportedMessage(var, this);
 				this.addNotConverted(HelperCollection.getArrayNotSupportedMessage(var));
 			} else {//the declaration does not use arrays
 				//is a right hand side present?
@@ -490,20 +510,20 @@ public class LEMSCollector extends Collector {
 								tempExpr, false, false));
 
 
-					} else if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(),true)){
-						HelperCollection.printNotSupportedFunctionCallInExpression(var,this);
+					} else if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(), true)) {
+						HelperCollection.printNotSupportedFunctionCallInExpression(var, this);
 					} else {// otherwise it is either an expression or does contain a yet different type of function call.
 						if (var.getDeclaringExpression().get().exprIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getExpr().get());
-							tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
-							tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+							tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
+							tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
 							DerivedElement tempElem = new DerivedElement(var.getName(),
 									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
 						} else if (var.getDeclaringExpression().get().termIsPresent()) {
 							Expression tempExpression = new Expression(var.getDeclaringExpression().get().getTerm().get());
-							tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
-							tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
+							tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
+							tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
 							DerivedElement tempElem = new DerivedElement(var.getName(),
 									HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, true, false);
 							this.addDerivedElement(tempElem);
@@ -792,6 +812,10 @@ public class LEMSCollector extends Collector {
 		return this.config;
 	}
 
+	public Map<Expression,String> getGuards() {
+		return guards;
+	}
+
 	/**
 	 * Checks whether an output-port is defined.
 	 *
@@ -911,6 +935,13 @@ public class LEMSCollector extends Collector {
 		this.equation.put(var, expr);
 	}
 
+
+	public void addGuard(String guardVar,Expression guardCond){
+		checkNotNull(guardVar);
+		checkNotNull(guardCond);
+		this.guards.put(guardCond,guardVar);
+	}
+
 	/**
 	 * Activates a port for the LEMS simulator, for more details read git hub issue.
 	 */
@@ -918,6 +949,14 @@ public class LEMSCollector extends Collector {
 		if (outputPortDefined() && !HelperCollection.containsNamedFunction("emit_spike", routine.getAllInstructions())) {
 			routine.addPortActivator();
 		}
+	}
+
+	@SuppressWarnings("unused")//used in the template
+	public String printGuardName(Expression expr){
+		if(this.getGuards().containsKey(expr)){
+			return this.getGuards().get(expr);
+		}
+		return "";//this case should never happen
 	}
 
 }

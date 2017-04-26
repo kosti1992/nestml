@@ -30,11 +30,18 @@ public class HelperCollection {
 	//this is a collection of global constants and prefixes. in case something has to be changed, this is the point where
 	public static final String NOT_SUPPORTED = "NOT_SUPPORTED";
 	public static final String NO_UNIT = "";
+
+	public static final String STATIC_GUARD_NAME = "STATIC_GUARD";
+
 	public static final String DIMENSION_NONE = "none";
+
 	public static final String PREFIX_INIT = "INIT";
 	public static final String PREFIX_DIMENSION = "DimensionOf_";
 	public static final String PREFIX_CONSTANT = "CON";
 	public static final String PREFIX_ACT = "ACT";
+
+
+
 
 	/**
 	 * Returns all spike input ports of a given set.
@@ -751,5 +758,21 @@ public class HelperCollection {
 		return expression;
 	}
 
+	/**
+	 * Generates an expression 0/0 which leads to an exception whenever executed. This method is required in order to
+	 * implemented guards and their correct behavior.
+	 * @return the Expression 0/0.
+	 */
+	public static Expression generateExceptionCondition(){
+		Expression lhs = new NumericalLiteral(0,null);
+		Operator op = new Operator();
+		op.setDivOp(true);
+		Expression rhs = lhs.deepClone();
+		Expression ret = new Expression();
+		ret.replaceLhs(lhs);
+		ret.replaceOp(op);
+		ret.replaceRhs(rhs);
+		return ret;
+	}
 
 }
