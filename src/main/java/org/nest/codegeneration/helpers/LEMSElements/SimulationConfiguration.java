@@ -54,6 +54,9 @@ public class SimulationConfiguration {
 		}
 		try {
 			File inputFile = new File(configPath.toAbsolutePath().toString());
+			if(!inputFile.exists()||!inputFile.isFile()){//first check if the artifact even exists
+				throw new IOException();
+			}
 			DocumentBuilderFactory dbFactory
 					= DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();

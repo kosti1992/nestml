@@ -451,15 +451,43 @@ public class Expression {
 		return ret;
 	}
 
-	public boolean isEmpty(){
+	public boolean isEmpty() {
 		return !this.lhsIsPresent() && !this.opIsPresent() && !this.rhsIsPresent();
 	}
 
-	public boolean isExpression(){
+	public boolean isExpression() {
 		return this.lhsIsPresent() && this.opIsPresent() && this.rhsIsPresent();
 	}
 
+	/**
+	 * For a given expression, this method checks if it is a logical expression an if so, if it contains a
+	 * sub expression which ist not a combination of: (LIT|VAR|EXPR) OP (LIT|VAR|EXPR). An expression which is
+	 * not of this form is: 10mV >=V_m >= 0mV and should be transformed 10mV >= V_m and V_m >= 0mV
+	 *
+	 * @return
+	 */
+	//TODO: complete this method
+	public Expression splitExpression(Expression expr) {
+		//first check if it is a EXPR OP EXPR form. a>b>c>d is hereby constructed as a left deep tree
+		if (expr.opIsPresent() && expr.getOperator().get().isRelationalOperator()) {
 
+		}
+		return null;//TODO
+	}
+
+	/**
+	 * Returns the the most right bottom, right node in the left subtree.
+	 * @param expr an expression representing an expression tree.
+	 * @return the right most bottom node in the left sub tree of expression
+	 *///TODO complete this method
+	private Expression getLeftBottomNode(Expression expr){
+		if(expr.lhsIsPresent()&&!expr.getLhs().get().opIsPresent()){
+			return expr.getLhs().get();
+		}
+		else{
+			return getLeftBottomNode(expr.getLhs().get());
+		}
+	}
 
 	private void parseStringToExpression(String expressionAsString) {
 		//TODO: write a parser+lexer for expression in string form

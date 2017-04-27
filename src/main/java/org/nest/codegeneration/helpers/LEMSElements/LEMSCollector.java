@@ -63,7 +63,7 @@ public class LEMSCollector extends Collector {
 
 	private List<String> booleanElements = null;
 
-	private Map<Expression,String> guards = null;
+	private Map<Expression, String> guards = null;
 
 
 	public LEMSCollector(ASTNeuron neuron, SimulationConfiguration config) {
@@ -114,7 +114,7 @@ public class LEMSCollector extends Collector {
 		this.handleStateAliases(neuronBody);
 
 		//user-defined functions are not supported by LEMS (yet)
-		this.handleUsedDefinedFunctions(neuronBody);
+		this.handleUserDefinedFunctions(neuronBody);
 
 		//process the equations block
 		if (!neuronBody.getEquations().isEmpty()) {
@@ -156,6 +156,10 @@ public class LEMSCollector extends Collector {
 
 		//if no spike directive is present, an artificial event out directive has to be added in order to activate the port
 		this.addPortActivator();
+
+		//finally process all guards
+		this.handleGuards(neuronBody);
+
 	}
 
 	/**
@@ -192,14 +196,13 @@ public class LEMSCollector extends Collector {
 		}
 	}
 
-
 	/**
 	 * Handles user defined functions as stated in the source model. Although currently not supported by LEMS,
 	 * this method represents a extension point for future work.
 	 *
 	 * @param neuronBody a neuron body containing a "user-defined functions" block
 	 */
-	private void handleUsedDefinedFunctions(ASTBody neuronBody) {
+	private void handleUserDefinedFunctions(ASTBody neuronBody) {
 		checkNotNull(neuronBody);
 		for (ASTFunction func : neuronBody.getFunctions()) {
 			//print an error message an store a corresponding message for the generation
@@ -220,7 +223,7 @@ public class LEMSCollector extends Collector {
 		for (int i = 0; i < neuronBody.getShapes().size(); i++) {
 			ASTShape eq = neuronBody.getShapes().get(i);
 			if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
-				HelperCollection.printNotSupportedFunctionCallInEquations(eq.getLhs(), this);
+				HelperCollection.printNotSupportedFunctionCallInEquations(eq, this);
 				this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
 				equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
 			} else {
@@ -418,23 +421,38 @@ public class LEMSCollector extends Collector {
 			}
 			handleType(var.getType());
 		}
+
+	}
+
+	/**
+	 * Checks if any guards are given for parameters and constants ad if so, generates proper instructions.
+	 *
+	 * @param neuronBody a neuron body possibly containing guards
+	 */
+	private void handleGuards(ASTBody neuronBody) {
 		//now check all guards and generate corresponding counter pieces in LEMS
 		if (!neuronBody.getParameterInvariants().isEmpty()) {
-			StateVariable tempVar = new StateVariable(HelperCollection.STATIC_GUARD_NAME,HelperCollection.DIMENSION_NONE,
-					new NumericalLiteral(0,null),"",this);
+			//we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
+			StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
+					new NumericalLiteral(0, null), "", this);
 			this.addStateVariable(tempVar);
-
-			Expression tempExpression = null;
-
-			for (ASTExpr expr : neuronBody.getParameterInvariants()) {
+			//finally process each guard
+			Expression tempExpression;
+			List<ASTExpr> rawGuards = new ArrayList<>();
+			//now first collect from each block the guards
+			rawGuards.addAll(neuronBody.getParameterInvariants());
+			rawGuards.addAll(HelperCollection.getStateInvariants(neuronBody));
+			rawGuards.addAll(HelperCollection.getInternalsInvariants(neuronBody));
+			for (ASTExpr expr : rawGuards) {
 				tempExpression = new Expression(expr);
 				tempExpression.negateLogic();
-				tempExpression = HelperCollection.replaceResolutionByConstantReference(this,tempExpression);
-				tempExpression = HelperCollection.replaceConstantsWithReferences(this,tempExpression);
-				this.addGuard(HelperCollection.STATIC_GUARD_NAME,tempExpression);
+				tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
+				tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
+				this.addGuard(HelperCollection.GUARD_NAME, tempExpression);
 			}
 		}
 	}
+
 
 	/**
 	 * Handles all aliases in the parameter block of the neuron.
@@ -566,8 +584,18 @@ public class LEMSCollector extends Collector {
 						} else if (var.getDeclaringExpression().get().variableIsPresent()) {
 							StateVariable tempVariable = new StateVariable(var, this);
 							this.addStateVariable(tempVariable);
+						} else if(var.getDeclaringExpression().get().functionCallIsPresent()){
+							if(HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(),true)){
+								HelperCollection.printNotSupportedFunctionCallInExpression(var,this);
+								this.addNotConverted("Not supported function call in internals, line: " +
+										 var.getSourcePosition().getLine());
+							}
+							Expression tempExpression = new Expression(var.getDeclaringExpression().get());
+							DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
+									tempExpression, false, false);
+							this.addDerivedElement(tempElem);
 						} else {
-							System.err.println("INTERNAL NOT SUPPORTED: " + var.getSourcePosition().getLine());
+							System.err.println("INTERNAL NOT SUPPORTED:"+var.getName()+ ":" + var.getSourcePosition().getLine());
 						}
 						handleType(var.getType());
 					}
@@ -812,7 +840,7 @@ public class LEMSCollector extends Collector {
 		return this.config;
 	}
 
-	public Map<Expression,String> getGuards() {
+	public Map<Expression, String> getGuards() {
 		return guards;
 	}
 
@@ -936,10 +964,10 @@ public class LEMSCollector extends Collector {
 	}
 
 
-	public void addGuard(String guardVar,Expression guardCond){
+	public void addGuard(String guardVar, Expression guardCond) {
 		checkNotNull(guardVar);
 		checkNotNull(guardCond);
-		this.guards.put(guardCond,guardVar);
+		this.guards.put(guardCond, guardVar);
 	}
 
 	/**
@@ -952,8 +980,8 @@ public class LEMSCollector extends Collector {
 	}
 
 	@SuppressWarnings("unused")//used in the template
-	public String printGuardName(Expression expr){
-		if(this.getGuards().containsKey(expr)){
+	public String printGuardName(Expression expr) {
+		if (this.getGuards().containsKey(expr)) {
 			return this.getGuards().get(expr);
 		}
 		return "";//this case should never happen

@@ -8,7 +8,9 @@ import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.commons._ast.ASTVariable;
+import org.nest.nestml._ast.ASTBody;
 import org.nest.ode._ast.ASTEquation;
+import org.nest.ode._ast.ASTShape;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
 import org.nest.spl._ast.ASTSmall_Stmt;
@@ -19,6 +21,7 @@ import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This class provides a set of methods which are used during the transformation in order to retrieve or
@@ -31,7 +34,7 @@ public class HelperCollection {
 	public static final String NOT_SUPPORTED = "NOT_SUPPORTED";
 	public static final String NO_UNIT = "";
 
-	public static final String STATIC_GUARD_NAME = "STATIC_GUARD";
+	public static final String GUARD_NAME = "GUARD";
 
 	public static final String DIMENSION_NONE = "none";
 
@@ -461,15 +464,16 @@ public class HelperCollection {
 						+ container.getPrettyPrint().print(variable.getDeclaringExpression().get(), false) + ")");
 	}
 
-	public static void printNotSupportedFunctionCallInEquations(ASTVariable variable, LEMSCollector container) {
+	public static void printNotSupportedFunctionCallInEquations(ASTShape variable, LEMSCollector container) {
 		System.err.println(
 				"LEMS-Error (Line: "
 						+ container.getNeuronName() + "/"
 						+ variable.get_SourcePositionStart().getLine()
 						+ "):"
 						+ " Not supported function call in equation. (" +
-						variable.getName().toString()
+						(new Expression(variable.getRhs())).print()
 						+ ")");
+
 	}
 
 	public static void printNotSupportedFunctionInBlock(ASTSmall_Stmt input, LEMSCollector container) {
@@ -478,7 +482,7 @@ public class HelperCollection {
 						+ container.getNeuronName() + "/"
 						+ input.get_SourcePositionStart().getLine()
 						+ "):"
-						+ " Not supported function call found. ");
+						+ " Not supported function call in function. ");
 
 		if(input.getAssignment().isPresent()){
 			System.err.print("("+container.getPrettyPrint().print(input.getAssignment().get().getExpr(),false) +")\n");
@@ -609,7 +613,7 @@ public class HelperCollection {
 						+ container.getNeuronName() + "/"
 						+ eq.get_SourcePositionStart().getLine()
 						+ "):"
-						+ " Not supported function call in expression found. ("
+						+ " Not supported function call in expression. ("
 						+ container.getPrettyPrint().print(eq.getRhs(), false)
 						+ ")");
 
@@ -774,5 +778,32 @@ public class HelperCollection {
 		ret.replaceRhs(rhs);
 		return ret;
 	}
+
+	/**
+	 * Currently, the ASTBody does not provide any functionality to retrieve all invariants of the state block.
+	 * This method avoids this problem and implements such a routine.
+	 * @param astBody a astBody possibly containing invariants
+	 * @return a list of expressions representing the invariants.
+	 */
+	public static List<ASTExpr> getStateInvariants(ASTBody astBody){
+		return astBody.getStateDeclarations().stream()
+				.filter(param->param.getInvariant().isPresent())
+				.map(param->param.getInvariant().get())
+				.collect(toList());
+	}
+
+	/**
+	 * Currently, the ASTBody does not provide any functionality to retrieve all invariants of the internals block.
+	 * This method avoids this problem and implements such a routine.
+	 * @param astBody a astBody possibly containing invariants
+	 * @return a list of expressions representing the invariants.
+	 */
+	public static List<ASTExpr> getInternalsInvariants(ASTBody astBody){
+		return astBody.getInternalDeclarations().stream()
+				.filter(param->param.getInvariant().isPresent())
+				.map(param->param.getInvariant().get())
+				.collect(toList());
+	}
+
 
 }

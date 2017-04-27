@@ -540,5 +540,9 @@ public class Operator extends Expression {
 		return temp;
 	}
 
+	public boolean isRelationalOperator(){
+		return this.isLe()||this.isLt()||this.isEq()||this.isNe()||this.isGe()||this.isGt();
+	}
+
 
 }
