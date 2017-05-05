@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
@@ -18,6 +19,7 @@ import org.nest.spl._ast.ASTStmt;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTDatatype;
 import org.nest.units._ast.ASTUnitType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -89,6 +91,15 @@ public class HelperCollection {
 		System.err.println(input.prettyPrint() + " : not supported!");
 		return null;
 	}
+
+	public static String typeToDimensionConverter(ASTDatatype input){
+	    if(input.getUnitType().isPresent()){
+	        return "a";//TODO
+        }
+        else{
+	        return "";
+        }
+    }
 
 	/**
 	 * Converts a unit prefix to power of base 10.
@@ -806,6 +817,12 @@ public class HelperCollection {
 				.map(param->param.getInvariant().get())
 				.collect(toList());
 	}
+
+
+	public static Exception replacementRoutine(Expression expr, LEMSCollector container){
+        Expression tempExpression = replaceConstantsWithReferences(container,expr);
+        //TODO
+    }
 
 
 }

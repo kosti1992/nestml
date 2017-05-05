@@ -1,11 +1,13 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
 import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.ASTInput;
 import org.nest.nestml._ast.ASTInputLine;
+import org.nest.spl._ast.ASTDeclaration;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -26,7 +28,7 @@ public class DerivedElement {
     private Expression derivationInstruction;
     private boolean dynamic;//distinguish between derived variables and derived parameter
     private boolean external;//uses an external source, i.e. other tags are used
-    private Optional<String> reduceOption;//the reduce indicates (in the case of external vars) how to combine values to a single one
+    private Optional<String> reduceOption = Optional.empty();//the reduce indicates (in the case of external vars) how to combine values to a single one
     private Optional<Map<Expression, Expression>> conditionalDerivedValues = Optional.empty();
 
 
@@ -195,6 +197,27 @@ public class DerivedElement {
         this.derivationInstruction.replaceOp(tempOp);
         this.derivationInstruction.replaceRhs(rhs);
         this.dynamic = true;//a buffer is a dynamic element
+    }
+
+    /**
+     * Handles a ASTDeclaration of an variable declared inside a block.
+     * @param declaration the ast declaration of the element
+     */
+    public DerivedElement(String name,ASTDeclaration declaration,LEMSCollector container){
+        this.name = name;
+        this.dimension = HelperCollection.typeToDimensionConverter(declaration.getDatatype());
+        if(declaration.getExpr().isPresent()){
+            this.derivationInstruction = new Expression(declaration.getExpr().get());
+        }else{
+            if(declaration.getDatatype().getUnitType().isPresent()){
+                this.derivationInstruction = new NumericalLiteral(0,declaration.getDatatype().getUnitType().get());
+            }else {
+                this.derivationInstruction = new NumericalLiteral(0,null);
+            }
+        }
+        this.dynamic = true;
+        this.external = false;
+        this.reduceOption = Optional.empty();
     }
 
 
