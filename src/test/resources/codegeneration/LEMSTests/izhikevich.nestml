@@ -1,7 +1,7 @@
 neuron izhikevich_nestml:
 
   state:
-    V_m mV = V_m_init
+	V_m mV = V_m_init# [[10mV>=V_m >=0mV]]#test for complex  interval expressions
     u real = V_m*b/1mV
     I real = 0
   end
@@ -17,9 +17,10 @@ neuron izhikevich_nestml:
     c real
     d real
 	V_m_init mV
-	I_e mA
+	I_e mA	
   end
- 
+    
+
   input:
     spikes   <- spike
     currents <- current
@@ -28,12 +29,14 @@ neuron izhikevich_nestml:
   output: spike
 
   update:
-	integrate(V_m)	
+    integrate_odes()
+
+    V_m = spikes*1mV
+
     if V_m >= 30mV:
       V_m = c*1mV
-      u += d
-      emit_spike()
+      emit_spike() 
 	end
+    I = currents
   end
-
 end

@@ -41,9 +41,9 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
       //not supported elements found
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getNotConvertedElements().size() > 0);
       //test event ports
-      Assert.assertEquals(4, testant.getListOfNeurons().get(0).getPortsList().size());
-      Assert.assertEquals("ex_spikes", testant.getListOfNeurons().get(0).getPortsList().get(0).getName());
-      Assert.assertEquals(EventPort.Direction.in, testant.getListOfNeurons().get(0).getPortsList().get(0).getDirection());
+      Assert.assertEquals(1, testant.getListOfNeurons().get(0).getPortsList().size());
+      Assert.assertEquals("spike", testant.getListOfNeurons().get(0).getPortsList().get(0).getName());
+      Assert.assertEquals(EventPort.Direction.out, testant.getListOfNeurons().get(0).getPortsList().get(0).getDirection());
     }
   }
 }

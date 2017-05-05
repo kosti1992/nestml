@@ -121,7 +121,7 @@ public class LEMSCollector extends Collector {
 			//create a new constant in order to achieve a correct dimension of the equation:
 			ASTUnitType tempType = new ASTUnitType();
 			tempType.setUnit("ms");
-			this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+			this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
 			Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
 			this.addDimension(msDimension);
 			this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
@@ -631,10 +631,31 @@ public class LEMSCollector extends Collector {
 	private void handleBuffers(ASTBody neuronBody) {
 		checkNotNull(neuronBody);
 		// processes all input-buffers
+        Attachment tempAttachment = null;
+        DerivedElement tempDerivedVar = null;
+        Dimension tempDimesion  = null;
+        Unit tempUnit  = null;
 		for (ASTInputLine var : neuronBody.getInputLines()) {
-			//if(!var.isCurrent()){//current sources are not actual event ports, but rather variables derived externally
-			this.addEventPort(new EventPort(var));//spike ports are added normally
-			//}//current buffers are treated as derived variables and therefore have to be added with an artifact
+		    if(var.isCurrent()){
+                //a current input buffer has the dimension of pA, thus generate such a unit and dimension
+                if(tempDimesion==null) {
+                    tempDimesion = new Dimension(HelperCollection.PREFIX_DIMENSION + "pA",
+                            0, 0, 0, 1, 0, 0, 0);
+                    tempUnit = new Unit("pA", -12, tempDimesion);
+                }
+                tempAttachment = new Attachment(var.getName(),"baseSynapse");//TODO: here further changes can be done
+            }else {//is spike
+                tempAttachment = new Attachment(var.getName(), "baseSynapse");
+            }
+            tempDerivedVar = new DerivedElement(var);
+            this.addDerivedElement(tempDerivedVar);
+            this.addAttachment(tempAttachment);
+
+            if(tempDimesion!=null&tempUnit!=null){
+                this.addDimension(tempDimesion);
+                this.addUnit(tempUnit);
+            }
+
 		}
 		//processes all output-buffers
 		for (ASTOutput var : neuronBody.getOutputs()) {

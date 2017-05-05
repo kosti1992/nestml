@@ -43,6 +43,8 @@ public class HelperCollection {
 	public static final String PREFIX_CONSTANT = "CON";
 	public static final String PREFIX_ACT = "ACT";
 
+	public static final String CURRENT_BUFFER_INPUT_VAR = "i";
+	public static final String SPIKE_BUFFER_INPUT_VAR = "i";
 
 
 
@@ -535,7 +537,7 @@ public class HelperCollection {
 		parenthesis.setRightParentheses(true);
 		leftSubExpr.replaceOp(parenthesis);
 		leftSubExpr.replaceRhs(expr);
-		Variable var = new Variable(PREFIX_CONSTANT + "1ms");
+		Variable var = new Variable(PREFIX_CONSTANT + "1_ms");
 		Expression exp = new Expression();
 		Operator op = new Operator();
 		op.setDivOp(true);
