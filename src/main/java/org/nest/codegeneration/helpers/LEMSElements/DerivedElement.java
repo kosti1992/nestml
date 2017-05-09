@@ -215,6 +215,9 @@ public class DerivedElement {
                 this.derivationInstruction = new NumericalLiteral(0,null);
             }
         }
+        //TODO: ternary op hanlding
+        this.derivationInstruction = HelperCollection.replacementRoutine(this.derivationInstruction,container);
+        this.dimension = HelperCollection.typeToDimensionConverter(declaration.getDatatype());
         this.dynamic = true;
         this.external = false;
         this.reduceOption = Optional.empty();

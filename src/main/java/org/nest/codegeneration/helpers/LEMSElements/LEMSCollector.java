@@ -214,21 +214,17 @@ public class LEMSCollector extends Collector {
                     if (stmt.getSmall_Stmt().get().declarationIsPresent()) {
                         this.handleType(stmt.getSmall_Stmt().get().getDeclaration().get().getDatatype());
                         for (String name : stmt.getSmall_Stmt().get().getDeclaration().get().getVars()) {
-                            //DerivedElement tempVar = new DerivedElement(name, stmt.getSmall_Stmt().get().getDeclaration().get());
-                            //TODO
-
-                            //this.addDerivedElement(tempVar);
-
+                            DerivedElement tempVar = new DerivedElement(name, stmt.getSmall_Stmt().get().getDeclaration().get(), this);
+                            this.addDerivedElement(tempVar);
                         }
                     } else if (stmt.getSmall_Stmt().get().returnStmtIsPresent()) {
                         Expression tempExpr = new Expression(stmt.getSmall_Stmt().get().getReturnStmt().get().getExpr().get());
-                        tempExpr = HelperCollection.replaceConstantsWithReferences(this,tempExpr);
-                        tempExpr = HelperCollection.replaceResolutionByConstantReference(this,tempExpr);
-                        /*TODO
-                        DerivedElement tempVar = new DerivedElement(func.getName(),HelperCollection.typeToDimensionConverter(func.getReturnType().get())
-                               ,true,false);
+                        tempExpr = HelperCollection.replacementRoutine(tempExpr, this);
+
+                        DerivedElement tempVar = new DerivedElement(func.getName(), HelperCollection.typeToDimensionConverter(func.getReturnType().get()),
+                                tempExpr, true, false);
                         this.addDerivedElement(tempVar);
-                        */
+
                     }
                 } else {
                     System.err.println("LEMS-Error (TODO)): compound statement in function declration");
@@ -723,10 +719,15 @@ public class LEMSCollector extends Collector {
         }
     }
 
+    /**
+     * This sub-routine handles the processing of a unit, thus converts it to an adequate internal representation.
+     *
+     * @param var The variable which will processed, here the type is stored as an ASTDatatype object.
+     */
     private void handleType(ASTDatatype var) {
         checkNotNull(var);
-        if (var.getUnitType().isPresent() && var.getUnitType().get().unitIsPresent()) {
-            Unit temp = new Unit(var.getUnitType().get().getUnitType().get());
+        if (var.getUnitType().isPresent()) {
+            Unit temp = new Unit(var.getUnitType().get());
             this.addDimension(temp.getDimension());
             this.addUnit(temp);
         }

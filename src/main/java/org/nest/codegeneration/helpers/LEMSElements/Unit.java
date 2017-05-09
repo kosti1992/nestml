@@ -32,7 +32,11 @@ public class Unit {
 	}
 
 	public Unit(ASTUnitType input){
-		symbol = HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
+		if(input.getUnit().isPresent()){
+			this.symbol = HelperCollection.formatComplexUnit(input.getUnit().get());
+		}else{
+			this.symbol = HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
+		}
 		dimension = new Dimension(input);
 		power = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit())[7];
 	}
@@ -42,7 +46,7 @@ public class Unit {
 	 *
 	 * @param input a string containing a unit symbol
 	 */
-	public Unit(String input,int power , Dimension dimension) {
+	public Unit(String input,int power, Dimension dimension) {
 		this.symbol =  HelperCollection.formatComplexUnit(input);
 		this.dimension = dimension;
 		this.power = power;
