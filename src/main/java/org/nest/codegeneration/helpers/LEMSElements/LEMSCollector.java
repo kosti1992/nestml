@@ -5,11 +5,7 @@ import java.util.*;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.commons._ast.ASTExpr;
-import org.nest.nestml._ast.ASTBody;
-import org.nest.nestml._ast.ASTFunction;
-import org.nest.nestml._ast.ASTInputLine;
-import org.nest.nestml._ast.ASTNeuron;
-import org.nest.nestml._ast.ASTOutput;
+import org.nest.nestml._ast.*;
 import org.nest.ode._ast.ASTEquation;
 import org.nest.ode._ast.ASTOdeFunction;
 import org.nest.ode._ast.ASTShape;
@@ -207,6 +203,34 @@ public class LEMSCollector extends Collector {
     private void handleUserDefinedFunctions(ASTBody neuronBody) {
         checkNotNull(neuronBody);
         for (ASTFunction func : neuronBody.getFunctions()) {
+            //first handle the signature of the function
+            if (func.parametersIsPresent()) {
+                for (ASTParameter param : func.getParameters().get().getParameters()) {
+                    //not all params have to have a unit
+                    Optional<Unit> tempUnit = handleType(param.getDatatype());
+                    Expression defaultValue;
+                    StateVariable paramStateVar;
+                    if (tempUnit.isPresent()) {
+                        defaultValue = new NumericalLiteral(0, param.getDatatype().getUnitType().get());
+                        defaultValue = HelperCollection.replaceConstantsWithReferences(this,defaultValue);
+                        paramStateVar = new StateVariable(param.getName(),
+                                HelperCollection.typeToDimensionConverter(param.getDatatype()),
+                                defaultValue, Optional.of(tempUnit.get().getSymbol()));
+
+                    } else {
+                        defaultValue = new NumericalLiteral(0, null);
+                        paramStateVar = new StateVariable(param.getName(),
+                                HelperCollection.typeToDimensionConverter(param.getDatatype()),
+                                defaultValue, Optional.empty());
+                    }
+                    this.addStateVariable(paramStateVar);
+                }
+
+
+            }
+            //handle the return type of the function
+            this.handleType(func.getReturnType().get());
+
             //for each statement in the declaration, execute the following
             for (ASTStmt stmt : func.getBlock().getStmts()) {
                 //we only support small statements
@@ -237,6 +261,7 @@ public class LEMSCollector extends Collector {
             this.addNotConverted("Not supported function-declaration found: " + func.getName()
                     + " in lines " + func.get_SourcePositionStart() + " to " + func.get_SourcePositionEnd() + ".");
         }
+
     }
 
     /**
@@ -290,7 +315,7 @@ public class LEMSCollector extends Collector {
                     equation.put(eq.getLhs().getSimpleName(), expr);
                     //now generate the corresponding activator
                     this.stateVariablesList.add(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
-                            HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), HelperCollection.NO_UNIT, this));
+                            HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
                     this.localTimeDerivative.add(eq.getLhs().getSimpleName());
                 } else {
                     //otherwise the integration is global, no further steps required
@@ -406,10 +431,10 @@ public class LEMSCollector extends Collector {
                                 this, false);
                         if (var.getType().getType() == TypeSymbol.Type.UNIT) {
                             tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
-                                    var.getType().prettyPrint(), this);
+                                    Optional.of(var.getType().prettyPrint()));
                         } else {
                             tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
-                                    "", this);//no unit,therefore "" as 4th arg
+                                    Optional.empty());//no unit,therefore "" as 4th arg
                         }
                     } else if (var.getDeclaringExpression().get().exprIsPresent()) {
                         //in the case it is an expression, e.g. 10mV+V_m
@@ -461,7 +486,7 @@ public class LEMSCollector extends Collector {
         if (!neuronBody.getParameterInvariants().isEmpty()) {
             //we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
             StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
-                    new NumericalLiteral(0, null), "", this);
+                    new NumericalLiteral(0, null),Optional.empty());
             this.addStateVariable(tempVar);
             //finally process each guard
             Expression tempExpression;
@@ -580,10 +605,10 @@ public class LEMSCollector extends Collector {
                             if (var.getType().getType() == TypeSymbol.Type.UNIT) {
                                 Unit tempUnit = new Unit(var.getType());
                                 this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
-                                        new Variable(tempElem.getName()), tempUnit.getSymbol(), this));
+                                        new Variable(tempElem.getName()), Optional.of(tempUnit.getSymbol())));
                             } else {
                                 this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
-                                        new Variable(tempElem.getName()), "", this));
+                                        new Variable(tempElem.getName()),Optional.empty()));
                             }
                             // handle boolean literal or numLiteral, e.g. 1mV
                         } else if (var.getDeclaringExpression().get().booleanLiteralIsPresent() ||
@@ -708,7 +733,7 @@ public class LEMSCollector extends Collector {
      *
      * @param var The variable which will processed.
      */
-    private void handleType(TypeSymbol var) {
+    private Optional<Unit> handleType(TypeSymbol var) {
         // in case that a provided variable uses a concrete unit, this unit has to be processed.
         // otherwise, nothing happens
         checkNotNull(var);
@@ -716,7 +741,9 @@ public class LEMSCollector extends Collector {
             Unit temp = new Unit(var);
             this.addDimension(temp.getDimension());
             this.addUnit(temp);
+            return Optional.of(temp);
         }
+        return Optional.empty();
     }
 
     /**
@@ -724,13 +751,15 @@ public class LEMSCollector extends Collector {
      *
      * @param var The variable which will processed, here the type is stored as an ASTDatatype object.
      */
-    private void handleType(ASTDatatype var) {
+    private Optional<Unit> handleType(ASTDatatype var) {
         checkNotNull(var);
         if (var.getUnitType().isPresent()) {
             Unit temp = new Unit(var.getUnitType().get());
             this.addDimension(temp.getDimension());
             this.addUnit(temp);
+            return Optional.of(temp);
         }
+        return Optional.empty();
     }
 
     /**

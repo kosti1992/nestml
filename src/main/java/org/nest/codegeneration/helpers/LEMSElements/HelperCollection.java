@@ -113,7 +113,8 @@ public class HelperCollection {
     }
 
     /**
-     * Converts a unit prefix to power of base 10.
+     * Converts a unit prefix to power of base 10. This method is probably obsolete since the introduction of the
+     * new unit handling in the frontend.
      *
      * @param var_type Name of the unit represented as String.
      * @return Power of the prefix as int.
@@ -247,6 +248,31 @@ public class HelperCollection {
      */
     public static Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
         List<Expression> temp = expr.getNumericals();
+        //in the case we get a numerical literal directly
+        if(expr instanceof NumericalLiteral){
+            if((((NumericalLiteral) expr).hasType())){
+                int[] dec = convertTypeDeclToArray(((NumericalLiteral) expr).getType().get().getSerializedUnit());
+                //create the required units and dimensions
+                Dimension tempDimension =
+                        new Dimension(PREFIX_DIMENSION +
+                                HelperCollection.getExpressionFromUnitType(((NumericalLiteral) expr).getType().get()).print(),
+                                dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+
+                Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral) expr).getType().get()).print(),
+                        dec[7], tempDimension);
+
+                container.addDimension(tempDimension);
+                container.addUnit(tempUnit);
+
+                //finally a constant representing the concrete value, a reference is set to this constant
+                Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) expr).printValueType(),
+                        tempDimension.getName(), expr, false);
+                container.addConstant(tempConstant);
+                
+                return new Variable(tempConstant.getName());
+            }
+        }
+        //otherwise it is an expression
         for (Expression exp : temp) {
             if (((NumericalLiteral) exp).hasType()) {
                 if (((NumericalLiteral) exp).getType().isPresent() &&

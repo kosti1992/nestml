@@ -370,7 +370,7 @@ public class DynamicRoutine {
     private List<Instruction> handleASTDeclaration(ASTDeclaration declaration, LEMSCollector container) {
         List<Instruction> ret = new ArrayList<>();
         String dimension = HelperCollection.DIMENSION_NONE;
-        String unit = "";
+        Optional<String> unit = Optional.empty();
         //if a data type is present,we have to add this type to the container
         if (declaration.getDatatype().getUnitType().isPresent()) {
             int[] dec = HelperCollection.convertTypeDeclToArray(
@@ -384,7 +384,7 @@ public class DynamicRoutine {
             container.addDimension(tempDimension);
             container.addUnit(tempUnit);
             dimension = tempDimension.getName();
-            unit = tempUnit.getSymbol();
+            unit = Optional.of(tempUnit.getSymbol());
         }
         Expression tempExpression = null;
         //now check if a declaration is present
@@ -403,7 +403,7 @@ public class DynamicRoutine {
         tempExpression = HelperCollection.replacementRoutine(tempExpression,container);
         Instruction tempInstruction = null;
         for (String var : declaration.getVars()) {
-            container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit, container));
+            container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit));
             tempInstruction = new Assignment(var, tempExpression);
             ret.add(tempInstruction);
         }
@@ -519,7 +519,7 @@ public class DynamicRoutine {
         }
 
         String dimension = "";
-        String unit = "";
+        Optional<String> unit =Optional.empty();
         if (input.getDeclaration().get().getDatatype().getUnitType().isPresent()) {
             int[] dec = HelperCollection.convertTypeDeclToArray(
                     input.getDeclaration().get().getDatatype().getUnitType().get().getSerializedUnit());
@@ -532,7 +532,7 @@ public class DynamicRoutine {
             container.addDimension(tempDimension);
             container.addUnit(tempUnit);
             dimension = tempDimension.getName();
-            unit = tempUnit.getSymbol();
+            unit = Optional.of(tempUnit.getSymbol());
         }
         firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
         Operator opFirst = new Operator();
@@ -584,7 +584,7 @@ public class DynamicRoutine {
             tempLiteral.setType(Optional.of(input.getDeclaration().get().getDatatype().getUnitType().get()));
         }
         container.addStateVariable(new StateVariable(input.getDeclaration().get().getVars().get(0),
-                dimension, tempLiteral, unit, container));//TODO
+                dimension, tempLiteral, unit));//TODO
         return ret;
     }
 
