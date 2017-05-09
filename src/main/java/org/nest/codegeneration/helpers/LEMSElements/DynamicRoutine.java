@@ -18,6 +18,7 @@ import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
 import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
 import org.nest.units._ast.ASTUnitType;
+import org.w3c.dom.html.HTMLBRElement;
 
 /**
  * This class represents a transformed representation of the dynamic routine extracted from the source-model
@@ -399,6 +400,7 @@ public class DynamicRoutine {
                 tempExpression = new NumericalLiteral(0, null);
             }
         }
+        tempExpression = HelperCollection.replacementRoutine(tempExpression,container);
         Instruction tempInstruction = null;
         for (String var : declaration.getVars()) {
             container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit, container));

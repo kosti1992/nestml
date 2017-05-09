@@ -818,10 +818,15 @@ public class HelperCollection {
 				.collect(toList());
 	}
 
-
-	public static Exception replacementRoutine(Expression expr, LEMSCollector container){
+    /**
+     * A routine encapsulating both, replacing of constants and the resolution function call.
+     * @param expr an expression possibly containing this elements
+     * @param container a container or added elements
+     * @return an expression with replaced elements
+     */
+	public static Expression replacementRoutine(Expression expr, LEMSCollector container){
         Expression tempExpression = replaceConstantsWithReferences(container,expr);
-        //TODO
+        return replaceResolutionByConstantReference(container,tempExpression);
     }
 
 

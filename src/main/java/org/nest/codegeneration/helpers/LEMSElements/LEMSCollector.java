@@ -214,20 +214,21 @@ public class LEMSCollector extends Collector {
                     if (stmt.getSmall_Stmt().get().declarationIsPresent()) {
                         this.handleType(stmt.getSmall_Stmt().get().getDeclaration().get().getDatatype());
                         for (String name : stmt.getSmall_Stmt().get().getDeclaration().get().getVars()) {
-                            DerivedElement tempVar = new DerivedElement(name, stmt.getSmall_Stmt().get().getDeclaration().get());
+                            //DerivedElement tempVar = new DerivedElement(name, stmt.getSmall_Stmt().get().getDeclaration().get());
+                            //TODO
 
-
-                            this.addDerivedElement(tempVar);
+                            //this.addDerivedElement(tempVar);
 
                         }
                     } else if (stmt.getSmall_Stmt().get().returnStmtIsPresent()) {
                         Expression tempExpr = new Expression(stmt.getSmall_Stmt().get().getReturnStmt().get().getExpr().get());
                         tempExpr = HelperCollection.replaceConstantsWithReferences(this,tempExpr);
                         tempExpr = HelperCollection.replaceResolutionByConstantReference(this,tempExpr);
-
-                        DerivedElement tempVar = new DerivedElement(func.getName(),HelperCollection.typeToDimensionConverter(func.getReturnType().get()),
+                        /*TODO
+                        DerivedElement tempVar = new DerivedElement(func.getName(),HelperCollection.typeToDimensionConverter(func.getReturnType().get())
                                ,true,false);
                         this.addDerivedElement(tempVar);
+                        */
                     }
                 } else {
                     System.err.println("LEMS-Error (TODO)): compound statement in function declration");
