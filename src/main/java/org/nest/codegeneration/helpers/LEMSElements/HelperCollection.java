@@ -34,16 +34,14 @@ import static java.util.stream.Collectors.toList;
 public class HelperCollection {
     //this is a collection of global constants and prefixes. in case something has to be changed, this is the point where
     public static final String NOT_SUPPORTED = "NOT_SUPPORTED";
-    public static final String NO_UNIT = "";
 
     public static final String GUARD_NAME = "GUARD";
-
     public static final String DIMENSION_NONE = "none";
 
-    public static final String PREFIX_INIT = "INIT";
-    public static final String PREFIX_DIMENSION = "DimensionOf_";
-    public static final String PREFIX_CONSTANT = "CON";
-    public static final String PREFIX_ACT = "ACT";
+    public static final String PREFIX_INIT = "INIT_";
+    public static final String PREFIX_DIMENSION = "DIM_";
+    public static final String PREFIX_CONSTANT = "CON_";
+    public static final String PREFIX_ACT = "ACT_";
 
     public static final String CURRENT_BUFFER_INPUT_VAR = "i";
     public static final String SPIKE_BUFFER_INPUT_VAR = "i";
@@ -207,33 +205,47 @@ public class HelperCollection {
                 return true;
             case "resolution":
                 return true;
+            case "steps":
+                return true;
             default:
                 return false;
         }
     }
+
+    private static boolean userDefinedFunctionIsSupported(String expr,LEMSCollector container){
+        for(DerivedElement elem:container.getDerivedElementList()){
+            if(elem.getName().equals(expr)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Indicates whether a given ASTExpression contains a function call or not.
      *
      * @param expr          the expression which will be checked.
      * @param skipSupported if true, all supported function calls will be skipped
+     * @param container the container holds user defined functions which have to be seen as supported
      * @return true, if expression or sub-expression contains call.
      */
-    public static boolean containsFunctionCall(ASTExpr expr, boolean skipSupported) {
+    public static boolean containsFunctionCall(ASTExpr expr, boolean skipSupported,LEMSCollector container) {
         boolean temp = false;
         //if more functions are supported
-        if (expr.functionCallIsPresent() && !(skipSupported && mathematicalFunctionIsSupported(
-                expr.getFunctionCall().get().getName().toString()))) {
+        if (expr.functionCallIsPresent() && !(skipSupported && (mathematicalFunctionIsSupported(
+                expr.getFunctionCall().get().getName().toString()))||userDefinedFunctionIsSupported(expr.getFunctionCall().get().getName().toString(),
+                container))) {
             temp = true;
         }
         if (expr.exprIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getExpr().get(), skipSupported);
+            temp = temp || containsFunctionCall(expr.getExpr().get(), skipSupported,container);
         }
         if (expr.leftIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getLeft().get(), skipSupported);
+            temp = temp || containsFunctionCall(expr.getLeft().get(), skipSupported,container);
         }
         if (expr.rightIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getRight().get(), skipSupported);
+            temp = temp || containsFunctionCall(expr.getRight().get(), skipSupported,container);
         }
         return temp;
     }
@@ -268,7 +280,7 @@ public class HelperCollection {
                 Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) expr).printValueType(),
                         tempDimension.getName(), expr, false);
                 container.addConstant(tempConstant);
-                
+
                 return new Variable(tempConstant.getName());
             }
         }
@@ -867,8 +879,27 @@ public class HelperCollection {
      */
     public static Expression replacementRoutine(Expression expr, LEMSCollector container) {
         Expression tempExpression = replaceConstantsWithReferences(container, expr);
+        tempExpression = replaceFunctionCallByReference(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
+
+    public static Expression replaceFunctionCallByReference(LEMSCollector container,Expression expr){
+        checkNotNull(expr);
+        checkNotNull(container);
+        if(expr instanceof Function){
+            return new Variable(((Function) expr).getFunctionName());
+        }else{
+            List<Expression> listOfCalls = expr.getFunctions();
+            //collect the names of all derived variables
+            List<String> udFNames = container.getDerivedElementList().stream().map(param->param.getName()).collect(toList());
+            for(Expression call:listOfCalls){
+                if(udFNames.contains(((Function) call).getFunctionName())){
+                    expr.replaceElement(call,new Variable(((Function) call).getFunctionName()));
+                }
+            }
+            return expr;
+        }
+    }
 
 }

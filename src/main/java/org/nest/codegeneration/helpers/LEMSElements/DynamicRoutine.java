@@ -259,7 +259,7 @@ public class DynamicRoutine {
         List<Instruction> res = new ArrayList<>();
         if (input.assignmentIsPresent()) {
             //check if not supported functions are part of the assignment
-            if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true)) {
+            if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true,container)) {
                 //Generate a proper error message
                 HelperCollection.printNotSupportedFunctionInBlock(input, container);
                 //now generate a expression which indicates that it is not supported

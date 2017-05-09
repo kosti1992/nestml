@@ -102,6 +102,10 @@ public class LEMSCollector extends Collector {
         }
         ASTBody neuronBody = neuron.getBody();
 
+        //process user defined functions in simple way
+        //we process user defined functions at the beginning in order to mark them as supported
+        this.handleUserDefinedFunctions(neuronBody);
+
         //collect all boolean elements
         this.collectBooleanElements(neuronBody);
 
@@ -110,9 +114,6 @@ public class LEMSCollector extends Collector {
 
         //processes all alias elements of the state block
         this.handleStateAliases(neuronBody);
-
-        //user-defined functions are not supported by LEMS (yet)
-        this.handleUserDefinedFunctions(neuronBody);
 
         //process the equations block
         if (!neuronBody.getEquations().isEmpty()) {
@@ -212,7 +213,7 @@ public class LEMSCollector extends Collector {
                     StateVariable paramStateVar;
                     if (tempUnit.isPresent()) {
                         defaultValue = new NumericalLiteral(0, param.getDatatype().getUnitType().get());
-                        defaultValue = HelperCollection.replaceConstantsWithReferences(this,defaultValue);
+                        defaultValue = HelperCollection.replaceConstantsWithReferences(this, defaultValue);
                         paramStateVar = new StateVariable(param.getName(),
                                 HelperCollection.typeToDimensionConverter(param.getDatatype()),
                                 defaultValue, Optional.of(tempUnit.get().getSymbol()));
@@ -251,15 +252,9 @@ public class LEMSCollector extends Collector {
 
                     }
                 } else {
-                    System.err.println("LEMS-Error (TODO)): compound statement in function declration");
+                    System.err.println("LEMS-Error ( " + this.neuronName + " )): compound statement in function declaration not supported.");
                 }
             }
-
-
-            //print an error message an store a corresponding message for the generation
-            System.err.println("Not supported function-declaration found \"" + func.getName() + "\".");
-            this.addNotConverted("Not supported function-declaration found: " + func.getName()
-                    + " in lines " + func.get_SourcePositionStart() + " to " + func.get_SourcePositionEnd() + ".");
         }
 
     }
@@ -274,7 +269,7 @@ public class LEMSCollector extends Collector {
         checkNotNull(neuronBody);
         for (int i = 0; i < neuronBody.getShapes().size(); i++) {
             ASTShape eq = neuronBody.getShapes().get(i);
-            if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
+            if (HelperCollection.containsFunctionCall(eq.getRhs(), true, this)) {
                 HelperCollection.printNotSupportedFunctionCallInEquations(eq, this);
                 this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
                 equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
@@ -297,7 +292,7 @@ public class LEMSCollector extends Collector {
         checkNotNull(neuronBody);
         for (int i = 0; i < neuronBody.getEquations().size(); i++) {
             ASTEquation eq = neuronBody.getEquations().get(i);
-            if (HelperCollection.containsFunctionCall(eq.getRhs(), true)) {
+            if (HelperCollection.containsFunctionCall(eq.getRhs(), true, this)) {
                 HelperCollection.printNotSupportedFunctionCallFoundMessage(eq, this);
                 this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
                 equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
@@ -486,7 +481,7 @@ public class LEMSCollector extends Collector {
         if (!neuronBody.getParameterInvariants().isEmpty()) {
             //we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
             StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
-                    new NumericalLiteral(0, null),Optional.empty());
+                    new NumericalLiteral(0, null), Optional.empty());
             this.addStateVariable(tempVar);
             //finally process each guard
             Expression tempExpression;
@@ -580,7 +575,7 @@ public class LEMSCollector extends Collector {
                                 tempExpr, false, false));
 
 
-                    } else if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(), true)) {
+                    } else if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(), true, this)) {
                         HelperCollection.printNotSupportedFunctionCallInExpression(var, this);
                     } else {// otherwise it is either an expression or does contain a yet different type of function call.
                         if (var.getDeclaringExpression().get().exprIsPresent()) {
@@ -608,7 +603,7 @@ public class LEMSCollector extends Collector {
                                         new Variable(tempElem.getName()), Optional.of(tempUnit.getSymbol())));
                             } else {
                                 this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
-                                        new Variable(tempElem.getName()),Optional.empty()));
+                                        new Variable(tempElem.getName()), Optional.empty()));
                             }
                             // handle boolean literal or numLiteral, e.g. 1mV
                         } else if (var.getDeclaringExpression().get().booleanLiteralIsPresent() ||
@@ -627,8 +622,7 @@ public class LEMSCollector extends Collector {
                             combined.replaceLhs(leftExpr);
                             combined.replaceOp(op);
                             combined.replaceRhs(rightExpr);
-                            combined = HelperCollection.replaceConstantsWithReferences(this, combined);
-                            combined = HelperCollection.replaceResolutionByConstantReference(this, combined);
+                            combined = HelperCollection.replacementRoutine(combined,this);
                             DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                     combined, false, false);
                             this.addDerivedElement(tempElem);
@@ -637,7 +631,7 @@ public class LEMSCollector extends Collector {
                             StateVariable tempVariable = new StateVariable(var, this);
                             this.addStateVariable(tempVariable);
                         } else if (var.getDeclaringExpression().get().functionCallIsPresent()) {
-                            if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(), true)) {
+                            if (HelperCollection.containsFunctionCall(var.getDeclaringExpression().get(), true, this)) {
                                 HelperCollection.printNotSupportedFunctionCallInExpression(var, this);
                                 this.addNotConverted("Not supported function call in internals, line: " +
                                         var.getSourcePosition().getLine());
@@ -1075,7 +1069,8 @@ public class LEMSCollector extends Collector {
         if (this.getGuards().containsKey(expr)) {
             return this.getGuards().get(expr);
         }
-        return "";//this case should never happen
+        throw new NullPointerException();//this case should never happen
     }
+
 
 }

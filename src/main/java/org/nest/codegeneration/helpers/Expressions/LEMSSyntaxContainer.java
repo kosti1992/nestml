@@ -39,7 +39,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 
 	public String print(Operator expr) {
 		if (expr.isInf()) {
-			return "[Inf_not_supported]";
+			return String.valueOf(Integer.MAX_VALUE);
 		}
 		if (expr.isLogicalOr()) {
 			return ".or.";

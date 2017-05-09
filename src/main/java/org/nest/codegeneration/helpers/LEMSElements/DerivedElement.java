@@ -26,7 +26,7 @@ public class DerivedElement {
     private String name;
     private String dimension;
     private Expression derivationInstruction;
-    private boolean dynamic;//distinguish between derived variables and derived parameter
+    private boolean dynamic;//distinguish between derived variables and derived parameters
     private boolean external;//uses an external source, i.e. other tags are used
     private Optional<String> reduceOption = Optional.empty();//the reduce indicates (in the case of external vars) how to combine values to a single one
     private Optional<Map<Expression, Expression>> conditionalDerivedValues = Optional.empty();
