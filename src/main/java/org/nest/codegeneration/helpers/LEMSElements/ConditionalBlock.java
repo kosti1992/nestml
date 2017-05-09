@@ -69,6 +69,4 @@ public class ConditionalBlock {
 		return instr.getClassIdentifier();
 	}
 
-
-
 }

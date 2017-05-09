@@ -636,6 +636,7 @@ public class LEMSCollector extends Collector {
                                 this.addNotConverted("Not supported function call in internals, line: " +
                                         var.getSourcePosition().getLine());
                             }
+                            //TODO: here add replacement!!!
                             Expression tempExpression = new Expression(var.getDeclaringExpression().get());
                             DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                     tempExpression, false, false);
