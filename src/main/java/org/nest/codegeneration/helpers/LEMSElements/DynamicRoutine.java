@@ -258,7 +258,7 @@ public class DynamicRoutine {
         List<Instruction> res = new ArrayList<>();
         if (input.assignmentIsPresent()) {
             //check if not supported functions are part of the assignment
-            if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true,container)) {
+            if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true, container)) {
                 //Generate a proper error message
                 HelperCollection.printNotSupportedFunctionInBlock(input, container);
                 //now generate a expression which indicates that it is not supported
@@ -385,7 +385,7 @@ public class DynamicRoutine {
             dimension = tempDimension.getName();
             unit = Optional.of(tempUnit.getSymbol());
         }
-        Expression tempExpression = null;
+        Expression tempExpression;
         //now check if a declaration is present
         if (declaration.getExpr().isPresent()) {
             tempExpression = new Expression(declaration.getExpr().get());
@@ -399,8 +399,8 @@ public class DynamicRoutine {
                 tempExpression = new NumericalLiteral(0, null);
             }
         }
-        tempExpression = HelperCollection.replacementRoutine(container,tempExpression);
-        Instruction tempInstruction = null;
+        tempExpression = HelperCollection.replacementRoutine(container, tempExpression);
+        Instruction tempInstruction;
         for (String var : declaration.getVars()) {
             container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit));
             tempInstruction = new Assignment(var, tempExpression);
@@ -465,7 +465,7 @@ public class DynamicRoutine {
         firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, firstAssignmentExpression);
         Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
                 firstAssignmentExpression);
-        ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition,null);
+        ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
         ret.add(firstBlock);
 
         //now create the second part which applies if the condition is not true
@@ -518,7 +518,7 @@ public class DynamicRoutine {
         }
 
         String dimension = "";
-        Optional<String> unit =Optional.empty();
+        Optional<String> unit = Optional.empty();
         if (input.getDeclaration().get().getDatatype().getUnitType().isPresent()) {
             int[] dec = HelperCollection.convertTypeDeclToArray(
                     input.getDeclaration().get().getDatatype().getUnitType().get().getSerializedUnit());
@@ -550,10 +550,14 @@ public class DynamicRoutine {
         Expression firstAssignmentExpression = new Expression(input.getDeclaration().get().getExpr().get().getIfTrue().get());
         firstAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, firstAssignmentExpression);
         firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, firstAssignmentExpression);
-        Assignment firstAssignment = new Assignment(input.getDeclaration().get().getVars().get(0),//TODO: here only the first is regarded
-                firstAssignmentExpression);
-        ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
-        ret.add(firstBlock);
+
+        Assignment firstAssignment;
+        ConditionalBlock firstBlock;
+        for (String var : input.getDeclaration().get().getVars()) {
+            firstAssignment = new Assignment(var, firstAssignmentExpression);
+            firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
+            ret.add(firstBlock);
+        }
 
         //now create the second part which applies if the condition is not true
         Expression secondSubCondition = firstSubCondition.deepClone();
@@ -574,16 +578,22 @@ public class DynamicRoutine {
         Expression secondAssignmentExpression = new Expression(input.getDeclaration().get().getExpr().get().getIfNot().get());
         secondAssignmentExpression = HelperCollection.replaceConstantsWithReferences(container, secondAssignmentExpression);
         secondAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, secondAssignmentExpression);
-        Assignment secondAssignment = new Assignment(input.getDeclaration().get().getVars().get(0),
-                secondAssignmentExpression);
-        ConditionalBlock secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
-        ret.add(secondBlock);
-        NumericalLiteral tempLiteral = new NumericalLiteral(0, null);
-        if (input.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
-            tempLiteral.setType(Optional.of(input.getDeclaration().get().getDatatype().getUnitType().get()));
+        Assignment secondAssignment;
+        ConditionalBlock secondBlock;
+        for (String var : input.getDeclaration().get().getVars()) {
+            secondAssignment = new Assignment(var, secondAssignmentExpression);
+            secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
+            ret.add(secondBlock);
         }
-        container.addStateVariable(new StateVariable(input.getDeclaration().get().getVars().get(0),
-                dimension, tempLiteral, unit));//TODO
+
+        Expression tempLiteral = new NumericalLiteral(0, null);
+        if (input.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
+            ((NumericalLiteral) tempLiteral).setType(Optional.of(input.getDeclaration().get().getDatatype().getUnitType().get()));
+        }
+        tempLiteral = HelperCollection.replacementRoutine(container, tempLiteral);
+        for (String var : input.getDeclaration().get().getVars()) {
+            container.addStateVariable(new StateVariable(var, dimension, tempLiteral, unit));
+        }
         return ret;
     }
 
