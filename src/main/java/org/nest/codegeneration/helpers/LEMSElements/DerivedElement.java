@@ -22,7 +22,7 @@ import java.util.Optional;
  *
  * @author perun
  */
-public class DerivedElement {
+public class DerivedElement extends LEMSElement{
     private String mName;
     private String mDimension;
     private Expression mValue;
@@ -48,7 +48,6 @@ public class DerivedElement {
             mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
             mDimension = HelperCollection.formatComplexUnit(mDimension);
         }
-
         //get the derivation instruction in LEMS format
         mValue = new Expression(_variable);
         //replace the resolution function call with a reference to the constant, replace direct constants with references

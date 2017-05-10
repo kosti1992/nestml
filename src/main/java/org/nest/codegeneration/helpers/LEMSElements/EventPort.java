@@ -2,66 +2,65 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.nestml._ast.ASTInputLine;
 import org.nest.nestml._ast.ASTOutput;
-import org.reflections.vfs.CommonsVfs2UrlType;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 /**
  * This class represents an input or output-port, an interface derived from buffers stated in the source-model.
- * This class has to be altered if the concept of current or spike-buffers became supported by LEMS.
+ * This class stores only abstract interfaces without any values. A concrete buffer is transformed to a externally
+ * derived variable.
  *
  * @author perun
  */
-public class EventPort {
-  private String name;
-  private Direction dir;
+public class EventPort extends LEMSElement{
+  private String mName;
+  private Direction mDir;
 
   /**
    * Creates a port from an input-buffer of the source-model.
    *
-   * @param variable an input-buffer
+   * @param _variable an input-buffer
    */
-  public EventPort(ASTInputLine variable) {
-    this.name = variable.getName();
-    this.dir = Direction.in;
+  public EventPort(ASTInputLine _variable) {
+    this.mName = _variable.getName();
+    this.mDir = Direction.in;
   }
 
 
 	/**
      * This method can be used to generate an event port from a xml node.
-     * @param xmlNode the event port xml node.
+     * @param _xmlNode the event port xml node.
      */
-  public EventPort(Node xmlNode){
-    this.name = xmlNode.getAttributes().getNamedItem("name").getNodeValue();
-    if(xmlNode.getAttributes().getNamedItem("direction").getNodeValue().equals("in")){
-      this.dir = Direction.in;
+  public EventPort(Node _xmlNode){
+    this.mName = _xmlNode.getAttributes().getNamedItem("name").getNodeValue();
+    if(_xmlNode.getAttributes().getNamedItem("direction").getNodeValue().equals("in")){
+      this.mDir = Direction.in;
     }
     else {
-      this.dir = Direction.out;
+      this.mDir = Direction.out;
     }
   }
 
   /**
    * Creates a port from an output-buffer of the source-model.
    *
-   * @param variable an output-buffer
+   * @param _variable an output-buffer
    */
-  public EventPort(ASTOutput variable) {
-    if (variable.isCurrent()) {
-      this.name = "current";
+  public EventPort(ASTOutput _variable) {
+    if (_variable.isCurrent()) {
+      this.mName = "current";
     }
     else {
-      this.name = "spike";
+      this.mName = "spike";
     }
-    dir = Direction.out;
+    mDir = Direction.out;
   }
 
   public String getName() {
-    return this.name;
+    return this.mName;
   }
 
   public Direction getDirection() {
-    return this.dir;
+    return this.mDir;
   }
 
   public enum Direction {

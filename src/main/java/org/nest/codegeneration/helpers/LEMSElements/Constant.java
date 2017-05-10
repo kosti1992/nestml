@@ -15,7 +15,7 @@ import org.w3c.dom.Node;
  *
  * @author perun
  */
-public class Constant {
+public class Constant extends LEMSElement{
     private String mName;/*The mName of the constant, e.g "V_ref" */
     private String mDimension;/* Name of the mDimension of the constant, e.g "voltage"*/
     private Expression mValue;

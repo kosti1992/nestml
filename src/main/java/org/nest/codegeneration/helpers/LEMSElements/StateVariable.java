@@ -16,7 +16,7 @@ import org.w3c.dom.Node;
  *
  * @author perun
  */
-public class StateVariable {
+public class StateVariable extends LEMSElement{
     private String mName;
     private String mDimension;
     //all state variables have to be initialized with 0 if not other requested

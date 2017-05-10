@@ -9,7 +9,7 @@ import org.nest.units._ast.ASTUnitType;
  *
  * @author perun
  */
-public class Dimension {
+public class Dimension extends LEMSElement{
 	private String mName;//The mName of the dimension
 
 	@SuppressWarnings("unused")

@@ -9,7 +9,7 @@ import org.nest.units._ast.ASTUnitType;
  *
  * @author perun
  */
-public class Unit {
+public class Unit extends LEMSElement{
 	/**
 	 * the concrete mSymbol of the unit, e.g "mV"
 	 */
