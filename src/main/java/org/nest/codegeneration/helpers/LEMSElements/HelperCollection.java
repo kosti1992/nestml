@@ -616,11 +616,11 @@ public class HelperCollection {
     public static Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
         if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
             ASTUnitType tempType = new ASTUnitType();
-            tempType.setUnit(container.getConfig().getSimulation_steps_unit().getSymbol());
+            tempType.setUnit(container.getConfig().getSimulationStepsUnit().getSymbol());
             Function tempFunction = new Function("resolution", new ArrayList<>());
-            NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulation_steps_length(),
+            NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulationStepsLength(),
                     tempType);
-            Constant tempConstant = new Constant(HelperCollection.PREFIX_CONSTANT + container.getConfig().getSimulation_steps_length_asString() +
+            Constant tempConstant = new Constant(HelperCollection.PREFIX_CONSTANT + container.getConfig().getSimulationStepsLengthAsString() +
                     tempType.getUnit().get().toString(), HelperCollection.PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
             container.addConstant(tempConstant);
             expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));

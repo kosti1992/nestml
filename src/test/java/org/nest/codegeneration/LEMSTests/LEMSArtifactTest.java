@@ -46,7 +46,7 @@ public class LEMSArtifactTest extends ModelbasedTest{
     Assert.assertEquals(EventPort.Direction.out,testant.getListOfNeurons().get(0).getPortsList().get(0).getDirection());
     //check if state variable is read in correctly
     Assert.assertEquals("testStateVariable",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
-    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getmDimension());
+    Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
     //check if time derivative is read in correctly
     Assert.assertEquals("testEquation",testant.getListOfNeurons().get(0).getEquations().get("testTimeDerivative").print());
 }

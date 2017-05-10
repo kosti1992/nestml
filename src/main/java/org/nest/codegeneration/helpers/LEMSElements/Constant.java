@@ -185,8 +185,8 @@ public class Constant {
     private Expression processFunctionCallInConstantDefinition(VariableSymbol _variable, LEMSCollector _container) {
         if (_variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
             ASTUnitType tempType = new ASTUnitType();
-            tempType.setUnit(_container.getConfig().getSimulation_steps_unit().getSymbol());
-            return new NumericalLiteral(_container.getConfig().getSimulation_steps_length(), tempType);
+            tempType.setUnit(_container.getConfig().getSimulationStepsUnit().getSymbol());
+            return new NumericalLiteral(_container.getConfig().getSimulationStepsLength(), tempType);
         } else {
             HelperCollection.printNotSupportedFunctionCallInExpression(_variable, _container);
             return new Variable(HelperCollection.NOT_SUPPORTED

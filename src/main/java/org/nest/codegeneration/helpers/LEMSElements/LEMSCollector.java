@@ -533,9 +533,9 @@ public class LEMSCollector extends Collector {
                     if (var.getDeclaringExpression().get().functionCallIsPresent() &&
                             var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("resolution")) {
                         ASTUnitType tempType = new ASTUnitType();
-                        tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
-                        NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
-                        Constant tempConstant = new Constant(var.getName(), config.getSimulation_steps_unit().
+                        tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
+                        NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulationStepsLength(), tempType);
+                        Constant tempConstant = new Constant(var.getName(), config.getSimulationStepsUnit().
                                 getDimensionName(), tempNumerical, false);
                         this.addConstant(tempConstant);
                         //handle steps()
@@ -562,8 +562,8 @@ public class LEMSCollector extends Collector {
                         tempOp.setDivOp(true);
 
                         ASTUnitType tempType = new ASTUnitType();
-                        tempType.setUnit(config.getSimulation_steps_unit().getSymbol());
-                        NumericalLiteral rhs = new NumericalLiteral(config.getSimulation_steps_length(), tempType);
+                        tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
+                        NumericalLiteral rhs = new NumericalLiteral(config.getSimulationStepsLength(), tempType);
 
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);

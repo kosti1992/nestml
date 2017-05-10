@@ -25,18 +25,18 @@ import java.util.List;
  */
 public class SimulationConfiguration {
 	//indicates whether units and dimensions have to be generated externally
-	private boolean unitsExternal = false;
+	private boolean mIsUnitsExternal = false;
 	//stores the length of single simulation step in ms
-	private double simulation_steps_length = -1;//standard values to indicate errors
-	private Unit simulation_steps_unit = null;
+	private double mSimulationStepsLength = -1;//standard values to indicate errors
+	private Unit mSimulationStepsUnit = null;
 	//the path to a configuration file
-	private Path configPath = null;
+	private Path mConfigPath = null;
 
 	public SimulationConfiguration() {
 	}
 
 	public SimulationConfiguration(Path configPath) {
-		this.configPath = configPath;
+		this.mConfigPath = configPath;
 	}
 
 	/**
@@ -44,16 +44,16 @@ public class SimulationConfiguration {
 	 *
 	 * @throws IOException thrown if non file is given.
 	 */
-	public void adaptSettings(LEMSCollector container) {
-		if (configPath == null || configPath.hashCode()==0) {// a hash of 0 means that there is no path
+	public void adaptSettings(LEMSCollector _container) {
+		if (mConfigPath == null || mConfigPath.hashCode()==0) {// a hash of 0 means that there is no path
 			//if no artifact has been provided, use some standard settings:
-			this.simulation_steps_length = 10;
-			this.simulation_steps_unit = new Unit("ms",HelperCollection.powerConverter("ms"),
+			this.mSimulationStepsLength = 10;
+			this.mSimulationStepsUnit = new Unit("ms",HelperCollection.powerConverter("ms"),
 					new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 			return;
 		}
 		try {
-			File inputFile = new File(configPath.toAbsolutePath().toString());
+			File inputFile = new File(mConfigPath.toAbsolutePath().toString());
 			if(!inputFile.exists()||!inputFile.isFile()){//first check if the artifact even exists
 				throw new IOException();
 			}
@@ -72,36 +72,36 @@ public class SimulationConfiguration {
 				if (outerNode.getAttributes().getNamedItem("name") != null) {
 					List target_models =
 							Arrays.asList(outerNode.getAttributes().getNamedItem("name").getNodeValue().split(";"));
-					if (target_models.contains(container.getNeuronName())) {
+					if (target_models.contains(_container.getNeuronName())) {
 						//now check if the name list contains the name of the current neuron
 						//if so, start to extract
 						innerList = outerNode.getChildNodes();
 						for (int j = 0; j < innerList.getLength(); j++) {
 							innerNode = innerList.item(j);
 							if (innerNode.getNodeName().equals("Attachments")) {
-								container.addAttachment(new Attachment(innerNode));
+								_container.addAttachment(new Attachment(innerNode));
 							}
 							if (innerNode.getNodeName().equals("Parameter") || innerNode.getNodeName().equals("Constant")) {
-								container.addConstant(new Constant(innerNode));
+								_container.addConstant(new Constant(innerNode));
 							}
 							if (innerNode.getNodeName().equals("DerivedParameter") || innerNode.getNodeName().equals("DerivedVariable")) {
-								container.addDerivedElement(new DerivedElement(innerNode));
+								_container.addDerivedElement(new DerivedElement(innerNode));
 							}
 							if (innerNode.getNodeName().equals("EventPort")) {
-								container.addEventPort(new EventPort(innerNode));
+								_container.addEventPort(new EventPort(innerNode));
 							}
 							if (innerNode.getNodeName().equals("StateVariable")) {
-								container.addStateVariable(new StateVariable(innerNode));
+								_container.addStateVariable(new StateVariable(innerNode));
 							}
 							if (innerNode.getNodeName().equals("TimeDerivative")) {
-								container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
+								_container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
 										, new Expression(innerNode.getAttributes().getNamedItem("value").getNodeValue()));
 							}
 
 						}
 						if (outerNode.getAttributes().getNamedItem("units_external") != null &&
 								outerNode.getAttributes().getNamedItem("units_external").getNodeValue() != null) {
-							this.unitsExternal =
+							this.mIsUnitsExternal =
 									outerNode.getAttributes().getNamedItem("units_external").getNodeValue().contentEquals("true");
 						}
 						if (outerNode.getAttributes().getNamedItem("simulation_steps") != null &&
@@ -109,10 +109,10 @@ public class SimulationConfiguration {
 							//if it matches a value declaration, e.g. 10ms (value:unit)
 							if (outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().matches("[0-9]+[a-zA-Z]+")) {
 								String unit = outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[0-9]", "");
-								simulation_steps_unit = new Unit(unit,HelperCollection.powerConverter(unit),new Dimension(HelperCollection.PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
-								simulation_steps_length = Double.parseDouble(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[a-zA-Z]", ""));
-								container.addUnit(simulation_steps_unit);
-								container.addDimension(simulation_steps_unit.getDimension());
+								mSimulationStepsUnit = new Unit(unit,HelperCollection.powerConverter(unit),new Dimension(HelperCollection.PREFIX_DIMENSION + unit, 0, 0, 1, 0, 0, 0, 0));
+								mSimulationStepsLength = Double.parseDouble(outerNode.getAttributes().getNamedItem("simulation_steps").getNodeValue().replaceAll("[a-zA-Z]", ""));
+								_container.addUnit(mSimulationStepsUnit);
+								_container.addDimension(mSimulationStepsUnit.getDimension());
 							}
 						}
 					}
@@ -120,41 +120,41 @@ public class SimulationConfiguration {
 			}
 
 		} catch (SAXException e) {
-			System.err.println("Artifact skipped (invalid): " + configPath);
+			System.err.println("Artifact skipped (invalid): " + mConfigPath);
 		} catch (ParserConfigurationException e) {
-			System.err.println("Artifact skipped (invalid): " + configPath);
+			System.err.println("Artifact skipped (invalid): " + mConfigPath);
 		} catch (IOException e) {
-			System.err.println("Artifact skipped (not found): " + configPath);
+			System.err.println("Artifact skipped (not found): " + mConfigPath);
 		} catch (Exception e){
-			System.err.println("Artifact skipped (not found): " + configPath);
+			System.err.println("Artifact skipped (not found): " + mConfigPath);
 		}
 		//in the case that a correct artifact has been provided but without steps length and unit stated
-		if (this.simulation_steps_length == -1 && this.simulation_steps_unit == null) {
-			this.simulation_steps_length = 10;
-			this.simulation_steps_unit = new Unit("ms",HelperCollection.powerConverter("ms"),new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
+		if (this.mSimulationStepsLength == -1 && this.mSimulationStepsUnit == null) {
+			this.mSimulationStepsLength = 10;
+			this.mSimulationStepsUnit = new Unit("ms",HelperCollection.powerConverter("ms"),new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 		}
 
 	}
 
 	public boolean isUnitsExternal() {
-		return unitsExternal;
+		return mIsUnitsExternal;
 	}
 
-	public double getSimulation_steps_length() {
-		return simulation_steps_length;
+	public double getSimulationStepsLength() {
+		return mSimulationStepsLength;
 	}
 
-	public String getSimulation_steps_length_asString(){
-		if(this.getSimulation_steps_length()- (int)simulation_steps_length == 0){
-			return String.valueOf((int)simulation_steps_length);
+	public String getSimulationStepsLengthAsString(){
+		if(mSimulationStepsLength - (int) mSimulationStepsLength == 0){
+			return String.valueOf((int) mSimulationStepsLength);
 		}
 		else{
-			return String.valueOf(simulation_steps_length);
+			return String.valueOf(mSimulationStepsLength);
 		}
 	}
 
-	public Unit getSimulation_steps_unit() {
-		return simulation_steps_unit;
+	public Unit getSimulationStepsUnit() {
+		return mSimulationStepsUnit;
 	}
 
 }
