@@ -17,76 +17,76 @@ import org.w3c.dom.Node;
  * @author perun
  */
 public class StateVariable {
-    private String name;
-    private String dimension;
+    private String mName;
+    private String mDimension;
     //all state variables have to be initialized with 0 if not other requested
-    private Optional<Expression> defaultValue = Optional.empty();
-    private Optional<String> unit = Optional.empty();
+    private Optional<Expression> mDefaultValue = Optional.empty();
+    private Optional<String> mUnit = Optional.empty();
 
-    public StateVariable(VariableSymbol variable, LEMSCollector container) {
-        this.name = variable.getName();
-        this.dimension = HelperCollection.typeToDimensionConverter(variable.getType());
-        this.dimension = HelperCollection.dimensionFormatter(this.dimension);
+    public StateVariable(VariableSymbol _variable, LEMSCollector _container) {
+        this.mName = _variable.getName();
+        this.mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
+        this.mDimension = HelperCollection.dimensionFormatter(this.mDimension);
 
         //check whether data type is supported or not and print a message
-        if (HelperCollection.dataTypeNotSupported(variable.getType())) {
-            HelperCollection.printNotSupportedDataType(variable, container);
+        if (HelperCollection.dataTypeNotSupported(_variable.getType())) {
+            HelperCollection.printNotSupportedDataType(_variable, _container);
         }
 
         //check if a standard value is set and an actual dimension is used
-        if (variable.getDeclaringExpression().isPresent()) {
+        if (_variable.getDeclaringExpression().isPresent()) {
             //in the case it is a reference just set it as it is
-            if (variable.getDeclaringExpression().get().variableIsPresent()) {
-                this.defaultValue = Optional.of(new Variable(variable.getDeclaringExpression().get().getVariable().get()));
+            if (_variable.getDeclaringExpression().get().variableIsPresent()) {
+                this.mDefaultValue = Optional.of(new Variable(_variable.getDeclaringExpression().get().getVariable().get()));
             }
             //now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
             //reference to it.
-            else if (variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
-                if (this.dimension.equals(HelperCollection.DIMENSION_NONE)) {
-                    this.defaultValue = Optional.of(new NumericalLiteral(variable.getDeclaringExpression().
+            else if (_variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
+                if (this.mDimension.equals(HelperCollection.DIMENSION_NONE)) {
+                    this.mDefaultValue = Optional.of(new NumericalLiteral(_variable.getDeclaringExpression().
                             get().getNESTMLNumericLiteral().get()));
                 } else {
-                    Constant temp = new Constant(variable, true, false, container);
-                    container.addConstant(temp);
-                    this.defaultValue = Optional.of(new Variable(temp.getName()));
+                    Constant temp = new Constant(_variable, true, false, _container);
+                    _container.addConstant(temp);
+                    this.mDefaultValue = Optional.of(new Variable(temp.getName()));
                 }
-                //if it is a ternary op, handle it correctly by means of a derived va
-            } else if (variable.getDeclaringExpression().get().conditionIsPresent()) {
-                DerivedElement temp = new DerivedElement(variable.getName(),
-                        HelperCollection.typeToDimensionConverter(variable.getType()),
-                        variable.getDeclaringExpression().get(),
-                        container, true);
-                container.addDerivedElement(temp);
-                this.defaultValue = Optional.of(new Variable(temp.getName()));
+                //if it is a ternary op, handle it correctly by means of a derived variable
+            } else if (_variable.getDeclaringExpression().get().conditionIsPresent()) {
+                DerivedElement temp = new DerivedElement(_variable.getName(),
+                        HelperCollection.typeToDimensionConverter(_variable.getType()),
+                        _variable.getDeclaringExpression().get(),
+                        _container, true);
+                _container.addDerivedElement(temp);
+                this.mDefaultValue = Optional.of(new Variable(temp.getName()));
                 //a normal expression, e.g. 10mV + V_init
             } else {
-                DerivedElement temp = new DerivedElement(variable, container, true, true);
-                container.addDerivedElement(temp);
-                this.defaultValue = Optional.of(new Variable(temp.getName()));
+                DerivedElement temp = new DerivedElement(_variable, _container, true, true);
+                _container.addDerivedElement(temp);
+                this.mDefaultValue = Optional.of(new Variable(temp.getName()));
             }
         } else {
             //no declaration is present, generate a 0 as init value, but with a unit if present
-            if (this.dimension.equals(HelperCollection.DIMENSION_NONE) ||
-                    this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
-                this.defaultValue = Optional.of(new NumericalLiteral(0, null));
+            if (this.mDimension.equals(HelperCollection.DIMENSION_NONE) ||
+                    this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
+                this.mDefaultValue = Optional.of(new NumericalLiteral(0, null));
             } else {
                 ASTUnitType tempType = new ASTUnitType();
-                tempType.setUnit(variable.getType().prettyPrint());
-                tempType.setSerializedUnit(variable.getType().getName());
-                Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + variable.getName(),
-                        this.dimension, new NumericalLiteral(0, tempType), false);
-                container.addConstant(defaultValue);
-                this.defaultValue = Optional.of(new Variable(defaultValue.getName()));
+                tempType.setUnit(_variable.getType().prettyPrint());
+                tempType.setSerializedUnit(_variable.getType().getName());
+                Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + _variable.getName(),
+                        this.mDimension, new NumericalLiteral(0, tempType), false);
+                _container.addConstant(defaultValue);
+                this.mDefaultValue = Optional.of(new Variable(defaultValue.getName()));
             }
         }
 
-        if (!this.dimension.equals(HelperCollection.DIMENSION_NONE)
-                && !this.dimension.equals(HelperCollection.NOT_SUPPORTED)) {
+        if (!this.mDimension.equals(HelperCollection.DIMENSION_NONE)
+                && !this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
             //state variables are often generated outside the main routine, thus a processing of units has to be triggered
-            Unit tempUnit = new Unit(variable.getType());
-            this.unit = Optional.of(tempUnit.getSymbol());
-            container.addDimension(tempUnit.getDimension());
-            container.addUnit(tempUnit);
+            Unit tempUnit = new Unit(_variable.getType());
+            this.mUnit = Optional.of(tempUnit.getSymbol());
+            _container.addDimension(tempUnit.getDimension());
+            _container.addUnit(tempUnit);
         }
 
     }
@@ -94,11 +94,11 @@ public class StateVariable {
     /**
      * This constructor can be used to generate new StateVariables from an external artifact stored as an xml file
      *
-     * @param xmlNode the xml node of a state variable artifact
+     * @param _xmlNode the xml node of a state variable artifact
      */
-    public StateVariable(Node xmlNode) {
-        this.name = xmlNode.getAttributes().getNamedItem("name").getNodeValue();
-        this.dimension = xmlNode.getAttributes().getNamedItem("dimension").getNodeValue();
+    public StateVariable(Node _xmlNode) {
+        this.mName = _xmlNode.getAttributes().getNamedItem("name").getNodeValue();
+        this.mDimension = _xmlNode.getAttributes().getNamedItem("dimension").getNodeValue();
     }
 
 
@@ -106,58 +106,58 @@ public class StateVariable {
      * This method can be used to generate handmade state variables. Caution:
      * the integrity of such values is not assured.
      *
-     * @param name         the name of the new variable
-     * @param dimension    the dimension as a string
-     * @param defaultValue the default value as a string
-     * @param unit         the unit as a string
+     * @param _name         the mName of the new variable
+     * @param _dimension    the mDimension as a string
+     * @param _defaultValue the default value as a string
+     * @param _unit         the mUnit as a string
      */
-    public StateVariable(String name, String dimension, Expression defaultValue,
-                         Optional<String> unit) {
-        this.name = name;
-        this.dimension = HelperCollection.dimensionFormatter(dimension);
-        this.defaultValue = Optional.of(defaultValue);
-        this.unit = unit;
+    public StateVariable(String _name, String _dimension, Expression _defaultValue,
+                         Optional<String> _unit) {
+        this.mName = _name;
+        this.mDimension = HelperCollection.dimensionFormatter(_dimension);
+        this.mDefaultValue = Optional.of(_defaultValue);
+        this.mUnit = _unit;
 
     }
 
     @SuppressWarnings("unused")//used in the template
     public String print() {
-        if (defaultValue.isPresent()) {
-            return defaultValue.get().print(new LEMSSyntaxContainer());
+        if (mDefaultValue.isPresent()) {
+            return mDefaultValue.get().print(new LEMSSyntaxContainer());
         } else {
             return "0";
         }
     }
 
-    public Optional<Expression> getDefaultValue() {
-        return this.defaultValue;
+    public Optional<Expression> getmDefaultValue() {
+        return this.mDefaultValue;
     }
 
-    public void setDefaultValue(Expression value) {
-        this.defaultValue = Optional.of(value);
+    public void setDefaultValue(Expression _value) {
+        this.mDefaultValue = Optional.of(_value);
     }
 
     @SuppressWarnings("unused")//used in the template
     public String getName() {
-        return this.name;
+        return this.mName;
     }
 
     @SuppressWarnings("unused")//used in the template
     public String getDimension() {
-        return this.dimension;
+        return this.mDimension;
     }
 
     public String getUnit() {
-        return this.unit.get();
+        return this.mUnit.get();
     }
 
-    public boolean equals(Object o) {
-        //it is sufficient to only check the name since otherwise the model would crash
-        return this.getClass().equals(o.getClass()) && this.getName().equals(((StateVariable) o).getName());
+    public boolean equals(Object _o) {
+        //it is sufficient to only check the mName since otherwise the model would crash
+        return this.getClass().equals(_o.getClass()) && this.getName().equals(((StateVariable) _o).getName());
     }
 
     public int hashCode() {
-        return this.getName().hashCode() + this.dimension.hashCode() + this.defaultValue.hashCode() + this.unit.hashCode();
+        return this.getName().hashCode() + this.mDimension.hashCode() + this.mDefaultValue.hashCode() + this.mUnit.hashCode();
     }
 
 }

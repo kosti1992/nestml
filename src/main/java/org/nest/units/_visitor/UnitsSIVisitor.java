@@ -104,7 +104,7 @@ public class UnitsSIVisitor implements NESTMLVisitor {
    * Set the nodes' "serializedUnit" field with the serialization.
    */
   public void visit(ASTUnitType astUnitType){
-    //String unit = astUnitType.getUnit().get();
+    //String unit = astUnitType.getmUnit().get();
     final Optional<String> convertedUnit = translator.calculateUnitType(astUnitType);
 
     if (convertedUnit.isPresent()) {

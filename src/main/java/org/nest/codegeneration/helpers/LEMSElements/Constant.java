@@ -119,9 +119,9 @@ public class Constant {
     /*
     TODO:Unused since 10.05.2017 -> check and delete
     @SuppressWarnings("unused")//used in the template
-    public String getUnit() {
+    public String getmUnit() {
         if (mValue.getClass().equals(NumericalLiteral.class) && ((NumericalLiteral) mValue).hasType()) {
-            return ((NumericalLiteral) mValue).getType().get().getUnit().get();
+            return ((NumericalLiteral) mValue).getType().get().getmUnit().get();
         }
         return "";
     }

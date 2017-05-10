@@ -17,7 +17,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 			if (expr.hasType()) {
 				/*
 				return String.valueOf((int) expr.getmValue()) +" "+ HelperCollection.formatComplexUnit(
-						expr.getType().get().getUnit().get().toString());
+						expr.getType().get().getmUnit().get().toString());
 						*/
 				return String.valueOf((int) expr.getValue()) +" "+
 						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());

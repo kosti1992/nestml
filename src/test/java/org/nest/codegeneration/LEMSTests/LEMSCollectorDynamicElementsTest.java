@@ -28,8 +28,8 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
       //test state variables
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getStateVariablesList().size());
       Assert.assertEquals("V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
-      Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
-      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue().get().print());
+      Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getmDimension());
+      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getmDefaultValue().get().print());
       //test time derivative
       //only time derivative represent equations, shapes are stored as derived variables
       Assert.assertEquals(1, testant.getListOfNeurons().get(0).getEquations().size());
