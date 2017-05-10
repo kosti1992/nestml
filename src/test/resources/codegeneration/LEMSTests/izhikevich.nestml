@@ -29,6 +29,7 @@ neuron izhikevich_nestml:
 
   update:
     integrate_odes()
+    test mV = a<b?10mV: 20mV + V_m
 
     V_m = spikes*1mV
 

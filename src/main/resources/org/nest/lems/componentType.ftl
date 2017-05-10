@@ -30,7 +30,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
     <#list container.getDerivedParametersList() as derivedParameter>
         <DerivedParameter <@compress single_line=true>name="${derivedParameter.getName()}"
                               dimension="${derivedParameter.getDimension()}"
-                              value="${derivedParameter.getDerivationInstruction().print()}"/></@compress>
+                              value="${derivedParameter.getValue().print()}"/></@compress>
     </#list>
 
     <#list container.getPortsList() as port>
@@ -52,7 +52,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
 
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
-                                                            value="${derivedVariable.getDerivationInstruction().print()}" </@compress>/>
+                                                            value="${derivedVariable.getValue().print()}" </@compress>/>
             <#else>
 
               <ConditionalDerivedVariable name="${derivedVariable.getName()}" dimension="${derivedVariable.getDimension()}">
@@ -64,7 +64,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
             <#else>
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
-                                                            select="${derivedVariable.getDerivationInstruction().print()}"
+                                                            select="${derivedVariable.getValue().print()}"
                                                             reduce="${derivedVariable.getReduce()}"</@compress>/>
             </#if>
           </#list>

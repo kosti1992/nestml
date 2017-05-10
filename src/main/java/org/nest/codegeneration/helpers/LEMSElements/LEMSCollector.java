@@ -244,7 +244,7 @@ public class LEMSCollector extends Collector {
                         }
                     } else if (stmt.getSmall_Stmt().get().returnStmtIsPresent()) {
                         Expression tempExpr = new Expression(stmt.getSmall_Stmt().get().getReturnStmt().get().getExpr().get());
-                        tempExpr = HelperCollection.replacementRoutine(tempExpr, this);
+                        tempExpr = HelperCollection.replacementRoutine(this,tempExpr);
 
                         DerivedElement tempVar = new DerivedElement(func.getName(), HelperCollection.typeToDimensionConverter(func.getReturnType().get()),
                                 tempExpr, true, false);
@@ -622,7 +622,7 @@ public class LEMSCollector extends Collector {
                             combined.replaceLhs(leftExpr);
                             combined.replaceOp(op);
                             combined.replaceRhs(rightExpr);
-                            combined = HelperCollection.replacementRoutine(combined,this);
+                            combined = HelperCollection.replacementRoutine(this,combined);
                             DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                     combined, false, false);
                             this.addDerivedElement(tempElem);

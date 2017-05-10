@@ -30,7 +30,7 @@ public class LEMSArtifactTest extends ModelbasedTest{
     Assert.assertEquals("testDerivedVariable",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getName());
     Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getDimension());
     Assert.assertEquals("testSelect",testant.getListOfNeurons().get(0).
-            getDerivedElementList().get(0).getDerivationInstruction().print());
+            getDerivedElementList().get(0).getValue().print());
     Assert.assertEquals("testReduce",testant.getListOfNeurons().get(0).getDerivedElementList().get(0).getReduce());
     //check if parameter are read in correctly
     Assert.assertEquals("testParameter",testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());

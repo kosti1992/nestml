@@ -223,7 +223,7 @@ public class DynamicRoutine {
                     this.blocks.add(new ConditionalBlock(tempInstruction, condition, rawCodeTemp));//add a new condition
                 }
                 tempInstruction = new ArrayList<>();
-                this.blocks.addAll(handleTernaryOperator(stmt.getSmall_Stmt().get(), condition));
+                this.blocks.addAll(this.handleTernaryOperator(stmt.getSmall_Stmt().get(), condition));
 
             } else if (stmt.small_StmtIsPresent()) {
                 List<Instruction> notNullCheck = handleSmallStatement(stmt.getSmall_Stmt().get());
@@ -399,7 +399,7 @@ public class DynamicRoutine {
                 tempExpression = new NumericalLiteral(0, null);
             }
         }
-        tempExpression = HelperCollection.replacementRoutine(tempExpression,container);
+        tempExpression = HelperCollection.replacementRoutine(container,tempExpression);
         Instruction tempInstruction = null;
         for (String var : declaration.getVars()) {
             container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit));

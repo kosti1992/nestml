@@ -23,102 +23,101 @@ import java.util.Optional;
  * @author perun
  */
 public class DerivedElement {
-    private String name;
-    private String dimension;
-    private Expression derivationInstruction;
-    private boolean dynamic;//distinguish between derived variables and derived parameters
-    private boolean external;//uses an external source, i.e. other tags are used
-    private Optional<String> reduceOption = Optional.empty();//the reduce indicates (in the case of external vars) how to combine values to a single one
-    private Optional<Map<Expression, Expression>> conditionalDerivedValues = Optional.empty();
+    private String mName;
+    private String mDimension;
+    private Expression mValue;
+    private boolean mIsDynamic;//distinguish between derived variables and derived parameters
+    private boolean mIsExternal;//uses an mIsExternal source, i.e. other tags are used
+    private Optional<String> mReduceOption = Optional.empty();//the reduce indicates (in the case of mIsExternal vars) how to combine values to a single one
+    private Optional<Map<Expression, Expression>> mConditionalDerivedValues = Optional.empty();
 
 
-    public DerivedElement(VariableSymbol variable, LEMSCollector container, boolean dynamic, boolean init) {
-        if (init) {
-            this.name = HelperCollection.PREFIX_INIT + variable.getName();
+    public DerivedElement(VariableSymbol _variable, LEMSCollector _container, boolean _isDynamic, boolean _isInitialization) {
+        if (_isInitialization) {
+            this.mName = HelperCollection.PREFIX_INIT + _variable.getName();
         } else {
-            this.name = variable.getName();
+            this.mName = _variable.getName();
         }
-        this.dynamic = dynamic;
+        this.mIsDynamic = _isDynamic;
         //data types boolean and void are not supported by lems
-        if (HelperCollection.dataTypeNotSupported(variable.getType())) {
-            dimension = HelperCollection.NOT_SUPPORTED;
+        if (HelperCollection.dataTypeNotSupported(_variable.getType())) {
+            mDimension = HelperCollection.NOT_SUPPORTED;
             //print an adequate error message
-            HelperCollection.printNotSupportedDataType(variable, container);
+            HelperCollection.printNotSupportedDataType(_variable, _container);
         } else {
-            dimension = HelperCollection.typeToDimensionConverter(variable.getType());
-            dimension = HelperCollection.formatComplexUnit(dimension);
+            mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
+            mDimension = HelperCollection.formatComplexUnit(mDimension);
         }
 
         //get the derivation instruction in LEMS format
-        derivationInstruction = new Expression(variable);
-        //replace the resolution function call with a reference to the constant
-        derivationInstruction = HelperCollection.replaceResolutionByConstantReference(container, derivationInstruction);
-        //replace constants with references
-        derivationInstruction = HelperCollection.replaceConstantsWithReferences(container, derivationInstruction);
+        mValue = new Expression(_variable);
+        //replace the resolution function call with a reference to the constant, replace direct constants with references
+        mValue = HelperCollection.replacementRoutine(_container, mValue);
     }
 
 
     /**
      * This constructor can be used to generate a hand made derived element.
      *
-     * @param name                  the name of the new derived element
-     * @param dimension             the dimension of the new derived element
-     * @param derivationInstruction the instructions for derivation
-     * @param dynamic               true, if derived element contains changeable elements
+     * @param _name the name of the new derived element
+     * @param _dimension the dimension of the new derived element
+     * @param _value the instructions for derivation
+     * @param _isDynamic true, if derived element contains changeable elements
+     * @param _isExternal true, if the derived element is derived from external parts
      */
-    public DerivedElement(String name, String dimension,
-                          Expression derivationInstruction, boolean dynamic, boolean external) {
-        this.name = name;
-        this.dimension = HelperCollection.formatComplexUnit(dimension);
-        this.derivationInstruction = derivationInstruction;
-        this.dynamic = dynamic;
-        this.external = external;
+    public DerivedElement(String _name, String _dimension,
+                          Expression _value, boolean _isDynamic, boolean _isExternal) {
+        this.mName = _name;
+        this.mDimension = HelperCollection.formatComplexUnit(_dimension);
+        this.mValue = _value;
+        this.mIsDynamic = _isDynamic;
+        this.mIsExternal = _isExternal;
     }
 
     /**
      * This method can be used to generate a new DerivedElement from a given XML node.
      *
-     * @param xmlNode an DerivedElement xml node
+     * @param _xmlNode an DerivedElement xml node
      */
-    public DerivedElement(Node xmlNode) {
-        NamedNodeMap tempMap = xmlNode.getAttributes();
+    public DerivedElement(Node _xmlNode) {
+        NamedNodeMap tempMap = _xmlNode.getAttributes();
         for (int i = 0; i < tempMap.getLength(); i++) {
             if (tempMap.item(i).getNodeName().equals("name")) {
-                this.name = tempMap.item(i).getNodeValue();
+                this.mName = tempMap.item(i).getNodeValue();
             } else if (tempMap.item(i).getNodeName().equals("dimension")) {
-                this.dimension = tempMap.item(i).getNodeValue();
+                this.mDimension = tempMap.item(i).getNodeValue();
             } else if (tempMap.item(i).getNodeName().equals("value")) {
-                this.derivationInstruction = new Expression(tempMap.item(i).getNodeValue());
-                this.external = false;
+                this.mValue = new Expression(tempMap.item(i).getNodeValue());
+                this.mIsExternal = false;
             } else if (tempMap.item(i).getNodeName().equals("select")) {
-                this.derivationInstruction = new Expression(tempMap.item(i).getNodeValue());
+                this.mValue = new Expression(tempMap.item(i).getNodeValue());
             } else if (tempMap.item(i).getNodeName().equals("reduce")) {
-                this.external = true;
-                this.reduceOption = Optional.of(tempMap.item(i).getNodeValue());
+                this.mIsExternal = true;
+                this.mReduceOption = Optional.of(tempMap.item(i).getNodeValue());
             }
         }
-        if (xmlNode.getNodeName().equals("DerivedParameter")) {
-            this.dynamic = false;
+        if (_xmlNode.getNodeName().equals("DerivedParameter")) {
+            this.mIsDynamic = false;
         } else {
-            this.dynamic = true;
+            this.mIsDynamic = true;
         }
     }
 
     /**
      * This constructor is used whenever a ternary operator is located in the expression.
      *
-     * @param name      the name of the derived var
-     * @param dimension the dimension of the derived var
-     * @param expr      the expr containing the ternary op
-     * @param container the lems collector fo further operations
+     * @param _name      the mName of the derived var
+     * @param _dimension the mDimension of the derived var
+     * @param _value      the expr containing the ternary op
+     * @param _container the lems collector fo further operations
      */
-    public DerivedElement(String name, String dimension, ASTExpr expr, LEMSCollector container, boolean init) {
-        this.name = name;
-        if (init) {
-            this.name = HelperCollection.PREFIX_INIT + this.name;
+    public DerivedElement(String _name, String _dimension, ASTExpr _value, LEMSCollector _container, boolean _isInitialization) {
+        this.mName = _name;
+        if (_isInitialization) {
+            this.mName = HelperCollection.PREFIX_INIT + this.mName;
         }
-        this.dimension = HelperCollection.formatComplexUnit(dimension);
-        this.handleTernaryOp(expr, container);
+        this.mDimension = HelperCollection.formatComplexUnit(_dimension);
+        this.handleTernaryOp(_value, _container);
     }
 
 
@@ -126,151 +125,151 @@ public class DerivedElement {
      * This method can be used to generate a conditional derived variable representing a ternary operator.
      * It generates a conditional derived variable instead of a normally derived variable.
      *
-     * @param expr      the variable which shall be a conditional derived var
-     * @param container a lems collector file
+     * @param _value the variable which shall be a conditional derived var
+     * @param _container a LEMS collector file
      */
-    private void handleTernaryOp(ASTExpr expr, LEMSCollector container) {
+    private void handleTernaryOp(ASTExpr _value, LEMSCollector _container) {
         Map<Expression, Expression> tempMap = new HashMap<>();
         //first create the first part of the expression, namely the one which applies if condition is true
         Expression firstSubCondition;
 
-        if (expr.getCondition().get().booleanLiteralIsPresent()) {
-            if (expr.getCondition().get().getBooleanLiteral().get().getValue()) {
+        if (_value.getCondition().get().booleanLiteralIsPresent()) {
+            if (_value.getCondition().get().getBooleanLiteral().get().getValue()) {
                 firstSubCondition = Expression.generateTrue();
             } else {
                 firstSubCondition = Expression.generateFalse();
             }
         } else {
-            firstSubCondition = new Expression(expr.getCondition().get());
+            firstSubCondition = new Expression(_value.getCondition().get());
         }
 
-        firstSubCondition = HelperCollection.replaceBooleanAtomByExpression(container, firstSubCondition);
+        firstSubCondition = HelperCollection.replaceBooleanAtomByExpression(_container, firstSubCondition);
         if (!(firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isLeftParentheses() &&
                 firstSubCondition.opIsPresent() && firstSubCondition.getOperator().get().isRightParentheses()))
             firstSubCondition = Expression.encapsulateInBrackets(firstSubCondition);
-        Expression firstSubValue = new Expression(expr.getIfTrue().get());
-        firstSubValue = HelperCollection.replaceConstantsWithReferences(container, firstSubValue);
-        firstSubValue = HelperCollection.replaceResolutionByConstantReference(container, firstSubValue);
+        Expression firstSubValue = new Expression(_value.getIfTrue().get());
+        firstSubValue = HelperCollection.replaceConstantsWithReferences(_container, firstSubValue);
+        firstSubValue = HelperCollection.replaceResolutionByConstantReference(_container, firstSubValue);
         firstSubCondition = HelperCollection.encapsulateExpressionInConditions(firstSubCondition);
         tempMap.put(firstSubCondition, firstSubValue);
         //now create the second part which applies if the condition is not true
         Expression secondSubCondition = firstSubCondition.deepClone();
         secondSubCondition.negateLogic();
-        Expression secondSubValue = new Expression(expr.getIfNot().get());
-        secondSubValue = HelperCollection.replaceConstantsWithReferences(container, secondSubValue);
-        secondSubValue = HelperCollection.replaceResolutionByConstantReference(container, secondSubValue);
+        Expression secondSubValue = new Expression(_value.getIfNot().get());
+        secondSubValue = HelperCollection.replaceConstantsWithReferences(_container, secondSubValue);
+        secondSubValue = HelperCollection.replaceResolutionByConstantReference(_container, secondSubValue);
         tempMap.put(secondSubCondition, secondSubValue);
-        this.conditionalDerivedValues = Optional.of(tempMap);
-        this.dynamic = true;
+        this.mConditionalDerivedValues = Optional.of(tempMap);
+        this.mIsDynamic = true;
     }
 
     /**
      * This constructor is used whenever a buffer is processed by the system. Here, a new derived variable is
      * created and the reduce and select operation is set accordingly.
      *
-     * @param buffer a buffer definition in the source model
+     * @param _buffer a buffer definition in the source model
      */
-    public DerivedElement(ASTInputLine buffer) {
-        this.name = buffer.getName();
-        //first the dimension
-        if (buffer.isSpike()) {
-            this.dimension = HelperCollection.DIMENSION_NONE;
-        } else {
-            //TODO current buffers are pA <- create new Unit
-            this.dimension = HelperCollection.PREFIX_DIMENSION + "pA";
+    public DerivedElement(ASTInputLine _buffer) {
+        this.mName = _buffer.getName();
+        //first the mDimension
+        if (_buffer.isSpike()) {//spike buffers do not have a dimension
+            this.mDimension = HelperCollection.DIMENSION_NONE;
+        } else {//current buffers have "current" as dimension
+            this.mDimension = HelperCollection.PREFIX_DIMENSION + "pA";
         }
-        //now the reduction option
-        this.reduceOption = Optional.of("add");
+        //now the reduction option, which is in the case of NEST always add
+        this.mReduceOption = Optional.of("add");
 
         //finally the derivation expression
-        this.derivationInstruction = new Expression();
-        Variable lhs = new Variable(buffer.getName() + "[*]");//select all
-        Variable rhs = null;
-        if (buffer.isCurrent()) {
+        this.mValue = new Expression();
+        Variable lhs = new Variable(_buffer.getName() + "[*]");//select all
+        Variable rhs;
+        if (_buffer.isCurrent()) {
             rhs = new Variable(HelperCollection.CURRENT_BUFFER_INPUT_VAR);
         } else {
             rhs = new Variable(HelperCollection.SPIKE_BUFFER_INPUT_VAR);
         }
         Operator tempOp = new Operator();
         tempOp.setDivOp(true);
-        this.derivationInstruction.replaceLhs(lhs);
-        this.derivationInstruction.replaceOp(tempOp);
-        this.derivationInstruction.replaceRhs(rhs);
-        this.dynamic = true;//a buffer is a dynamic element
+        this.mValue.replaceLhs(lhs);
+        this.mValue.replaceOp(tempOp);
+        this.mValue.replaceRhs(rhs);
+        this.mIsDynamic = true;//a buffer is a is a dynamic element
     }
 
     /**
      * Handles a ASTDeclaration of an variable declared inside a block.
-     * @param declaration the ast declaration of the element
+     * @param _declaration the ast declaration of the element
      */
-    public DerivedElement(String name,ASTDeclaration declaration,LEMSCollector container){
-        this.name = name;
-        this.dimension = HelperCollection.typeToDimensionConverter(declaration.getDatatype());
-        if(declaration.getExpr().isPresent()){
-            this.derivationInstruction = new Expression(declaration.getExpr().get());
+    public DerivedElement(String _name,ASTDeclaration _declaration,LEMSCollector _container){
+        this.mName = _name;
+        this.mDimension = HelperCollection.typeToDimensionConverter(_declaration.getDatatype());
+        if(_declaration.getExpr().isPresent()){
+            this.mValue = new Expression(_declaration.getExpr().get());
         }else{
-            if(declaration.getDatatype().getUnitType().isPresent()){
-                this.derivationInstruction = new NumericalLiteral(0,declaration.getDatatype().getUnitType().get());
+            if(_declaration.getDatatype().getUnitType().isPresent()){
+                this.mValue = new NumericalLiteral(0,_declaration.getDatatype().getUnitType().get());
             }else {
-                this.derivationInstruction = new NumericalLiteral(0,null);
+                this.mValue = new NumericalLiteral(0,null);
             }
         }
-        //TODO: ternary op hanlding
-        this.derivationInstruction = HelperCollection.replacementRoutine(this.derivationInstruction,container);
-        this.dimension = HelperCollection.typeToDimensionConverter(declaration.getDatatype());
-        this.dynamic = true;
-        this.external = false;
-        this.reduceOption = Optional.empty();
+        //TODO: ternary op handling -> this is only in user defined functions
+        this.mValue = HelperCollection.replacementRoutine(_container,this.mValue);
+        this.mDimension = HelperCollection.typeToDimensionConverter(_declaration.getDatatype());
+        this.mIsDynamic = true;
+        this.mIsExternal = false;
+        this.mReduceOption = Optional.empty();
     }
 
 
     @SuppressWarnings("unused")//used in the template
     public String getName() {
-        return this.name;
+        return this.mName;
     }
 
     @SuppressWarnings("unused")//used in the template
-    public Expression getDerivationInstruction() {
-        return this.derivationInstruction;
+    public Expression getValue() {
+        return this.mValue;
     }
 
     @SuppressWarnings("unused")//used in the template
     public String getDimension() {
-        return this.dimension;
+        return this.mDimension;
     }
 
     public boolean isDynamic() {
-        return dynamic;
+        return mIsDynamic;
     }
 
     public boolean isExternal() {
-        return external;
+        return mIsExternal;
     }
 
     @SuppressWarnings("unused")//used in the template
     public boolean isConditionalDerived() {
-        return this.conditionalDerivedValues.isPresent();
+        return this.mConditionalDerivedValues.isPresent();
     }
 
+    @SuppressWarnings("unused")//used in the template
     public Map<Expression, Expression> getConditionalDerivedValues() {
-        if (this.conditionalDerivedValues.isPresent()) {
-            return this.conditionalDerivedValues.get();
+        if (this.mConditionalDerivedValues.isPresent()) {
+            return this.mConditionalDerivedValues.get();
         } else {
             return new HashMap<>();
         }
     }
 
     /**
-     * This method is required since the api of freemarker has been deactivated in monticore, thus a direct fetching of
-     * values by keys from maps is not possible.
+     * This method is required since the api of freemarker has been deactivated in Monticore, thus a direct fetching of
+     * values by keys (which are not strings) from maps is not possible.
      *
-     * @return a string,string map with conditions,values
+     * @return a <string,string> map with conditions,values
      */
     public Map<String, String> getConditionalDerivedValuesAsStrings() {
-        if (this.conditionalDerivedValues.isPresent()) {
+        if (this.mConditionalDerivedValues.isPresent()) {
             Map<String, String> tempMap = new HashMap<>();
-            for (Expression key : this.conditionalDerivedValues.get().keySet()) {
-                tempMap.put(key.print(), this.conditionalDerivedValues.get().get(key).print());
+            for (Expression key : this.mConditionalDerivedValues.get().keySet()) {
+                tempMap.put(key.print(), this.mConditionalDerivedValues.get().get(key).print());
             }
             return tempMap;
         } else {
@@ -279,30 +278,30 @@ public class DerivedElement {
     }
 
     public boolean hasReduceOption() {
-        return this.reduceOption.isPresent();
+        return this.mReduceOption.isPresent();
     }
 
     @SuppressWarnings("unused")//used in the template
     public String getReduce() {
-        return this.reduceOption.get();
+        return this.mReduceOption.get();
     }
 
     public boolean equals(Object o) {
         return this.getClass().equals(o.getClass()) &&
-                this.name.equals(((DerivedElement) o).getName()) &&
-                this.derivationInstruction.equals(((DerivedElement) o).derivationInstruction) &&
-                this.dynamic == (((DerivedElement) o).dynamic);
+                this.mName.equals(((DerivedElement) o).getName()) &&
+                this.mValue.equals(((DerivedElement) o).mValue) &&
+                this.mIsDynamic == (((DerivedElement) o).mIsDynamic);
     }
 
     public int hashCode() {
-        if (this.dynamic) {
+        if (this.mIsDynamic) {
             return this.getClass().hashCode() +
-                    this.name.hashCode() +
-                    this.derivationInstruction.hashCode();
+                    this.mName.hashCode() +
+                    this.mValue.hashCode();
         }
         return -(this.getClass().hashCode() +
-                this.name.hashCode() +
-                this.derivationInstruction.hashCode());
+                this.mName.hashCode() +
+                this.mValue.hashCode());
     }
 }
 

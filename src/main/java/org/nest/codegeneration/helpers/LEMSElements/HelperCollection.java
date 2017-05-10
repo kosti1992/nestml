@@ -874,7 +874,7 @@ public class HelperCollection {
      * @param container a container or added elements
      * @return an expression with replaced elements
      */
-    public static Expression replacementRoutine(Expression expr, LEMSCollector container) {
+    public static Expression replacementRoutine(LEMSCollector container,Expression expr) {
         Expression tempExpression = replaceConstantsWithReferences(container, expr);
         tempExpression = replaceFunctionCallByReference(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
