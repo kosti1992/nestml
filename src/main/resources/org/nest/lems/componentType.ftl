@@ -93,7 +93,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
 
           <#if container.conditionsPresent()>
             <#list container.getConditionalBlocks() as condBlock>
-              <#list condBlock.getInitialCode() as line><#--print the information header-->
+              <#list condBlock.getCommentAsArray() as line><#--print the information header-->
               <!--${line}-->
               </#list>
               <OnCondition test="${condBlock.getCondition().print()}">

@@ -19,7 +19,6 @@ neuron izhikevich_nestml:
 	V_m_init mV
 	I_e mA	
   end
-    
 
   input:
     spikes   <- spike
@@ -39,4 +38,5 @@ neuron izhikevich_nestml:
 	end
     I = currents
   end
+
 end

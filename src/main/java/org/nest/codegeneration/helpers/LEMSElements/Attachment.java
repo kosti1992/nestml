@@ -6,37 +6,37 @@ import org.w3c.dom.Node;
  * This class represents an attachment to the model, e.g. an external current generator.
  * @author  perun
  */
-public class Attachment {
-	private String bindName;
-	private String bindType;
+public class Attachment extends LEMSElement {
+	private String mBindName;
+	private String mBindType;
 
-	public Attachment(String bindName, String bindType) {
-		this.bindName = bindName;
-		this.bindType = bindType;
+	public Attachment(String _bindName, String _bindType) {
+		this.mBindName = _bindName;
+		this.mBindType = _bindType;
 	}
 
 	/**
 	 * This constructor can be used to generate a new attachment from a given XML node.
-	 * @param xmlNode an attachment xml node
+	 * @param _xmlNode an attachment xml node
 	 */
-	public Attachment(Node xmlNode){
+	public Attachment(Node _xmlNode){
 		try{
-			this.bindName = xmlNode.getAttributes().getNamedItem("name").getNodeValue();
-			this.bindType = xmlNode.getAttributes().getNamedItem("type").getNodeValue();
+			this.mBindName = _xmlNode.getAttributes().getNamedItem("name").getNodeValue();
+			this.mBindType = _xmlNode.getAttributes().getNamedItem("type").getNodeValue();
 		}
 		catch (Exception e){
-			System.err.println("Attachment artifact wrongly formatted.");
+			System.err.println("LEMS ERROR: Attachment artifact wrongly formatted.");
 		}
 	}
 
 	@SuppressWarnings("unused")//used in the template
 	public String getBindName() {
-		return bindName;
+		return mBindName;
 	}
 
 	@SuppressWarnings("unused")//used in the template
 	public String getBindType() {
-		return bindType;
+		return mBindType;
 	}
 
 	@Override
@@ -46,15 +46,15 @@ public class Attachment {
 
 		Attachment that = (Attachment) o;
 
-		if (!bindName.equals(that.bindName)) return false;
-		return bindType.equals(that.bindType);
+		if (!mBindName.equals(that.mBindName)) return false;
+		return mBindType.equals(that.mBindType);
 
 	}
 
 	@Override
 	public int hashCode() {
-		int result = bindName.hashCode();
-		result = 31 * result + bindType.hashCode();
+		int result = mBindName.hashCode();
+		result = 31 * result + mBindType.hashCode();
 		return result;
 	}
 }

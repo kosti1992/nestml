@@ -28,13 +28,13 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
       //test state variables
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getStateVariablesList().size());
       Assert.assertEquals("V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
-      Assert.assertEquals("DimensionOf_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
-      Assert.assertEquals("INITV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue().get().print());
+      Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
+      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue().get().print());
       //test time derivative
       //only time derivative represent equations, shapes are stored as derived variables
       Assert.assertEquals(1, testant.getListOfNeurons().get(0).getEquations().size());
       Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains("V"));
-      //Assert.assertEquals("-1/Tau * V + 1/C_m",testant.getListOfNeurons().get(0).getEquations().get("V"));
+      Assert.assertEquals("(ACT_V*(-1/Tau*V+1/C_m))/CON_1_ms",testant.getListOfNeurons().get(0).getEquations().get("V").print());
       //shapes test
       Assert.assertTrue(testant.getListOfNeurons().get(0).getDerivedElementList().get(1).getName().equals("I_shape_in"));
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().get("V").startsWith("not_supported"));

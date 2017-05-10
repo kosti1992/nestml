@@ -76,7 +76,7 @@ public class TypeChecker {
   }
 
   public static boolean isUnit(final TypeSymbol rType) {
-    //return rType.getName().equals(getUnitType().getName()); // TODO use prover equals implementation
+    //return rType.getmName().equals(getUnitType().getmName()); // TODO use prover equals implementation
     return rType != null && rType.getType().equals(UNIT);
   }
 

@@ -1,8 +1,5 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
-
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,63 +7,58 @@ import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
 
 /**
- * This class stores a block which will be evoked during the simulation on a certain condition. A condtional block is
+ * This class stores a block which will be evoked during the simulation on a certain mCondition. A condtional block is
  * a part of the dynamic routine.
  *
  * @author perun
  */
-public class ConditionalBlock {
-	//a conditional block consists of instructions
-	private List<DynamicRoutine.Instruction> instructions;
-	private Expression condition;
-	private String rawCode;//stores a header printed next to the block
-
-	public ConditionalBlock(List<DynamicRoutine.Instruction> instructions, Expression condition, String rawCode) {
-		this.instructions = instructions;
-		this.condition = condition;
-		this.rawCode = rawCode;
-	}
-
-	public ConditionalBlock(DynamicRoutine.Instruction instruction,Expression condition, String rawCode){
-		this.instructions = new ArrayList<>();
-		this.instructions.add(instruction);
-		this.condition = condition;
-		this.rawCode = rawCode;
-	}
-
+public class ConditionalBlock extends LEMSElement {
+	//a conditional block consists of mInstructions
+	private List<DynamicRoutine.Instruction> mInstructions;
+	private Expression mCondition;
 
 	/**
-	 * Returns the header of a conditional block, i.e. a string representation of the code as stated in the source model.
-	 * The header is not a part of the actual mode, but benefits the overall readability of the model.
-	 * @return an array String objects which represent line by line the source code
+	 * A constructor which generates a new block storing several instructions.
+	 * @param _instructions a set of instructions
+	 * @param _condition the condition of the block
+	 * @param _comment a comment or the raw source code printed next to the block
 	 */
-	@SuppressWarnings("unused")//used in the template
-	public Object[] getInitialCode() {
-		if(rawCode == null){
-			return new String[0];
-		}
-		BufferedReader bufReader = new BufferedReader(new StringReader(rawCode));
-		return bufReader.lines().toArray();
+	public ConditionalBlock(List<DynamicRoutine.Instruction> _instructions, Expression _condition, String _comment) {
+		this.mInstructions = _instructions;
+		this.mCondition = _condition;
+		super.setComment(_comment);
+	}
+    /**
+     * A constructor which generates a new block storing a single instruction.
+     * @param _instruction a set of instructions
+     * @param _condition the condition of the block
+     * @param _comment a comment or the raw source code printed next to the block
+     */
+	public ConditionalBlock(DynamicRoutine.Instruction _instruction,Expression _condition, String _comment){
+		this.mInstructions = new ArrayList<>();
+		this.mInstructions.add(_instruction);
+		this.mCondition = _condition;
+		super.setComment(_comment);
 	}
 
 	@SuppressWarnings("unused")//used in the template
 	public Expression getCondition() {
-		return this.condition;
+		return this.mCondition;
 	}
 
 	@SuppressWarnings("unused")//used in the template
 	public String printCondition() {
-		return condition.print(new LEMSSyntaxContainer());
+		return mCondition.print(new LEMSSyntaxContainer());
 	}
 
 	@SuppressWarnings("unused")//used in the template
 	public List<DynamicRoutine.Instruction> getInstructions() {
-		return this.instructions;
+		return this.mInstructions;
 	}
 
 	@SuppressWarnings("unused")//used in the template
-	public String getInstructionType(DynamicRoutine.Instruction instr) {
-		return instr.getClassIdentifier();
+	public String getInstructionType(DynamicRoutine.Instruction _instruction) {
+		return _instruction.getClassIdentifier();
 	}
 
 }

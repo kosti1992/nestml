@@ -5,7 +5,7 @@ import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
 import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
-import org.nest.nestml._ast.ASTInput;
+
 import org.nest.nestml._ast.ASTInputLine;
 import org.nest.spl._ast.ASTDeclaration;
 import org.nest.symboltable.symbols.VariableSymbol;

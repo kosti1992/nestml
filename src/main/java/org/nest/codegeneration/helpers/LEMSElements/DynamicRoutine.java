@@ -18,7 +18,6 @@ import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
 import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
 import org.nest.units._ast.ASTUnitType;
-import org.w3c.dom.html.HTMLBRElement;
 
 /**
  * This class represents a transformed representation of the dynamic routine extracted from the source-model
@@ -466,7 +465,7 @@ public class DynamicRoutine {
         firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(container, firstAssignmentExpression);
         Assignment firstAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(),
                 firstAssignmentExpression);
-        ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition, null);
+        ConditionalBlock firstBlock = new ConditionalBlock(firstAssignment, firstCondition,null);
         ret.add(firstBlock);
 
         //now create the second part which applies if the condition is not true
