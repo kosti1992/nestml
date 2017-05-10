@@ -11,82 +11,82 @@ import org.nest.units._ast.ASTUnitType;
  */
 public class Unit {
 	/**
-	 * the concrete symbol of the unit, e.g "mV"
+	 * the concrete mSymbol of the unit, e.g "mV"
 	 */
-	private String symbol;
+	private String mSymbol;
 	/**
-	 * the dimension of the unit, caution, due to the implicit derivation of
-	 * the name, the dimension is called "DimensionOf${..}" in order to enable
+	 * the mDimension of the unit, caution, due to the implicit derivation of
+	 * the name, the mDimension is called "DimensionOf${..}" in order to enable
 	 * the processing of arbitrary dimensions
 	 */
-	private Dimension dimension;
+	private Dimension mDimension;
 	/**
-	 * the power of the unit, i.e decimal representation of the prefix
+	 * the mPower of the unit, i.e decimal representation of the prefix
 	 */
-	private int power;
+	private int mPower;
 
-	public Unit(TypeSymbol input) {
-		symbol = HelperCollection.formatComplexUnit(input.prettyPrint());
-		dimension = new Dimension(input);
-		power = HelperCollection.convertTypeDeclToArray(input.toString())[7];
+	public Unit(TypeSymbol _input) {
+		mSymbol = HelperCollection.formatComplexUnit(_input.prettyPrint());
+		mDimension = new Dimension(_input);
+		mPower = HelperCollection.convertTypeDeclToArray(_input.toString())[7];
 	}
 
-	public Unit(ASTUnitType input){
-		if(input.getUnit().isPresent()){
-			this.symbol = HelperCollection.formatComplexUnit(input.getUnit().get());
+	public Unit(ASTUnitType _input){
+		if(_input.getUnit().isPresent()){
+			this.mSymbol = HelperCollection.formatComplexUnit(_input.getUnit().get());
 		}else{
-			this.symbol = HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
+			this.mSymbol = HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(_input).print());
 		}
-		dimension = new Dimension(input);
-		power = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit())[7];
+		mDimension = new Dimension(_input);
+		mPower = HelperCollection.convertTypeDeclToArray(_input.getSerializedUnit())[7];
 	}
 
 	/**
 	 * This constructor can be used to generate handmade units.
 	 *
-	 * @param input a string containing a unit symbol
+	 * @param _symbol a string containing a unit symbol
 	 */
-	public Unit(String input,int power, Dimension dimension) {
-		this.symbol =  HelperCollection.formatComplexUnit(input);
-		this.dimension = dimension;
-		this.power = power;
+	public Unit(String _symbol,int _power, Dimension _dimension) {
+		this.mSymbol =  HelperCollection.formatComplexUnit(_symbol);
+		this.mDimension = _dimension;
+		this.mPower = _power;
 	}
 
 	/**
-	 * Returns the power of this unit. Used by the template
+	 * Returns the mPower of this unit. Used by the template
 	 *
-	 * @return the power as init
+	 * @return the mPower as init
 	 */
 	public int getPower() {
-		return this.power;
+		return this.mPower;
 	}
 
 	/**
-	 * Returns the symbol of this unit.
+	 * Returns the mSymbol of this unit.
 	 *
-	 * @return symbol as String.
+	 * @return mSymbol as String.
 	 */
 	public String getSymbol() {
-		return this.symbol;
+		return this.mSymbol;
 	}
 
 	/**
-	 * Returns the dimension of this unit.
+	 * Returns the mDimension of this unit.
 	 *
-	 * @return dimension as Dimension.
+	 * @return mDimension as Dimension.
 	 */
 	public Dimension getDimension() {
-		return this.dimension;
+		return this.mDimension;
 	}
 
 	/**
-	 * Returns the name of the dimension of this unit.
+	 * Returns the name of the mDimension of this unit.
 	 *
 	 * @return name as String
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public String getDimensionName() {
-		return this.dimension.getName();
+		return this.mDimension.getName();
 	}
 
 	/**
@@ -95,31 +95,19 @@ public class Unit {
 	 * @return Hash as int.
 	 */
 	public int hashCode() {
-		return this.symbol.hashCode();//each unit has a unique symbol, thus a hash of the unit-symbol is sufficient
+		return this.mSymbol.hashCode();//each unit has a unique mSymbol, thus a hash of the unit-mSymbol is sufficient
 	}
 
 	/**
 	 * Compares this unit to a given object. Required in order to
 	 * identify duplicates in unitsSet.
 	 *
-	 * @param other Object which will be compared to this dimension.
+	 * @param _other Object which will be compared to this mDimension.
 	 * @return true, if objects equals
 	 */
-	public boolean equals(Object other) {
-		return (this.getClass() == other.getClass()) &&//same class
-				this.getSymbol().equals(((Unit) other).getSymbol()) &&//same symbol
-				this.getPower() == ((Unit) other).getPower();//same power
+	public boolean equals(Object _other) {
+		return (this.getClass() == _other.getClass()) &&//same class
+				this.getSymbol().equals(((Unit) _other).getSymbol()) &&//same mSymbol
+				this.getPower() == ((Unit) _other).getPower();//same mPower
 	}
-
-
-	/**
-	 * Inspects a given unit and transforms it to a LEMS near representation, e.g.  A / s => A_per_s
-	 *
-	 * @param unformattedUnit the string representation of a yet unformatted unit
-	 * @return a formatted string
-	 */
-	private String unitFormatter(String unformattedUnit) {
-		return unformattedUnit.replaceAll("\\*", "_times_").replaceAll("/", "_per_").replaceAll(" ", "");
-	}
-
 }
