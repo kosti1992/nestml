@@ -11,7 +11,6 @@ import org.nest.frontend.NestmlFrontend;
  */
 public class LEMSFrontendTest extends ModelbasedTest {
   private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests";
-  //private static final String INPUT_DIRECTORY = "models";
   NestmlFrontend fe = new NestmlFrontend();
 
   @Test

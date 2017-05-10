@@ -286,11 +286,11 @@ public class DerivedElement {
         return this.mReduceOption.get();
     }
 
-    public boolean equals(Object o) {
-        return this.getClass().equals(o.getClass()) &&
-                this.mName.equals(((DerivedElement) o).getName()) &&
-                this.mValue.equals(((DerivedElement) o).mValue) &&
-                this.mIsDynamic == (((DerivedElement) o).mIsDynamic);
+    public boolean equals(Object _o) {
+        return this.getClass().equals(_o.getClass()) &&
+                this.mName.equals(((DerivedElement) _o).getName()) &&
+                this.mValue.equals(((DerivedElement) _o).mValue) &&
+                this.mIsDynamic == (((DerivedElement) _o).mIsDynamic);
     }
 
     public int hashCode() {

@@ -10,55 +10,54 @@ import org.nest.units._ast.ASTUnitType;
  * @author perun
  */
 public class Dimension {
-	private String name;//The name of the dimension
+	private String mName;//The mName of the dimension
 
 	@SuppressWarnings("unused")
-	private int LENGTH, //The exponents of the seven base units
-			MASS,
-			TIME,
-			ELECTRIC_CURRENT,
-			THERMODYNAMIC_TEMPERATURE,
-			AMOUNT_OF_SUBSTANCE,
-			LUMINOUS_INTENSITY;
+	private int mLENGTH, //The exponents of the seven base units
+			mMASS,
+			mTIME,
+			mELECTRIC_CURRENT,
+			mTHERMODYNAMIC_TEMPERATURE,
+			mAMOUNT_OF_SUBSTANCE,
+			mLUMINOUS_INTENSITY;
 
-	protected Dimension(TypeSymbol input) {
-		this.name = HelperCollection.formatComplexUnit(HelperCollection.typeToDimensionConverter(input));
-		int[] definition = HelperCollection.convertTypeDeclToArray(input.toString());
-		this.THERMODYNAMIC_TEMPERATURE = definition[0];
-		this.TIME = definition[1];
-		this.LENGTH = definition[2];
-		this.MASS = definition[3];
-		this.LUMINOUS_INTENSITY = definition[4];
-		this.AMOUNT_OF_SUBSTANCE = definition[5];
-		this.ELECTRIC_CURRENT = definition[6];
+	protected Dimension(TypeSymbol _input) {
+		this.mName = HelperCollection.formatComplexUnit(HelperCollection.typeToDimensionConverter(_input));
+		int[] definition = HelperCollection.convertTypeDeclToArray(_input.toString());
+		this.mTHERMODYNAMIC_TEMPERATURE = definition[0];
+		this.mTIME = definition[1];
+		this.mLENGTH = definition[2];
+		this.mMASS = definition[3];
+		this.mLUMINOUS_INTENSITY = definition[4];
+		this.mAMOUNT_OF_SUBSTANCE = definition[5];
+		this.mELECTRIC_CURRENT = definition[6];
 	}
 
-	protected Dimension(ASTUnitType input){
-		this.name = HelperCollection.PREFIX_DIMENSION +
-				HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(input).print());
-		int[] definition = HelperCollection.convertTypeDeclToArray(input.getSerializedUnit());
-		this.THERMODYNAMIC_TEMPERATURE = definition[0];
-		this.TIME = definition[1];
-		this.LENGTH = definition[2];
-		this.MASS = definition[3];
-		this.LUMINOUS_INTENSITY = definition[4];
-		this.AMOUNT_OF_SUBSTANCE = definition[5];
-		this.ELECTRIC_CURRENT = definition[6];
+	protected Dimension(ASTUnitType _input){
+		this.mName = HelperCollection.PREFIX_DIMENSION +
+				HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(_input).print());
+		int[] definition = HelperCollection.convertTypeDeclToArray(_input.getSerializedUnit());
+		this.mTHERMODYNAMIC_TEMPERATURE = definition[0];
+		this.mTIME = definition[1];
+		this.mLENGTH = definition[2];
+		this.mMASS = definition[3];
+		this.mLUMINOUS_INTENSITY = definition[4];
+		this.mAMOUNT_OF_SUBSTANCE = definition[5];
+		this.mELECTRIC_CURRENT = definition[6];
 	}
 
 
 
-	public Dimension(String name, int LENGTH, int MASS, int TIME,
-	                 int ELECTRIC_CURRENT, int THERMODYNAMIC_TEMPERATURE, int AMOUNT_OF_SUBSTANCE, int LUMINOUS_INTENSITY) {
-		this.name = name;
-		this.name = HelperCollection.formatComplexUnit(this.name);
-		this.LENGTH = LENGTH;
-		this.MASS = MASS;
-		this.TIME = TIME;
-		this.ELECTRIC_CURRENT = ELECTRIC_CURRENT;
-		this.THERMODYNAMIC_TEMPERATURE = THERMODYNAMIC_TEMPERATURE;
-		this.AMOUNT_OF_SUBSTANCE = AMOUNT_OF_SUBSTANCE;
-		this.LUMINOUS_INTENSITY = LUMINOUS_INTENSITY;
+	public Dimension(String _name, int _LENGTH, int _MASS, int _TIME,
+	                 int _ELECTRIC_CURRENT, int _THERMODYNAMIC_TEMPERATURE, int _AMOUNT_OF_SUBSTANCE, int _LUMINOUS_INTENSITY) {
+		this.mName = HelperCollection.formatComplexUnit(_name);
+		this.mLENGTH = _LENGTH;
+		this.mMASS = _MASS;
+		this.mTIME = _TIME;
+		this.mELECTRIC_CURRENT = _ELECTRIC_CURRENT;
+		this.mTHERMODYNAMIC_TEMPERATURE = _THERMODYNAMIC_TEMPERATURE;
+		this.mAMOUNT_OF_SUBSTANCE = _AMOUNT_OF_SUBSTANCE;
+		this.mLUMINOUS_INTENSITY = _LUMINOUS_INTENSITY;
 	}
 
 	/**
@@ -68,7 +67,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getAMOUNT_OF_SUBSTANCE() {
-		return AMOUNT_OF_SUBSTANCE;
+		return mAMOUNT_OF_SUBSTANCE;
 	}
 
 	/**
@@ -78,7 +77,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getELECTRIC_CURRENT() {
-		return ELECTRIC_CURRENT;
+		return mELECTRIC_CURRENT;
 	}
 
 	/**
@@ -88,7 +87,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getLENGTH() {
-		return LENGTH;
+		return mLENGTH;
 	}
 
 	/**
@@ -98,7 +97,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getLUMINOUS_INTENSITY() {
-		return LUMINOUS_INTENSITY;
+		return mLUMINOUS_INTENSITY;
 	}
 
 	/**
@@ -108,7 +107,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getMASS() {
-		return MASS;
+		return mMASS;
 	}
 
 	/**
@@ -118,7 +117,7 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getTHERMODYNAMIC_TEMPERATURE() {
-		return THERMODYNAMIC_TEMPERATURE;
+		return mTHERMODYNAMIC_TEMPERATURE;
 	}
 
 	/**
@@ -128,11 +127,11 @@ public class Dimension {
 	 */
 	@SuppressWarnings("unused")//used in the template
 	public int getTIME() {
-		return TIME;
+		return mTIME;
 	}
 
 	public String getName() {
-		return this.name;
+		return this.mName;
 	}
 
 	/**
@@ -141,26 +140,26 @@ public class Dimension {
 	 * @return Hash as int.
 	 */
 	public int hashCode() {
-		return name.hashCode();//the name of a dimension is unique, thus, it is sufficient solely to hash the name
+		return mName.hashCode();//the mName of a dimension is unique, thus, it is sufficient solely to hash the mName
 	}
 
 	/**
 	 * Compares this dimension to a given object. Required in order to
 	 * identify duplicates in dimensionsSet.
 	 *
-	 * @param other Object which will be compared to this dimension.
+	 * @param _other Object which will be compared to this dimension.
 	 * @return true, if objects equals
 	 */
-	public boolean equals(Object other) {
-		return (this.getClass() == other.getClass()) &&
-				this.name.equals(((Dimension) other).getName()) &&
-				this.getELECTRIC_CURRENT() == ((Dimension) other).getELECTRIC_CURRENT() &&
-				this.getLENGTH() == ((Dimension) other).getLENGTH() &&
-				this.getAMOUNT_OF_SUBSTANCE() == ((Dimension) other).getAMOUNT_OF_SUBSTANCE() &&
-				this.getTHERMODYNAMIC_TEMPERATURE() == ((Dimension) other).getTHERMODYNAMIC_TEMPERATURE() &&
-				this.getTIME() == ((Dimension) other).getTIME() &&
-				this.getLUMINOUS_INTENSITY() == ((Dimension) other).getLUMINOUS_INTENSITY() &&
-				this.getMASS() == ((Dimension) other).getMASS();
+	public boolean equals(Object _other) {
+		return (this.getClass() == _other.getClass()) &&
+				this.mName.equals(((Dimension) _other).getName()) &&
+				this.getELECTRIC_CURRENT() == ((Dimension) _other).getELECTRIC_CURRENT() &&
+				this.getLENGTH() == ((Dimension) _other).getLENGTH() &&
+				this.getAMOUNT_OF_SUBSTANCE() == ((Dimension) _other).getAMOUNT_OF_SUBSTANCE() &&
+				this.getTHERMODYNAMIC_TEMPERATURE() == ((Dimension) _other).getTHERMODYNAMIC_TEMPERATURE() &&
+				this.getTIME() == ((Dimension) _other).getTIME() &&
+				this.getLUMINOUS_INTENSITY() == ((Dimension) _other).getLUMINOUS_INTENSITY() &&
+				this.getMASS() == ((Dimension) _other).getMASS();
 	}
 
 

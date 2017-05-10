@@ -143,13 +143,13 @@ public class Constant {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(Object _o) {
+        if (this == _o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (_o == null || getClass() != _o.getClass())
             return false;
 
-        Constant constant = (Constant) o;
+        Constant constant = (Constant) _o;
 
         if (mParameter != constant.mParameter)
             return false;
