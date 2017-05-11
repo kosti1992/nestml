@@ -43,12 +43,12 @@ public class HelperCollection {
     /**
      * Returns all spike input ports of a given set.
      *
-     * @param ports a list of used ports
+     * @param _ports a list of used ports
      * @return a list of all spike ports
      */
     @SuppressWarnings("unused")//used in the template
-    public static List<String> getSpikePorts(List<String> ports) {
-        return ports.stream().filter(st -> st.endsWith("spikes")).collect(Collectors.toList());
+    public static List<String> getSpikePorts(List<String> _ports) {
+        return _ports.stream().filter(st -> st.endsWith("spikes")).collect(Collectors.toList());
     }
 
     /**
@@ -58,8 +58,8 @@ public class HelperCollection {
      * @return number as string
      */
     @SuppressWarnings("unused")//used in the template
-    public static String getNumberFormatted(double input) {
-        return String.valueOf(input);
+    public static String getNumberFormatted(double _input) {
+        return String.valueOf(_input);
     }
 
     /**
@@ -67,19 +67,19 @@ public class HelperCollection {
      * Extracts the dimension of a given variable-type. This class has to be modified if new units and dimensions
      * a introduced to NESTML.
      *
-     * @param input the type-symbol of the a variable.
+     * @param _typeSymbol the type-symbol of the a variable.
      * @return the name of the dimension as String
      */
-    public static String typeToDimensionConverter(TypeSymbol input) {
-        if (input.getName().equals("void") || input.getName().equals("string")) {
+    public static String typeToDimensionConverter(TypeSymbol _typeSymbol) {
+        if (_typeSymbol.getName().equals("void") || _typeSymbol.getName().equals("string")) {
             return NOT_SUPPORTED;
         }
-        if (input.getType() == TypeSymbol.Type.PRIMITIVE) {
+        if (_typeSymbol.getType() == TypeSymbol.Type.PRIMITIVE) {
             return DIMENSION_NONE;
-        } else if (input.getType() == TypeSymbol.Type.UNIT) {
-            return PREFIX_DIMENSION + input.prettyPrint();
+        } else if (_typeSymbol.getType() == TypeSymbol.Type.UNIT) {
+            return PREFIX_DIMENSION + _typeSymbol.prettyPrint();
         }
-        System.err.println(input.prettyPrint() + " : not supported!");
+        System.err.println(_typeSymbol.prettyPrint() + " : not supported!");
         return null;
     }
 
@@ -88,14 +88,14 @@ public class HelperCollection {
      * Extracts the dimension of a given variable-type. This class has to be modified if new units and dimensions
      * a introduced to NESTML.
      *
-     * @param input the type-symbol of the a variable. Here,a ASTDatatype is expected.
+     * @param _dataType the type-symbol of the a variable. Here,a ASTDatatype is expected.
      * @return the name of the dimension as String
      */
-    public static String typeToDimensionConverter(ASTDatatype input) {
-        if (input.getUnitType().isPresent() && input.getUnitType().get().getUnit().isPresent()) {
-            return PREFIX_DIMENSION + input.getUnitType().get().getUnit().get();//TODO
+    public static String typeToDimensionConverter(ASTDatatype _dataType) {
+        if (_dataType.getUnitType().isPresent() && _dataType.getUnitType().get().getUnit().isPresent()) {
+            return PREFIX_DIMENSION + _dataType.getUnitType().get().getUnit().get();//TODO
         } else {
-            if (input.isBoolean()||input.isInteger()||input.isReal()) {
+            if (_dataType.isBoolean() || _dataType.isInteger() || _dataType.isReal()) {
                 return DIMENSION_NONE;
             } else {
                 return NOT_SUPPORTED;
@@ -106,50 +106,51 @@ public class HelperCollection {
     /**
      * Converts a unit prefix to power of base 10. This method is probably obsolete since the introduction of the
      * new unit handling in the frontend.
+     * TODO: Caution, this method is rather bad and relies on a pretty obsolete representation.
      *
-     * @param var_type Name of the unit represented as String.
+     * @param _varSymbol Name of the unit represented as String.
      * @return Power of the prefix as int.
      */
-    public static int powerConverter(String var_type) {
-        if (var_type == null || var_type.length() < 2) {
+    public static int powerConverter(String _varSymbol) {
+        if (_varSymbol == null || _varSymbol.length() < 2) {
             return 0;
         }
-        if (var_type.startsWith("d")) {
+        if (_varSymbol.startsWith("d")) {
             return -1;
-        } else if (var_type.startsWith("c")) {
+        } else if (_varSymbol.startsWith("c")) {
             return -2;
-        } else if (var_type.startsWith("m") && var_type.length() > 1) {// in order to avoid confusion between meter and mili
+        } else if (_varSymbol.startsWith("m") && _varSymbol.length() > 1) {// in order to avoid confusion between meter and mili
             return -3;
-        } else if (var_type.startsWith("mu")) {
+        } else if (_varSymbol.startsWith("mu")) {
             return -6;
-        } else if (var_type.startsWith("n")) {
+        } else if (_varSymbol.startsWith("n")) {
             return -9;
-        } else if (var_type.startsWith("p")) {
+        } else if (_varSymbol.startsWith("p")) {
             return -12;
-        } else if (var_type.startsWith("f")) {
+        } else if (_varSymbol.startsWith("f")) {
             return -15;
-        } else if (var_type.startsWith("a")) {
+        } else if (_varSymbol.startsWith("a")) {
             return -18;
         }
         //positive powers
-        else if (var_type.startsWith("da")) {
+        else if (_varSymbol.startsWith("da")) {
             return 1;
-        } else if (var_type.startsWith("h")) {
+        } else if (_varSymbol.startsWith("h")) {
             return 2;
-        } else if (var_type.startsWith("k")) {
+        } else if (_varSymbol.startsWith("k")) {
             return 3;
-        } else if (var_type.startsWith("M")) {
+        } else if (_varSymbol.startsWith("M")) {
             return 6;
-        } else if (var_type.startsWith("G")) {
+        } else if (_varSymbol.startsWith("G")) {
             return 9;
-        } else if (var_type.startsWith("T")) {
+        } else if (_varSymbol.startsWith("T")) {
             return 12;
-        } else if (var_type.startsWith("P")) {
+        } else if (_varSymbol.startsWith("P")) {
             return 15;
-        } else if (var_type.startsWith("E")) {
+        } else if (_varSymbol.startsWith("E")) {
             return 18;
         }
-        System.err.println(var_type + " prefix not supported!");
+        System.err.println(_varSymbol + " prefix not supported!");
         return 1;
     }
 
@@ -157,11 +158,11 @@ public class HelperCollection {
      * Checks whether a given function call name is supported by the target modeling language or not.
      * If new concepts are supported, add here.
      *
-     * @param expr The function call name which will be checked.
+     * @param _functionName The function call name which will be checked.
      * @return true, if supported
      */
-    public static boolean mathematicalFunctionIsSupported(String expr) {
-        switch (expr) {
+    public static boolean mathematicalFunctionIsSupported(String _functionName) {
+        switch (_functionName) {
             case "exp":
                 return true;
             case "log":
@@ -205,9 +206,9 @@ public class HelperCollection {
         }
     }
 
-    private static boolean userDefinedFunctionIsSupported(String expr,LEMSCollector container){
-        for(DerivedElement elem:container.getDerivedElementList()){
-            if(elem.getName().equals(expr)){
+    private static boolean userDefinedFunctionIsSupported(String expr, LEMSCollector container) {
+        for (DerivedElement elem : container.getDerivedElementList()) {
+            if (elem.getName().equals(expr)) {
                 return true;
             }
         }
@@ -220,25 +221,25 @@ public class HelperCollection {
      *
      * @param expr          the expression which will be checked.
      * @param skipSupported if true, all supported function calls will be skipped
-     * @param container the container holds user defined functions which have to be seen as supported
+     * @param container     the container holds user defined functions which have to be seen as supported
      * @return true, if expression or sub-expression contains call.
      */
-    public static boolean containsFunctionCall(ASTExpr expr, boolean skipSupported,LEMSCollector container) {
+    public static boolean containsFunctionCall(ASTExpr expr, boolean skipSupported, LEMSCollector container) {
         boolean temp = false;
         //if more functions are supported
         if (expr.functionCallIsPresent() && !(skipSupported && (mathematicalFunctionIsSupported(
-                expr.getFunctionCall().get().getName().toString()))||userDefinedFunctionIsSupported(expr.getFunctionCall().get().getName().toString(),
+                expr.getFunctionCall().get().getName().toString())) || userDefinedFunctionIsSupported(expr.getFunctionCall().get().getName().toString(),
                 container))) {
             temp = true;
         }
         if (expr.exprIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getExpr().get(), skipSupported,container);
+            temp = temp || containsFunctionCall(expr.getExpr().get(), skipSupported, container);
         }
         if (expr.leftIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getLeft().get(), skipSupported,container);
+            temp = temp || containsFunctionCall(expr.getLeft().get(), skipSupported, container);
         }
         if (expr.rightIsPresent()) {
-            temp = temp || containsFunctionCall(expr.getRight().get(), skipSupported,container);
+            temp = temp || containsFunctionCall(expr.getRight().get(), skipSupported, container);
         }
         return temp;
     }
@@ -254,8 +255,8 @@ public class HelperCollection {
     public static Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
         List<Expression> temp = expr.getNumericals();
         //in the case we get a numerical literal directly
-        if(expr instanceof NumericalLiteral){
-            if((((NumericalLiteral) expr).hasType())){
+        if (expr instanceof NumericalLiteral) {
+            if ((((NumericalLiteral) expr).hasType())) {
                 int[] dec = convertTypeDeclToArray(((NumericalLiteral) expr).getType().get().getSerializedUnit());
                 //create the required units and dimensions
                 Dimension tempDimension =
@@ -487,7 +488,6 @@ public class HelperCollection {
         }
         return false;
     }
-
 
 
     /**
@@ -780,25 +780,25 @@ public class HelperCollection {
      * @param container a container or added elements
      * @return an expression with replaced elements
      */
-    public static Expression replacementRoutine(LEMSCollector container,Expression expr) {
+    public static Expression replacementRoutine(LEMSCollector container, Expression expr) {
         Expression tempExpression = replaceConstantsWithReferences(container, expr);
-        tempExpression = replaceFunctionCallByReference(container,tempExpression);
+        tempExpression = replaceFunctionCallByReference(container, tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
 
-    public static Expression replaceFunctionCallByReference(LEMSCollector container,Expression expr){
+    public static Expression replaceFunctionCallByReference(LEMSCollector container, Expression expr) {
         checkNotNull(expr);
         checkNotNull(container);
-        if(expr instanceof Function){
+        if (expr instanceof Function) {
             return new Variable(((Function) expr).getFunctionName());
-        }else{
+        } else {
             List<Expression> listOfCalls = expr.getFunctions();
             //collect the names of all derived variables
-            List<String> udFNames = container.getDerivedElementList().stream().map(param->param.getName()).collect(toList());
-            for(Expression call:listOfCalls){
-                if(udFNames.contains(((Function) call).getFunctionName())){
-                    expr.replaceElement(call,new Variable(((Function) call).getFunctionName()));
+            List<String> udFNames = container.getDerivedElementList().stream().map(param -> param.getName()).collect(toList());
+            for (Expression call : listOfCalls) {
+                if (udFNames.contains(((Function) call).getFunctionName())) {
+                    expr.replaceElement(call, new Variable(((Function) call).getFunctionName()));
                 }
             }
             return expr;
