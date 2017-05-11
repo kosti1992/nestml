@@ -8,14 +8,10 @@ import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTBody;
-import org.nest.ode._ast.ASTEquation;
-import org.nest.ode._ast.ASTShape;
 import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
-import org.nest.spl._ast.ASTSmall_Stmt;
 import org.nest.spl._ast.ASTStmt;
 import org.nest.symboltable.symbols.TypeSymbol;
-import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTDatatype;
 import org.nest.units._ast.ASTUnitType;
 
@@ -492,68 +488,6 @@ public class HelperCollection {
         return false;
     }
 
-    /**
-     * This method prints and stores an adequate message regarding not supported
-     * elements during the transformation
-     *
-     * @param variable the variable whose type is not supported
-     */
-    public static void printNotSupportedDataType(VariableSymbol variable, LEMSCollector container) {
-        System.err.println("Not supported data-type found: \"" + variable.getType().getName() + "\".");
-        container.addNotConverted("Not supported data-type "
-                + variable.getType().prettyPrint() + " in lines "
-                + variable.getAstNode().get().get_SourcePositionStart()
-                + " to " + variable.getAstNode().get().get_SourcePositionEnd()
-                + ".");
-    }
-
-    /**
-     * This method prints and stores a message regarding a not supported yet found
-     * function call inside a expression.
-     *
-     * @param variable the variable symbol whose declaration has a function call which is not supportd
-     */
-    public static void printNotSupportedFunctionCallInExpression(VariableSymbol variable, LEMSCollector container) {
-        System.err.println(
-                "LEMS Error (Line: "
-                        + container.getNeuronName() + "/"
-                        + variable.getSourcePosition().getLine()
-                        + "):"
-                        + " Function call found in (constant|parameter) declaration." + "("
-                        + container.getPrettyPrint().print(variable.getDeclaringExpression().get(), false) + ")");
-    }
-
-    public static void printNotSupportedFunctionCallInEquations(ASTShape variable, LEMSCollector container) {
-        System.err.println(
-                "LEMS-Error (Line: "
-                        + container.getNeuronName() + "/"
-                        + variable.get_SourcePositionStart().getLine()
-                        + "):"
-                        + " Not supported function call in equation. (" +
-                        (new Expression(variable.getRhs())).print()
-                        + ")");
-
-    }
-
-    public static void printNotSupportedFunctionInBlock(ASTSmall_Stmt input, LEMSCollector container) {
-        System.err.print(
-                "LEMS-Error (Line: "
-                        + container.getNeuronName() + "/"
-                        + input.get_SourcePositionStart().getLine()
-                        + "):"
-                        + " Not supported function call in function. ");
-
-        if (input.getAssignment().isPresent()) {
-            System.err.print("(" + container.getPrettyPrint().print(input.getAssignment().get().getExpr(), false) + ")\n");
-        }
-        if (input.getDeclaration().isPresent()) {
-            System.err.print("(" + container.getPrettyPrint().print(input.getDeclaration().get().getExpr().get(), false) + ")\n");
-        }
-        if (input.getFunctionCall().isPresent()) {
-            System.err.print("(" + input.getFunctionCall().get().getCalleeName() + ")\n");
-        }
-        container.addNotConverted("Not supported function call in update block, lines " + input.get_SourcePositionStart() + " to " + input.get_SourcePositionEnd());
-    }
 
 
     /**
@@ -649,34 +583,6 @@ public class HelperCollection {
         return expr;
     }
 
-    public static void printArrayNotSupportedMessage(VariableSymbol var, LEMSCollector container) {
-        System.err.println(
-                "LEMS Error (Line: "
-                        + container.getNeuronName() + "/"
-                        + var.getSourcePosition().getLine()
-                        + "):"
-                        + " Array declaration found. ("
-                        + var.getName()
-                        + ")");
-
-    }
-
-    public static String getArrayNotSupportedMessage(VariableSymbol var) {
-        return "Array declaration in lines" + var.getSourcePosition().getLine();
-    }
-
-
-    public static void printNotSupportedFunctionCallFoundMessage(ASTEquation eq, LEMSCollector container) {
-        System.err.println(
-                "LEMS Error (Line: "
-                        + container.getNeuronName() + "/"
-                        + eq.get_SourcePositionStart().getLine()
-                        + "):"
-                        + " Not supported function call in expression. ("
-                        + container.getPrettyPrint().print(eq.getRhs(), false)
-                        + ")");
-
-    }
 
     /**
      * Inspects a given dimension and transforms it to a LEMS near representation, e.g.  A / s => DimensionOf_A_per_s

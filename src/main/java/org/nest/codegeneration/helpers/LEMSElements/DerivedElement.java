@@ -43,7 +43,7 @@ public class DerivedElement extends LEMSElement{
         if (HelperCollection.dataTypeNotSupported(_variable.getType())) {
             mDimension = HelperCollection.NOT_SUPPORTED;
             //print an adequate error message
-            HelperCollection.printNotSupportedDataType(_variable, _container);
+            Messages.printNotSupportedDataType(_variable, _container);
         } else {
             mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
             mDimension = HelperCollection.formatComplexUnit(mDimension);

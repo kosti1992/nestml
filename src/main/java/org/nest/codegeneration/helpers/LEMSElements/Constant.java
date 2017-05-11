@@ -63,7 +63,7 @@ public class Constant extends LEMSElement{
 
         //store an adequate message if the data type is not supported
         if (this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
-            HelperCollection.printNotSupportedDataType(_variable, _container);
+            Messages.printNotSupportedDataType(_variable, _container);
         }
     }
 
@@ -188,7 +188,7 @@ public class Constant extends LEMSElement{
             tempType.setUnit(_container.getConfig().getSimulationStepsUnit().getSymbol());
             return new NumericalLiteral(_container.getConfig().getSimulationStepsLength(), tempType);
         } else {
-            HelperCollection.printNotSupportedFunctionCallInExpression(_variable, _container);
+            Messages.printNotSupportedFunctionCallInExpression(_variable, _container);
             return new Variable(HelperCollection.NOT_SUPPORTED
                     + ":" + _variable.getDeclaringExpression().get().getFunctionCall().get().getName().toString());
         }

@@ -260,7 +260,7 @@ public class DynamicRoutine {
             //check if not supported functions are part of the assignment
             if (HelperCollection.containsFunctionCall(input.getAssignment().get().getExpr(), true, container)) {
                 //Generate a proper error message
-                HelperCollection.printNotSupportedFunctionInBlock(input, container);
+                Messages.printNotSupportedFunctionInBlock(input, container);
                 //now generate a expression which indicates that it is not supported
                 Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
                 tempExpression = tempExpression.setNotSupported();

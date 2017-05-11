@@ -30,7 +30,7 @@ public class StateVariable extends LEMSElement{
 
         //check whether data type is supported or not and print a message
         if (HelperCollection.dataTypeNotSupported(_variable.getType())) {
-            HelperCollection.printNotSupportedDataType(_variable, _container);
+            Messages.printNotSupportedDataType(_variable, _container);
         }
 
         //check if a standard value is set and an actual dimension is used
