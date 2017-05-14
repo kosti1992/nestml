@@ -55,7 +55,7 @@ public class Expression {
 		} else if (_expr.nESTMLNumericLiteralIsPresent()) {
 			this.mRhs = Optional.of(new NumericalLiteral(_expr.getNESTMLNumericLiteral().get()));
 		} else if (_expr.variableIsPresent()) {
-			this.mRhs = Optional.of(new Variable(_expr.getVariable().get().getName().toString()));
+			this.mRhs = Optional.of(new Variable(_expr.getVariable().get().toString()));
 		} else if (_expr.functionCallIsPresent()) {
 			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
 		} else if (_expr.exprIsPresent()) {

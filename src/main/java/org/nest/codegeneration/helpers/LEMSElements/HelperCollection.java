@@ -827,6 +827,7 @@ public class HelperCollection {
         if(_expr.rhsIsPresent()){
             HelperCollection.replaceDifferentialVariable(_expr.getRhs().get());
         }
+
         return _expr;
     }
 

@@ -311,7 +311,7 @@ public class LEMSCollector extends Collector {
                     lhs.setDifferentialOrder(diffList);
                 }
                 String tLhs = Names.convertToCPPName(eq.getLhs().toString());//now retrieve the name and replace it by a proper representation
-
+                //TODO: this part is rather buggy, since the search would be applied by tLhs, while in expressions it is still the same name
                 tempList.add(tLhs);// a list is required, since method blockContains requires lists of args.
 
                 //check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
