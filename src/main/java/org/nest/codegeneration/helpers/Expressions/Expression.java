@@ -6,13 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.nest.codegeneration.helpers.LEMSElements.DynamicRoutine;
 import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
-import org.nest.codegeneration.helpers.LEMSElements.LEMSCollector;
-import org.nest.codegeneration.helpers.LEMSElements.Unit;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
-import org.nest.units._ast.ASTUnitType;
 
 /**
  * This class represents an internal representation of an expression, e.g
@@ -21,27 +17,27 @@ import org.nest.units._ast.ASTUnitType;
  * @author perun
  */
 public class Expression {
-	private Optional<Expression> lhs = Optional.empty();
-	private Optional<Operator> operator = Optional.empty();
-	private Optional<Expression> rhs = Optional.empty();
+	private Optional<Expression> mLhs = Optional.empty();
+	private Optional<Operator> mOperator = Optional.empty();
+	private Optional<Expression> mRhs = Optional.empty();
 
 	//TODO: write a lexer+parser to generate from string
-	public Expression(String value) {
-		this.rhs = Optional.of(new Variable(value));
+	public Expression(String _value) {
+		this.mRhs = Optional.of(new Variable(_value));
 	}
 
 	public Expression() {
 	}
 
-	public Expression(ASTExpr expr) {
-		checkNotNull(expr);
-		this.handleExpression(expr);
+	public Expression(ASTExpr _expr) {
+		checkNotNull(_expr);
+		this.handleExpression(_expr);
 	}
 
-	public Expression(VariableSymbol expr) {
-		checkNotNull(expr);
-		if (expr.getDeclaringExpression().isPresent()) {
-			this.handleExpression(expr.getDeclaringExpression().get());
+	public Expression(VariableSymbol _expr) {
+		checkNotNull(_expr);
+		if (_expr.getDeclaringExpression().isPresent()) {
+			this.handleExpression(_expr.getDeclaringExpression().get());
 		}
 	}
 
@@ -49,62 +45,62 @@ public class Expression {
 	 * The main routine which deals with the correct creation of an internal representation of
 	 * an expression.
 	 *
-	 * @param expr The expression which shall be transformed to the internal representation.
+	 * @param _expr The expression which shall be transformed to the internal representation.
 	 *             Caution: the AST expression is not changed.
 	 */
-	private void handleExpression(ASTExpr expr) {
-		if (expr.getTerm().isPresent()) {
-			this.operator = Optional.of(new Operator(expr));
-			this.rhs = Optional.of(new Expression(expr.getTerm().get()));
-		} else if (expr.nESTMLNumericLiteralIsPresent()) {
-			this.rhs = Optional.of(new NumericalLiteral(expr.getNESTMLNumericLiteral().get()));
-		} else if (expr.variableIsPresent()) {
-			this.rhs = Optional.of(new Variable(expr.getVariable().get().getName().toString()));
-		} else if (expr.functionCallIsPresent()) {
-			this.rhs = Optional.of(new Function(expr.getFunctionCall().get()));
-		} else if (expr.exprIsPresent()) {
-			this.operator = Optional.of(new Operator(expr));
-			this.rhs = Optional.of(new Expression(expr.getExpr().get()));
-		} else if (expr.baseIsPresent() && expr.exponentIsPresent()) {
-			this.lhs = Optional.of(new Expression(expr.getBase().get()));
-			this.rhs = Optional.of(new Expression(expr.getExponent().get()));
+	private void handleExpression(ASTExpr _expr) {
+		if (_expr.getTerm().isPresent()) {
+			this.mOperator = Optional.of(new Operator(_expr));
+			this.mRhs = Optional.of(new Expression(_expr.getTerm().get()));
+		} else if (_expr.nESTMLNumericLiteralIsPresent()) {
+			this.mRhs = Optional.of(new NumericalLiteral(_expr.getNESTMLNumericLiteral().get()));
+		} else if (_expr.variableIsPresent()) {
+			this.mRhs = Optional.of(new Variable(_expr.getVariable().get().getName().toString()));
+		} else if (_expr.functionCallIsPresent()) {
+			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
+		} else if (_expr.exprIsPresent()) {
+			this.mOperator = Optional.of(new Operator(_expr));
+			this.mRhs = Optional.of(new Expression(_expr.getExpr().get()));
+		} else if (_expr.baseIsPresent() && _expr.exponentIsPresent()) {
+			this.mLhs = Optional.of(new Expression(_expr.getBase().get()));
+			this.mRhs = Optional.of(new Expression(_expr.getExponent().get()));
 			Operator tempOperator = new Operator();
 			tempOperator.setPower(true);
-			this.operator = Optional.of(tempOperator);
-		} else if (expr.booleanLiteralIsPresent()) {
-			if (expr.getBooleanLiteral().get().getValue()) {
-				this.rhs = Optional.of(new NumericalLiteral(1, null));
+			this.mOperator = Optional.of(tempOperator);
+		} else if (_expr.booleanLiteralIsPresent()) {
+			if (_expr.getBooleanLiteral().get().getValue()) {
+				this.mRhs = Optional.of(new NumericalLiteral(1, null));
 			} else {
-				this.rhs = Optional.of(new NumericalLiteral(0, null));
+				this.mRhs = Optional.of(new NumericalLiteral(0, null));
 			}
 		} else {
-			if (expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
-				if (expr.getLeft().get().booleanLiteralIsPresent()) {
-					if (expr.getLeft().get().getBooleanLiteral().get().getValue()) {
-						this.lhs = Optional.of(Expression.generateTrue());
+			if (_expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
+				if (_expr.getLeft().get().booleanLiteralIsPresent()) {
+					if (_expr.getLeft().get().getBooleanLiteral().get().getValue()) {
+						this.mLhs = Optional.of(Expression.generateTrue());
 					} else {
-						this.lhs = Optional.of(Expression.generateFalse());
+						this.mLhs = Optional.of(Expression.generateFalse());
 					}
 				} else {
-					this.lhs = Optional.of(new Expression(expr.getLeft().get()));
+					this.mLhs = Optional.of(new Expression(_expr.getLeft().get()));
 				}
 			}
-			this.operator = Optional.of(new Operator(expr));
-			if (expr.rightIsPresent()) {//check if the right hand side is a single boolean atom, e.g.: 1<2 and true
-				if (expr.getRight().get().booleanLiteralIsPresent()) {
+			this.mOperator = Optional.of(new Operator(_expr));
+			if (_expr.rightIsPresent()) {//check if the right hand side is a single boolean atom, e.g.: 1<2 and true
+				if (_expr.getRight().get().booleanLiteralIsPresent()) {
 					//if it is a boolean atom, generate true, respectively false according to the model
-					if (expr.getRight().get().getBooleanLiteral().get().getValue()) {
-						this.rhs = Optional.of(Expression.generateTrue());
+					if (_expr.getRight().get().getBooleanLiteral().get().getValue()) {
+						this.mRhs = Optional.of(Expression.generateTrue());
 					} else {
-						this.rhs = Optional.of(Expression.generateFalse());
+						this.mRhs = Optional.of(Expression.generateFalse());
 					}
 				} else {
-					this.rhs = Optional.of(new Expression(expr.getRight().get()));
+					this.mRhs = Optional.of(new Expression(_expr.getRight().get()));
 				}
 			}
-			if (expr.isLogicalAnd() || expr.isLogicalOr() || expr.isLogicalNot()) {
-				this.lhs = Optional.of(Expression.encapsulateInBrackets(this.lhs.get()));
-				this.rhs = Optional.of(Expression.encapsulateInBrackets(this.rhs.get()));
+			if (_expr.isLogicalAnd() || _expr.isLogicalOr() || _expr.isLogicalNot()) {
+				this.mLhs = Optional.of(Expression.encapsulateInBrackets(this.mLhs.get()));
+				this.mRhs = Optional.of(Expression.encapsulateInBrackets(this.mRhs.get()));
 			}
 		}
 	}
@@ -120,14 +116,14 @@ public class Expression {
 		if (this.getClass().equals(Operator.class)) {
 			resOps.add(this);
 		}
-		if (this.operator.isPresent()) {
-			resOps.add(this.operator.get());
+		if (this.mOperator.isPresent()) {
+			resOps.add(this.mOperator.get());
 		}
-		if (this.lhs.isPresent()) {
-			resOps.addAll(lhs.get().getOperators());
+		if (this.mLhs.isPresent()) {
+			resOps.addAll(mLhs.get().getOperators());
 		}
-		if (this.rhs.isPresent()) {
-			resOps.addAll(rhs.get().getOperators());
+		if (this.mRhs.isPresent()) {
+			resOps.addAll(mRhs.get().getOperators());
 		}
 		return resOps;
 	}
@@ -142,11 +138,11 @@ public class Expression {
 		if (this.getClass().equals(Function.class)) {
 			resFunc.add(this);
 		}
-		if (this.lhs.isPresent()) {
-			resFunc.addAll(lhs.get().getFunctions());
+		if (this.mLhs.isPresent()) {
+			resFunc.addAll(mLhs.get().getFunctions());
 		}
-		if (this.rhs.isPresent()) {
-			resFunc.addAll(rhs.get().getFunctions());
+		if (this.mRhs.isPresent()) {
+			resFunc.addAll(mRhs.get().getFunctions());
 		}
 		return resFunc;
 	}
@@ -161,11 +157,11 @@ public class Expression {
 		if (this.getClass().equals(Variable.class)) {
 			resVars.add(this);
 		}
-		if (this.lhs.isPresent()) {
-			resVars.addAll(lhs.get().getVariables());
+		if (this.mLhs.isPresent()) {
+			resVars.addAll(mLhs.get().getVariables());
 		}
-		if (this.rhs.isPresent()) {
-			resVars.addAll(rhs.get().getVariables());
+		if (this.mRhs.isPresent()) {
+			resVars.addAll(mRhs.get().getVariables());
 		}
 		return resVars;
 	}
@@ -180,11 +176,11 @@ public class Expression {
 		if (this.getClass().equals(NumericalLiteral.class)) {
 			resNums.add(this);
 		}
-		if (this.lhs.isPresent()) {
-			resNums.addAll(lhs.get().getNumericals());
+		if (this.mLhs.isPresent()) {
+			resNums.addAll(mLhs.get().getNumericals());
 		}
-		if (this.rhs.isPresent()) {
-			resNums.addAll(rhs.get().getNumericals());
+		if (this.mRhs.isPresent()) {
+			resNums.addAll(mRhs.get().getNumericals());
 		}
 		return resNums;
 	}
@@ -195,24 +191,24 @@ public class Expression {
 	 * of the corresponding elements is determined by the handed over SyntaxContainer
 	 * object.
 	 *
-	 * @param container determines which syntax shall be used.
+	 * @param _container determines which syntax shall be used.
 	 * @return a string representation of the expression
 	 */
-	public String print(SyntaxContainer container) {
+	public String print(SyntaxContainer _container) {
 		String ret = "";
 		//This is a special case, since brackets have to be around the whole expr.
-		if (this.operator.isPresent() && this.operator.get().isLeftParentheses() &&
-				this.operator.get().isRightParentheses() && this.rhs.isPresent()) {
-			ret = "(" + this.rhs.get().print(container) + ")";
+		if (this.mOperator.isPresent() && this.mOperator.get().isLeftParentheses() &&
+				this.mOperator.get().isRightParentheses() && this.mRhs.isPresent()) {
+			ret = "(" + this.mRhs.get().print(_container) + ")";
 		} else {
-			if (this.lhs.isPresent()) {
-				ret = ret + this.lhs.get().print(container);
+			if (this.mLhs.isPresent()) {
+				ret = ret + this.mLhs.get().print(_container);
 			}
-			if (this.operator.isPresent()) {
-				ret = ret + this.operator.get().print(container);
+			if (this.mOperator.isPresent()) {
+				ret = ret + this.mOperator.get().print(_container);
 			}
-			if (this.rhs.isPresent()) {
-				ret = ret + this.rhs.get().print(container);
+			if (this.mRhs.isPresent()) {
+				ret = ret + this.mRhs.get().print(_container);
 			}
 		}
 		return ret;
@@ -231,51 +227,51 @@ public class Expression {
 	/**
 	 * Traverses through the expression tree and replaces each occurrence of pre by post.
 	 *
-	 * @param pre  the expression which will be replaced
-	 * @param post the expression which replaces
+	 * @param _pre  the expression which will be replaced
+	 * @param _post the expression which replaces
 	 */
-	public void replaceElement(Expression pre, Expression post) {
-		if (this.lhs.isPresent() && this.lhs.get().equals(pre)) {
-			this.lhs = Optional.of(post);
+	public void replaceElement(Expression _pre, Expression _post) {
+		if (this.mLhs.isPresent() && this.mLhs.get().equals(_pre)) {
+			this.mLhs = Optional.of(_post);
 		}
-		if (this.operator.isPresent() && this.operator.get().equals(pre)) {
-			this.operator = Optional.of((Operator) post);
+		if (this.mOperator.isPresent() && this.mOperator.get().equals(_pre)) {
+			this.mOperator = Optional.of((Operator) _post);
 		}
-		if (this.rhs.isPresent() && this.rhs.get().equals(pre)) {
-			this.rhs = Optional.of(post);
+		if (this.mRhs.isPresent() && this.mRhs.get().equals(_pre)) {
+			this.mRhs = Optional.of(_post);
 		}
-		if (this.lhs.isPresent()) {
-			this.lhs.get().replaceElement(pre, post);
+		if (this.mLhs.isPresent()) {
+			this.mLhs.get().replaceElement(_pre, _post);
 		}
-		if (this.rhs.isPresent()) {
-			this.rhs.get().replaceElement(pre, post);
+		if (this.mRhs.isPresent()) {
+			this.mRhs.get().replaceElement(_pre, _post);
 		}
 	}
 
-	public void replaceLhs(Expression expr) {
-		this.lhs = Optional.of(expr);
+	public void replaceLhs(Expression _expression) {
+		this.mLhs = Optional.of(_expression);
 	}
 
-	public void replaceRhs(Expression expr) {
-		this.rhs = Optional.of(expr);
+	public void replaceRhs(Expression _expression) {
+		this.mRhs = Optional.of(_expression);
 	}
 
-	public void replaceOp(Operator op) {
-		this.operator = Optional.of(op);
+	public void replaceOp(Operator _operator) {
+		this.mOperator = Optional.of(_operator);
 	}
 
 	/**
 	 * Negates the logical expression located in this expression.
 	 */
 	public void negateLogic() {
-		if (this.lhs.isPresent()) {
-			this.lhs.get().negateLogic();
+		if (this.mLhs.isPresent()) {
+			this.mLhs.get().negateLogic();
 		}
-		if (this.operator.isPresent()) {
-			this.operator.get().negate();
+		if (this.mOperator.isPresent()) {
+			this.mOperator.get().negate();
 		}
-		if (this.rhs.isPresent()) {
-			this.rhs.get().negateLogic();
+		if (this.mRhs.isPresent()) {
+			this.mRhs.get().negateLogic();
 		}
 	}
 
@@ -328,16 +324,16 @@ public class Expression {
 	/**
 	 * Encapsulates a given expression object in brackets. e.g V_m+10mV -> (V_m+10mV)
 	 *
-	 * @param expr the expression which will be encapsulated.
+	 * @param _expression the expression which will be encapsulated.
 	 * @return the encapsulated expression.
 	 */
-	public static Expression encapsulateInBrackets(Expression expr) {
+	public static Expression encapsulateInBrackets(Expression _expression) {
 		Expression ret = new Expression();
 		Operator op = new Operator();
 		op.setLeftParentheses(true);
 		op.setRightParentheses(true);
 		ret.replaceOp(op);
-		ret.replaceRhs(expr);
+		ret.replaceRhs(_expression);
 		return ret;
 	}
 
@@ -350,19 +346,19 @@ public class Expression {
 
 		Expression that = (Expression) o;
 
-		if (!lhs.equals(that.lhs))
+		if (!mLhs.equals(that.mLhs))
 			return false;
-		if (!operator.equals(that.operator))
+		if (!mOperator.equals(that.mOperator))
 			return false;
-		return rhs.equals(that.rhs);
+		return mRhs.equals(that.mRhs);
 
 	}
 
 	@Override
 	public int hashCode() {
-		int result = lhs.hashCode();
-		result = 31 * result + operator.hashCode();
-		result = 31 * result + rhs.hashCode();
+		int result = mLhs.hashCode();
+		result = 31 * result + mOperator.hashCode();
+		result = 31 * result + mRhs.hashCode();
 		return result;
 	}
 
@@ -373,34 +369,34 @@ public class Expression {
 				equalArgs(((Function) this).getArguments(), args)) {
 			return true;
 		}
-		if (this.rhs.isPresent() && this.rhs.get() instanceof Function &&
-				((Function) this.rhs.get()).getFunctionName().equals(funcName) &&
-				equalArgs(((Function) this.rhs.get()).getArguments(), args)) {
+		if (this.mRhs.isPresent() && this.mRhs.get() instanceof Function &&
+				((Function) this.mRhs.get()).getFunctionName().equals(funcName) &&
+				equalArgs(((Function) this.mRhs.get()).getArguments(), args)) {
 			return true;
 		}
-		if (this.lhs.isPresent() && this.lhs.get() instanceof Function &&
-				((Function) this.lhs.get()).getFunctionName().equals(funcName) &&
-				equalArgs(((Function) this.lhs.get()).getArguments(), args)) {
+		if (this.mLhs.isPresent() && this.mLhs.get() instanceof Function &&
+				((Function) this.mLhs.get()).getFunctionName().equals(funcName) &&
+				equalArgs(((Function) this.mLhs.get()).getArguments(), args)) {
 			return true;
 		}
-		if (this.rhs.isPresent()) {
-			contains |= this.rhs.get().containsNamedFunction(funcName, args);
+		if (this.mRhs.isPresent()) {
+			contains |= this.mRhs.get().containsNamedFunction(funcName, args);
 		}
-		if (this.lhs.isPresent()) {
-			contains |= this.lhs.get().containsNamedFunction(funcName, args);
+		if (this.mLhs.isPresent()) {
+			contains |= this.mLhs.get().containsNamedFunction(funcName, args);
 		}
 		return contains;
 	}
 
-	private boolean equalArgs(List<Expression> args1, List<Expression> args2) {
-		if (args1 == null && args2 == null) {
+	private boolean equalArgs(List<Expression> _args1, List<Expression> _args2) {
+		if (_args1 == null && _args2 == null) {
 			return true;
 		}
-		if (args1 == null ^ args2 == null || args1.size() != args2.size()) {
+		if (_args1 == null ^ _args2 == null || _args1.size() != _args2.size()) {
 			return false;
 		}
-		for (int i = 0; i < args1.size(); i++) {
-			if (!args1.get(i).equals(args2.get(i))) {
+		for (int i = 0; i < _args1.size(); i++) {
+			if (!_args1.get(i).equals(_args2.get(i))) {
 				return false;
 			}
 		}
@@ -408,27 +404,27 @@ public class Expression {
 	}
 
 	public Optional<Expression> getLhs() {
-		return lhs;
+		return mLhs;
 	}
 
 	public Optional<Operator> getOperator() {
-		return operator;
+		return mOperator;
 	}
 
 	public Optional<Expression> getRhs() {
-		return rhs;
+		return mRhs;
 	}
 
 	public boolean lhsIsPresent() {
-		return this.lhs.isPresent();
+		return this.mLhs.isPresent();
 	}
 
 	public boolean rhsIsPresent() {
-		return this.rhs.isPresent();
+		return this.mRhs.isPresent();
 	}
 
 	public boolean opIsPresent() {
-		return this.operator.isPresent();
+		return this.mOperator.isPresent();
 	}
 
 	/**
@@ -467,9 +463,9 @@ public class Expression {
 	 * @return
 	 */
 	//TODO: complete this method
-	public Expression splitExpression(Expression expr) {
+	public Expression splitExpression(Expression _expr) {
 		//first check if it is a EXPR OP EXPR form. a>b>c>d is hereby constructed as a left deep tree
-		if (expr.opIsPresent() && expr.getOperator().get().isRelationalOperator()) {
+		if (_expr.opIsPresent() && _expr.getOperator().get().isRelationalOperator()) {
 
 		}
 		return null;//TODO
@@ -477,15 +473,15 @@ public class Expression {
 
 	/**
 	 * Returns the the most right bottom, right node in the left subtree.
-	 * @param expr an expression representing an expression tree.
+	 * @param _expr an expression representing an expression tree.
 	 * @return the right most bottom node in the left sub tree of expression
 	 *///TODO complete this method
-	private Expression getLeftBottomNode(Expression expr){
-		if(expr.lhsIsPresent()&&!expr.getLhs().get().opIsPresent()){
-			return expr.getLhs().get();
+	private Expression getLeftBottomNode(Expression _expr){
+		if(_expr.lhsIsPresent()&&!_expr.getLhs().get().opIsPresent()){
+			return _expr.getLhs().get();
 		}
 		else{
-			return getLeftBottomNode(expr.getLhs().get());
+			return getLeftBottomNode(_expr.getLhs().get());
 		}
 	}
 

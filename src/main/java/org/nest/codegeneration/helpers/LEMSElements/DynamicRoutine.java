@@ -11,9 +11,12 @@ import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
 import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
 import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
+import org.nest.commons._ast.ASTVariable;
 import org.nest.nestml._ast.ASTDynamics;
+import org.nest.ode._ast.ASTDerivative;
 import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
 import org.nest.spl.prettyprinter.SPLPrettyPrinterFactory;
@@ -279,36 +282,49 @@ public class DynamicRoutine {
                 ret.replaceLhs(tempVar);
                 ret.replaceRhs(tempExpression);
                 Assignment retAssignment;
+                String varName = Names.convertToCPPName(input.getAssignment().get().getLhsVarialbe().getName().toString());
+
+
+                ASTVariable lhs = input.getAssignment().get().getLhsVarialbe();
+                //first check the order of the equation is bigger 0, then reduce it by one
+                if (lhs.getDifferentialOrder().size() > 0) {
+                    List<String> diffList = lhs.getDifferentialOrder();
+                    diffList.remove(diffList.size() - 1);
+                    lhs.setDifferentialOrder(diffList);
+                }
+                varName = Names.convertToCPPName(lhs.toString());//now retrieve the name and replace it by a proper representation
+
+
                 //in order to process assignments of type x-=y
                 if (input.getAssignment().get().isCompoundMinus()) {
                     tempOp.setMinusOp(true);
                     ret.replaceOp(tempOp);
-                    ret = HelperCollection.replaceConstantsWithReferences(container, ret);
-                    retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
+                    ret = HelperCollection.replacementRoutine(container, ret);
+                    retAssignment = new Assignment(varName, ret);
                 }//in order to process assignments of type x*=y
                 else if (input.getAssignment().get().isCompoundProduct()) {
                     tempOp.setTimesOp(true);
                     ret.replaceOp(tempOp);
-                    ret = HelperCollection.replaceConstantsWithReferences(container, ret);
-                    retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
+                    ret = HelperCollection.replacementRoutine(container, ret);
+                    retAssignment = new Assignment(varName, ret);
                 }//in order to process assignments of type x+=y
                 else if (input.getAssignment().get().isCompoundSum()) {
                     tempOp.setPlusOp(true);
                     ret.replaceOp(tempOp);
-                    ret = HelperCollection.replaceConstantsWithReferences(container, ret);
-                    retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
+                    ret = HelperCollection.replacementRoutine(container, ret);
+                    retAssignment = new Assignment(varName, ret);
                 }//in order to process assignments of type x/=y
                 else if (input.getAssignment().get().isCompoundQuotient()) {
                     tempOp.setDivOp(true);
                     ret.replaceOp(tempOp);
-                    ret = HelperCollection.replaceConstantsWithReferences(container, ret);
-                    retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
+                    ret = HelperCollection.replacementRoutine(container, ret);
+                    retAssignment = new Assignment(varName, ret);
                 } else if (input.getAssignment().get().getExpr().conditionIsPresent()) {
                     this.blocks.addAll(this.handleTernaryOperator(input, new Expression()));
                     return res;
                 } else {
-                    ret = HelperCollection.replaceConstantsWithReferences(container, new Expression(input.getAssignment().get().getExpr()));
-                    retAssignment = new Assignment(input.getAssignment().get().getLhsVarialbe().getName().toString(), ret);
+                    ret = HelperCollection.replacementRoutine(container, new Expression(input.getAssignment().get().getExpr()));
+                    retAssignment = new Assignment(varName, ret);
                 }
                 retAssignment.replaceResolutionByConstantReference(container);
                 res.add(retAssignment);

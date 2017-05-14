@@ -784,10 +784,16 @@ public class HelperCollection {
     public static Expression replacementRoutine(LEMSCollector container, Expression expr) {
         Expression tempExpression = replaceConstantsWithReferences(container, expr);
         tempExpression = replaceFunctionCallByReference(container, tempExpression);
+        tempExpression = replaceDifferentialVariable(tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
-
+    /**
+     * Replaces in a given expression function calls to user defined function by a proper derived variable.
+     * @param container a container containing the variable
+     * @param expr the expression
+     * @return expression with replace function call
+     */
     public static Expression replaceFunctionCallByReference(LEMSCollector container, Expression expr) {
         checkNotNull(expr);
         checkNotNull(container);
@@ -806,6 +812,11 @@ public class HelperCollection {
         }
     }
 
+    /**
+     * Replaces the differential equation in a given expression by a proper representation.
+     * @param _expr the expression
+     * @return the modified expression
+     */
     public static Expression replaceDifferentialVariable(Expression _expr) {
         if (_expr instanceof Variable) {//if it is a variable replace by a proper name
             ((Variable) _expr).setVariable(Names.convertToCPPName(((Variable) _expr).getVariable()));
