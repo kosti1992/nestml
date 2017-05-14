@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.sympy.OdeTransformer;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.*;
 import org.nest.ode._ast.ASTEquation;
@@ -129,7 +130,7 @@ public class LEMSCollector extends Collector {
             this.handleShapes(neuronBody);
 
             //process the defining differential equation, i.e. non "shapes"
-            this.handleEquations(neuronBody);
+            this.handleDifferentialEquations(neuronBody);
 
             //finally process all "function" declarations inside the equations block
             this.handleODEFunctions(neuronBody);
@@ -288,7 +289,7 @@ public class LEMSCollector extends Collector {
      *
      * @param neuronBody a neuron body containing equations.
      */
-    private void handleEquations(ASTBody neuronBody) {
+    private void handleDifferentialEquations(ASTBody neuronBody) {
         checkNotNull(neuronBody);
         for (int i = 0; i < neuronBody.getEquations().size(); i++) {
             ASTEquation eq = neuronBody.getEquations().get(i);
@@ -327,19 +328,23 @@ public class LEMSCollector extends Collector {
     /**
      * Checks if there are any ODE functions present in the model and transforms them to LEMS counter pieces.
      *
-     * @param neuronBody a neuron body containing ODE functions
+     * @param _neuronBody a neuron body containing ODE functions
      */
-    private void handleODEFunctions(ASTBody neuronBody) {
-        checkNotNull(neuronBody);
-        for (int i = 0; i < neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
-            ASTOdeFunction tempFunction = neuronBody.getODEBlock().get().getOdeFunctions().get(i);
+    private void handleODEFunctions(ASTBody _neuronBody) {
+        checkNotNull(_neuronBody);
+        for (int i = 0; i < _neuronBody.getODEBlock().get().getOdeFunctions().size(); i++) {
+            ASTOdeFunction tempFunction = _neuronBody.getODEBlock().get().getOdeFunctions().get(i);
+            //replace cond sum and sum by the respective shape
+            tempFunction = OdeTransformer.replaceFunctions(tempFunction);
             DerivedElement tempDerivedVar;
+
             if (tempFunction.getDatatype().getUnitType().isPresent()) {
+                //first derive the dimension and unit
                 Dimension tempDimension;
                 Unit tempUnit;
+
                 int[] dec = HelperCollection.convertTypeDeclToArray(
                         tempFunction.getDatatype().getUnitType().get().getSerializedUnit());
-
                 if (tempFunction.getDatatype().getUnitType().get().unitIsPresent()) {
                     //create the required units and dimensions
                     tempDimension = new Dimension(HelperCollection.PREFIX_DIMENSION
@@ -373,7 +378,6 @@ public class LEMSCollector extends Collector {
                             true,
                             false);
                 }
-
 
                 this.addDimension(tempDimension);
                 this.addUnit(tempUnit);

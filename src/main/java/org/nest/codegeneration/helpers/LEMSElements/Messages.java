@@ -10,7 +10,7 @@ import org.nest.symboltable.symbols.VariableSymbol;
  * This class encapsulates all messages which are either printed to the console or to the target file.
  * @author kperun
  */
-public class Messages {
+class Messages {
 
     public static void printArrayNotSupportedMessage(VariableSymbol _varSymbol, LEMSCollector _container) {
         System.err.println(
