@@ -648,7 +648,7 @@ public class DynamicRoutine {
         } else {
             for (StateVariable var : container.getStateVariablesList()) {
                 if (var.getName().equals(HelperCollection.PREFIX_ACT + functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-                    ((NumericalLiteral) var.getmDefaultValue().get()).setValue(0);
+                    ((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
                 }
             }
             //integrate the corresponding variable in this block

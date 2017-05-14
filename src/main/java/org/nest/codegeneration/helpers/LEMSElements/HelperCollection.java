@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.nestml._ast.ASTBody;
@@ -804,5 +805,19 @@ public class HelperCollection {
             return expr;
         }
     }
+
+    public static Expression replaceDifferentialVariable(Expression _expr) {
+        if (_expr instanceof Variable) {//if it is a variable replace by a proper name
+            ((Variable) _expr).setVariable(Names.convertToCPPName(((Variable) _expr).getVariable()));
+        }
+        if(_expr.lhsIsPresent()){
+            HelperCollection.replaceDifferentialVariable(_expr.getLhs().get());
+        }
+        if(_expr.rhsIsPresent()){
+            HelperCollection.replaceDifferentialVariable(_expr.getRhs().get());
+        }
+        return _expr;
+    }
+
 
 }

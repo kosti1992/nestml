@@ -1,12 +1,16 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import de.monticore.types.types._ast.ASTQualifiedName;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.helpers.Names;
 import org.nest.codegeneration.sympy.OdeTransformer;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.nestml._ast.*;
+import org.nest.ode._ast.ASTDerivative;
 import org.nest.ode._ast.ASTEquation;
 import org.nest.ode._ast.ASTOdeFunction;
 import org.nest.ode._ast.ASTShape;
@@ -245,7 +249,7 @@ public class LEMSCollector extends Collector {
                         }
                     } else if (stmt.getSmall_Stmt().get().returnStmtIsPresent()) {
                         Expression tempExpr = new Expression(stmt.getSmall_Stmt().get().getReturnStmt().get().getExpr().get());
-                        tempExpr = HelperCollection.replacementRoutine(this,tempExpr);
+                        tempExpr = HelperCollection.replacementRoutine(this, tempExpr);
 
                         DerivedElement tempVar = new DerivedElement(func.getName(), HelperCollection.typeToDimensionConverter(func.getReturnType().get()),
                                 tempExpr, true, false);
@@ -299,7 +303,17 @@ public class LEMSCollector extends Collector {
                 equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
             } else {
                 List<String> tempList = new ArrayList<>();
-                tempList.add(eq.getLhs().getSimpleName());// a list is required, since method blockContains requires lists of args.
+                ASTDerivative lhs = eq.getLhs();
+                //first check the order of the equation is bigger 0, then reduce it by one
+                if (eq.getLhs().getDifferentialOrder().size() > 0) {
+                    List<String> diffList = lhs.getDifferentialOrder();
+                    diffList.remove(diffList.size() - 1);
+                    lhs.setDifferentialOrder(diffList);
+                }
+                String tLhs = Names.convertToCPPName(eq.getLhs().toString());//now retrieve the name and replace it by a proper representation
+
+                tempList.add(tLhs);// a list is required, since method blockContains requires lists of args.
+
                 //check if somewhere in the update block an integrate directive has been used, if so, the equation has to be local
                 if (HelperCollection.blockContainsFunction("integrate", tempList, neuronBody.getDynamicsBlock().get().getBlock(), this)) {
                     Expression expr = new Expression(eq.getRhs());
@@ -307,19 +321,21 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.extendExpressionByCON1ms(expr);
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
+                    expr = HelperCollection.replaceDifferentialVariable(expr);
                     //only ode, i.e. integrate directives have to be manipulated
-                    equation.put(eq.getLhs().getSimpleName(), expr);
+                    equation.put(tLhs, expr);
                     //now generate the corresponding activator
-                    this.stateVariablesList.add(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
+                    this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
                             HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
-                    this.localTimeDerivative.add(eq.getLhs().getSimpleName());
+                    this.localTimeDerivative.add(tLhs);
                 } else {
                     //otherwise the integration is global, no further steps required
                     Expression expr = new Expression(eq.getRhs());
                     expr = HelperCollection.extendExpressionByCON1ms(expr);
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
-                    equation.put(eq.getLhs().getSimpleName(), expr);
+                    expr = HelperCollection.replaceDifferentialVariable(expr);
+                    equation.put(tLhs, expr);
                 }
             }
         }
@@ -626,7 +642,7 @@ public class LEMSCollector extends Collector {
                             combined.replaceLhs(leftExpr);
                             combined.replaceOp(op);
                             combined.replaceRhs(rightExpr);
-                            combined = HelperCollection.replacementRoutine(this,combined);
+                            combined = HelperCollection.replacementRoutine(this, combined);
                             DerivedElement tempElem = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                     combined, false, false);
                             this.addDerivedElement(tempElem);

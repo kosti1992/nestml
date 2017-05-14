@@ -39,7 +39,7 @@ public class Names {
   /**
    * Converts names of the form g_in'' to a compilable C++ identifier: __DDX_g_in
    */
-  static String convertToCPPName(final String variableName) {
+  public static String convertToCPPName(final String variableName) {
 
     // cast is ok, it is hardly possible to have a variable that overflows integer
     int derivativeOrder = (int) variableName.chars().filter(ch -> ch == '\'').count();

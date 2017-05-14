@@ -7,6 +7,7 @@ import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
 import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
 import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.Names;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
 import org.w3c.dom.Node;
@@ -24,7 +25,7 @@ public class StateVariable extends LEMSElement{
     private Optional<String> mUnit = Optional.empty();
 
     public StateVariable(VariableSymbol _variable, LEMSCollector _container) {
-        this.mName = _variable.getName();
+        this.mName = Names.convertToCPPName(_variable.getName());
         this.mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
         this.mDimension = HelperCollection.dimensionFormatter(this.mDimension);
 
@@ -73,7 +74,7 @@ public class StateVariable extends LEMSElement{
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(_variable.getType().prettyPrint());
                 tempType.setSerializedUnit(_variable.getType().getName());
-                Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + _variable.getName(),
+                Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + Names.convertToCPPName(_variable.getName()),
                         this.mDimension, new NumericalLiteral(0, tempType), false);
                 _container.addConstant(defaultValue);
                 this.mDefaultValue = Optional.of(new Variable(defaultValue.getName()));
@@ -129,7 +130,7 @@ public class StateVariable extends LEMSElement{
         }
     }
 
-    public Optional<Expression> getmDefaultValue() {
+    public Optional<Expression> getDefaultValue() {
         return this.mDefaultValue;
     }
 

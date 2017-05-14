@@ -2,6 +2,8 @@ package org.nest.codegeneration.helpers.Expressions;
 
 import org.nest.commons._ast.ASTVariable;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * This class is used to store variables of an expression.
  *
