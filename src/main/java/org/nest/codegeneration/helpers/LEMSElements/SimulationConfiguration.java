@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -94,7 +95,7 @@ public class SimulationConfiguration {
 								_container.addStateVariable(new StateVariable(innerNode));
 							}
 							if (innerNode.getNodeName().equals("TimeDerivative")) {
-								_container.addEquation(innerNode.getAttributes().getNamedItem("variable").getNodeValue()
+								_container.addEquation(new Variable(innerNode.getAttributes().getNamedItem("variable").getNodeValue())
 										, new Expression(innerNode.getAttributes().getNamedItem("value").getNodeValue()));
 							}
 

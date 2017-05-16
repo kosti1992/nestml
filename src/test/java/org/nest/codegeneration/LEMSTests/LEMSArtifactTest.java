@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSCodeGenerator;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.codegeneration.helpers.LEMSElements.EventPort;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
@@ -48,6 +49,6 @@ public class LEMSArtifactTest extends ModelbasedTest{
     Assert.assertEquals("testStateVariable",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
     Assert.assertEquals("testDimension",testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
     //check if time derivative is read in correctly
-    Assert.assertEquals("testEquation",testant.getListOfNeurons().get(0).getEquations().get("testTimeDerivative").print());
+    Assert.assertEquals("testEquation",testant.getListOfNeurons().get(0).getEquations().get(new Variable("testTimeDerivative")).print());
 }
 }

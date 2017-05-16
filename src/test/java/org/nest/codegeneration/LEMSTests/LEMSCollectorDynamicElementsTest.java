@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSCodeGenerator;
+import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
 /**
@@ -29,12 +30,12 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getStateVariablesList().size());
       Assert.assertEquals("V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getName());
       Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDimension());
-      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getmDefaultValue().get().print());
+      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getStateVariablesList().get(0).getDefaultValue().get().print());
       //test time derivative
       //only time derivative represent equations, shapes are stored as derived variables
       Assert.assertEquals(1, testant.getListOfNeurons().get(0).getEquations().size());
-      Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains("V"));
-      Assert.assertEquals("(ACT_V*(-1/Tau*V+1/C_m))/CON_1_ms",testant.getListOfNeurons().get(0).getEquations().get("V").print());
+      Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().keySet().contains(new Variable("V")));
+      Assert.assertEquals("(ACT_V*(-1/Tau*V+1/C_m))/CON_1_ms",testant.getListOfNeurons().get(0).getEquations().get(new Variable("V")).print());
       //shapes test
       Assert.assertTrue(testant.getListOfNeurons().get(0).getDerivedElementList().get(1).getName().equals("I_shape_in"));
       //Assert.assertTrue(testant.getListOfNeurons().get(0).getEquations().get("V").startsWith("not_supported"));

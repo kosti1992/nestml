@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import de.monticore.types.types._ast.ASTQualifiedName;
+import javassist.expr.Expr;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
@@ -36,7 +37,7 @@ public class LEMSCollector extends Collector {
 
     private String neuronName;
 
-    private Optional<String> extendedModel = Optional.empty();
+    private Optional<String> extendedModel = Optional.empty();//this will be most probably deleted in a further release
 
     private LEMSExpressionsPrettyPrinter prettyPrint;//used in order to convert expressions to LEMS syntax
 
@@ -56,20 +57,20 @@ public class LEMSCollector extends Collector {
 
     private List<String> notConverted = null;//List of not converted elements
 
-    private Map<String, Expression> equation = null;//a map of variables and the corresponding equation
+    private Map<Variable, Expression> equation = null;//a map of variables and the corresponding equation
 
-    private List<String> localTimeDerivative = null;//a list of time derivatives which are only invoked in certain steps
+    private List<Variable> localTimeDerivative = null;//a list of time derivatives which are only invoked in certain steps
 
     private List<Attachment> attachments = null;//a list of attachments to the neuron
 
     private SimulationConfiguration config = null;// the configuration of the simulation
 
-    private List<String> booleanElements = null;
+    private List<Variable> booleanElements = null;
 
-    private Map<Expression, String> guards = null;
+    private Map<Expression, Variable> guards = null;
 
 
-    public LEMSCollector(ASTNeuron neuron, SimulationConfiguration config) {
+    public LEMSCollector(ASTNeuron _neuron, SimulationConfiguration _simulationConfiguration) {
         //set the system language to english in order to avoid problems with "," instead of "." in double representation
         Locale.setDefault(Locale.ENGLISH);
         this.portsList = new ArrayList<>();
@@ -83,29 +84,29 @@ public class LEMSCollector extends Collector {
         this.equation = new HashMap<>();
         this.localTimeDerivative = new ArrayList<>();
         this.attachments = new ArrayList<>();
-        this.config = config;
+        this.config = _simulationConfiguration;
         this.booleanElements = new ArrayList<>();
         this.guards = new HashMap<>();
-        this.handleNeuron(neuron);
+        this.handleNeuron(_neuron);
     }
 
     /**
      * This is the main procedure which invokes all subroutines for processing of concrete elements of the model.
      * All elements are collected, transformed to internal representation and stored in corresponding containers.
      *
-     * @param neuron The neuron which will be processed.
+     * @param _neuron The neuron which will be processed.
      */
-    private void handleNeuron(ASTNeuron neuron) {
-        neuronName = neuron.getName();
+    private void handleNeuron(ASTNeuron _neuron) {
+        neuronName = _neuron.getName();
 
         //first adapt the settings according to the handed over artifact if required
         config.adaptSettings(this);
 
         //checks whether the model extends an other model
-        if (neuron.getBase().isPresent()) {
-            extendedModel = Optional.of(neuron.getBase().get());//store the name of the extended model
+        if (_neuron.getBase().isPresent()) {
+            extendedModel = Optional.of(_neuron.getBase().get());//store the name of the extended model
         }
-        ASTBody neuronBody = neuron.getBody();
+        ASTBody neuronBody = _neuron.getBody();
 
         //process user defined functions in simple way
         //we process user defined functions at the beginning in order to mark them as supported
@@ -169,11 +170,11 @@ public class LEMSCollector extends Collector {
     /**
      * Handles all non-aliases located in the state block of the model.
      *
-     * @param neuronBody a neuron body containing a state block.
+     * @param _neuronBody a neuron body containing a state block.
      */
-    private void handleStateNonAliases(ASTBody neuronBody) {
-        checkNotNull(neuronBody);
-        for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
+    private void handleStateNonAliases(ASTBody _neuronBody) {
+        checkNotNull(_neuronBody);
+        for (VariableSymbol var : _neuronBody.getStateNonAliasSymbols()) {
             if (var.isVector()) {//arrays are not supported by LEMS
                 Messages.printArrayNotSupportedMessage(var, this);
                 this.addNotConverted(Messages.getArrayNotSupportedMessage(var));
@@ -277,7 +278,7 @@ public class LEMSCollector extends Collector {
             if (HelperCollection.containsFunctionCall(eq.getRhs(), true, this)) {
                 Messages.printNotSupportedFunctionCallInEquations(eq, this);
                 this.addNotConverted("Not supported function call(s) found in shape of \"" + eq.getLhs().getName().toString() + "\" in lines" + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-                equation.put(eq.getLhs().getName().toString(), new Expression(eq.getRhs()));
+                equation.put(new Variable(eq.getLhs().getName().toString()), new Expression(eq.getRhs()));
             } else {
                 Expression tempExpression = HelperCollection.replaceResolutionByConstantReference(this, new Expression(eq.getRhs()));
                 DerivedElement shapeVariable = new DerivedElement(eq.getLhs().getName().toString(), HelperCollection.DIMENSION_NONE, tempExpression, true, false);
@@ -300,7 +301,7 @@ public class LEMSCollector extends Collector {
             if (HelperCollection.containsFunctionCall(eq.getRhs(), true, this)) {
                 Messages.printNotSupportedFunctionCallFoundMessage(eq, this);
                 this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
-                equation.put(eq.getLhs().toString(), new Expression(eq.getRhs()));
+                equation.put(new Variable(eq.getLhs().toString()), new Expression(eq.getRhs()));
             } else {
                 List<String> tempList = new ArrayList<>();
                 ASTDerivative lhs = eq.getLhs();
@@ -323,11 +324,11 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
                     expr = HelperCollection.replaceDifferentialVariable(expr);
                     //only ode, i.e. integrate directives have to be manipulated
-                    equation.put(tLhs, expr);
+                    equation.put(new Variable(tLhs), expr);
                     //now generate the corresponding activator
                     this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
                             HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
-                    this.localTimeDerivative.add(tLhs);
+                    this.localTimeDerivative.add(new Variable(tLhs));
                 } else {
                     //otherwise the integration is global, no further steps required
                     Expression expr = new Expression(eq.getRhs());
@@ -335,7 +336,7 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
                     expr = HelperCollection.replaceDifferentialVariable(expr);
-                    equation.put(tLhs, expr);
+                    equation.put(new Variable(tLhs), expr);
                 }
             }
         }
@@ -515,7 +516,7 @@ public class LEMSCollector extends Collector {
                 tempExpression.negateLogic();
                 tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
                 tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
-                this.addGuard(HelperCollection.GUARD_NAME, tempExpression);
+                this.addGuard(new Variable(HelperCollection.GUARD_NAME), tempExpression);
             }
         }
     }
@@ -780,42 +781,43 @@ public class LEMSCollector extends Collector {
     /**
      * A pre-processing function.
      * Collects all boolean variables located in the model for further computations.
+     * @param _neuronBody a body possible containing boolean variables
      */
-    private void collectBooleanElements(ASTBody neuronBody) {
-        for (VariableSymbol var : neuronBody.getStateAliasSymbols()) {
+    private void collectBooleanElements(ASTBody _neuronBody) {
+        for (VariableSymbol var : _neuronBody.getStateAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
-        for (VariableSymbol var : neuronBody.getStateNonAliasSymbols()) {
+        for (VariableSymbol var : _neuronBody.getStateNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
-        for (VariableSymbol var : neuronBody.getParameterAliasSymbols()) {
+        for (VariableSymbol var : _neuronBody.getParameterAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
-        for (VariableSymbol var : neuronBody.getParameterNonAliasSymbols()) {
+        for (VariableSymbol var : _neuronBody.getParameterNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
-        for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {
+        for (VariableSymbol var : _neuronBody.getInternalAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
-        for (VariableSymbol var : neuronBody.getInternalNonAliasSymbols()) {
+        for (VariableSymbol var : _neuronBody.getInternalNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(var.getName());
+                booleanElements.add(new Variable(var.getName()));
             }
         }
 
     }
 
-    public List<String> getBooleanElements() {
+    public List<Variable> getBooleanElements() {
         return this.booleanElements;
     }
 
@@ -906,7 +908,7 @@ public class LEMSCollector extends Collector {
         return this.notConverted;
     }
 
-    public List<String> getLocalTimeDerivative() {
+    public List<Variable> getLocalTimeDerivative() {
         return this.localTimeDerivative;
     }
 
@@ -946,7 +948,7 @@ public class LEMSCollector extends Collector {
         return this.config;
     }
 
-    public Map<Expression, String> getGuards() {
+    public Map<Expression, Variable> getGuards() {
         return guards;
     }
 
@@ -967,8 +969,22 @@ public class LEMSCollector extends Collector {
     }
 
     @SuppressWarnings("unused")//used in the template
-    public Map<String, Expression> getEquations() {
+    public Map<Variable, Expression> getEquations() {
         return equation;
+    }
+
+    /**
+     * This method is required since MontiCore and especially its backend freemarker has deactivated several function, amongst other
+     * it is not possible to retrieve values from maps where keys are non-strings.
+     * @return a map with of type <string,expression> where the first value is the key as string, secod the element
+     */
+    public Map<String, Expression> getEquationsAsStrings(){
+        Map<String,Expression> ret = new HashMap<String,Expression>();
+        for(Variable key:this.getEquations().keySet()){
+            ret.put(key.getVariable(),this.equation.get(key));
+        }
+        return ret;
+
     }
 
     @SuppressWarnings("unused")//used in the template
@@ -997,52 +1013,52 @@ public class LEMSCollector extends Collector {
     /**
      * A list of functions which add elements to the corresponding lists.
      */
-    public void addUnit(Unit var) {
-        checkNotNull(var);
-        if (!this.unitsSet.contains(var)) {
-            this.unitsSet.add(var);
+    public void addUnit(Unit _unit) {
+        checkNotNull(_unit);
+        if (!this.unitsSet.contains(_unit)) {
+            this.unitsSet.add(_unit);
         }
     }
 
-    public void addDimension(Dimension var) {
-        checkNotNull(var);
-        if (!this.dimensionsSet.contains(var)) {
-            this.dimensionsSet.add(var);
+    public void addDimension(Dimension _dimension) {
+        checkNotNull(_dimension);
+        if (!this.dimensionsSet.contains(_dimension)) {
+            this.dimensionsSet.add(_dimension);
         }
     }
 
-    public void addConstant(Constant var) {
-        checkNotNull(var);
-        if (!this.constantsList.contains(var)) {
-            this.constantsList.add(var);
+    public void addConstant(Constant _constant) {
+        checkNotNull(_constant);
+        if (!this.constantsList.contains(_constant)) {
+            this.constantsList.add(_constant);
         }
     }
 
-    public void addStateVariable(StateVariable var) {
-        checkNotNull(var);
-        if (!this.stateVariablesList.contains(var)) {
-            this.stateVariablesList.add(var);
+    public void addStateVariable(StateVariable _stateVariable) {
+        checkNotNull(_stateVariable);
+        if (!this.stateVariablesList.contains(_stateVariable)) {
+            this.stateVariablesList.add(_stateVariable);
         }
     }
 
-    public void addEventPort(EventPort var) {
-        checkNotNull(var);
-        if (!this.portsList.contains(var)) {
-            this.portsList.add(var);
+    public void addEventPort(EventPort _eventPort) {
+        checkNotNull(_eventPort);
+        if (!this.portsList.contains(_eventPort)) {
+            this.portsList.add(_eventPort);
         }
     }
 
-    public void addNotConverted(String elem) {
-        checkNotNull(elem);
-        if (!this.notConverted.contains(elem)) {
-            this.notConverted.add(elem);
+    public void addNotConverted(String _notConvertedElement) {
+        checkNotNull(_notConvertedElement);
+        if (!this.notConverted.contains(_notConvertedElement)) {
+            this.notConverted.add(_notConvertedElement);
         }
     }
 
-    public void addDerivedElement(DerivedElement var) {
-        checkNotNull(var);
-        if (!this.derivedElementList.contains(var)) {
-            this.derivedElementList.add(var);
+    public void addDerivedElement(DerivedElement _derivedElement) {
+        checkNotNull(_derivedElement);
+        if (!this.derivedElementList.contains(_derivedElement)) {
+            this.derivedElementList.add(_derivedElement);
         }
     }
 
@@ -1053,27 +1069,27 @@ public class LEMSCollector extends Collector {
         }
     }
 
-    public void addBooleanElement(String element) {
+    public void addBooleanElement(Variable element) {
         checkNotNull(element);
         this.booleanElements.add(element);
     }
 
-    public void addLocalTimeDerivative(String var) {
-        checkNotNull(var);
-        this.localTimeDerivative.add(var);
+    public void addLocalTimeDerivative(Variable _localTimeDerivativeVariable) {
+        checkNotNull(_localTimeDerivativeVariable);
+        this.localTimeDerivative.add(_localTimeDerivativeVariable);
     }
 
-    public void addEquation(String var, Expression expr) {
-        checkNotNull(var);
-        checkNotNull(expr);
-        this.equation.put(var, expr);
+    public void addEquation(Variable _variable, Expression _expression) {
+        checkNotNull(_variable);
+        checkNotNull(_expression);
+        this.equation.put(_variable, _expression);
     }
 
 
-    public void addGuard(String guardVar, Expression guardCond) {
-        checkNotNull(guardVar);
-        checkNotNull(guardCond);
-        this.guards.put(guardCond, guardVar);
+    public void addGuard(Variable _guardVar, Expression _guardCond) {
+        checkNotNull(_guardVar);
+        checkNotNull(_guardCond);
+        this.guards.put(_guardCond, _guardVar);
     }
 
     /**
@@ -1088,7 +1104,7 @@ public class LEMSCollector extends Collector {
     @SuppressWarnings("unused")//used in the template
     public String printGuardName(Expression expr) {
         if (this.getGuards().containsKey(expr)) {
-            return this.getGuards().get(expr);
+            return this.getGuards().get(expr).print(this.syntax);
         }
         throw new NullPointerException();//this case should never happen
     }

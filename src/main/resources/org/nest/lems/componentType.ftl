@@ -87,8 +87,8 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
             <!--Guards block end -->
           </#if>
 
-          <#list (container.getEquations())?keys as var>
-              <TimeDerivative variable="${var}" value="${container.getEquations()[var].print()}"/>
+          <#list (container.getEquationsAsStrings())?keys as var>
+              <TimeDerivative variable="${var}" value="${container.getEquationsAsStrings()[var].print()}"/>
           </#list>
 
           <#if container.conditionsPresent()>

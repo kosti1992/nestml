@@ -627,7 +627,7 @@ public class DynamicRoutine {
         }
         boolean temp;
         //check all local dime derivatives
-        for (String var : container.getLocalTimeDerivative()) {
+        for (Variable var : container.getLocalTimeDerivative()) {
             temp = false;
             //for all elements in the list, check if an integration directive has been found
             for (Instruction call : list) {
@@ -639,7 +639,7 @@ public class DynamicRoutine {
             //add a deactivation assignment to the list of directives if no integrate directive has been found
             if (!temp) {
                 NumericalLiteral tempLiteral = new NumericalLiteral(0, null);
-                list.add(new Assignment(HelperCollection.PREFIX_ACT + var, tempLiteral));
+                list.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
             }
         }
         return list;
@@ -686,10 +686,10 @@ public class DynamicRoutine {
         //since all variables have to be integrated, we create a list of integrate instructions
         List<Instruction> res = new ArrayList<>();
         NumericalLiteral tempLiteral;
-        for (String var : container.getEquations().keySet()) {
+        for (Variable var : container.getEquations().keySet()) {
             //integrate the corresponding variable in this block
             tempLiteral = new NumericalLiteral(1, null);
-            res.add(new Assignment(HelperCollection.PREFIX_ACT + var, tempLiteral));
+            res.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
             //moreover, since a integrate_odes function call has been found, we make all integrations local
             container.addLocalTimeDerivative(var);
         }
