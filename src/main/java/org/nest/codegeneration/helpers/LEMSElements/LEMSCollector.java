@@ -298,6 +298,8 @@ public class LEMSCollector extends Collector {
         checkNotNull(neuronBody);
         for (int i = 0; i < neuronBody.getEquations().size(); i++) {
             ASTEquation eq = neuronBody.getEquations().get(i);
+            eq = OdeTransformer.replaceFunctions(eq);
+            eq = OdeTransformer.replaceSumCalls(eq);
             if (HelperCollection.containsFunctionCall(eq.getRhs(), true, this)) {
                 Messages.printNotSupportedFunctionCallFoundMessage(eq, this);
                 this.addNotConverted("Not supported function call(s) found in differential equation of \"" + eq.getLhs().getName().toString() + "\" in lines " + eq.get_SourcePositionStart() + " to " + eq.get_SourcePositionEnd() + ".");
@@ -353,6 +355,7 @@ public class LEMSCollector extends Collector {
             ASTOdeFunction tempFunction = _neuronBody.getODEBlock().get().getOdeFunctions().get(i);
             //replace cond sum and sum by the respective shape
             tempFunction = OdeTransformer.replaceFunctions(tempFunction);
+            tempFunction = OdeTransformer.replaceSumCalls(tempFunction);
             DerivedElement tempDerivedVar;
 
             if (tempFunction.getDatatype().getUnitType().isPresent()) {
@@ -681,11 +684,11 @@ public class LEMSCollector extends Collector {
     /**
      * Checks if some aliases are present in the internal block and processes them in an appropriate way.
      *
-     * @param neuronBody the body possibly containing aliases
+     * @param _neuronBody the body possibly containing aliases
      */
-    private void handleInternalAliases(ASTBody neuronBody) {
-        checkNotNull(neuronBody);
-        for (VariableSymbol var : neuronBody.getInternalAliasSymbols()) {
+    private void handleInternalAliases(ASTBody _neuronBody) {
+        checkNotNull(_neuronBody);
+        for (VariableSymbol var : _neuronBody.getInternalAliasSymbols()) {
             this.addDerivedElement(new DerivedElement(var, this, false, false));
             handleType(var.getType());
         }
@@ -694,16 +697,16 @@ public class LEMSCollector extends Collector {
     /**
      * Handles the buffers located in the neuron.
      *
-     * @param neuronBody the ast body of a neuron
+     * @param _neuronBody the ast body of a neuron
      */
-    private void handleBuffers(ASTBody neuronBody) {
-        checkNotNull(neuronBody);
+    private void handleBuffers(ASTBody _neuronBody) {
+        checkNotNull(_neuronBody);
         // processes all input-buffers
         Attachment tempAttachment = null;
         DerivedElement tempDerivedVar = null;
         Dimension tempDimesion = null;
         Unit tempUnit = null;
-        for (ASTInputLine var : neuronBody.getInputLines()) {
+        for (ASTInputLine var : _neuronBody.getInputLines()) {
             if (var.isCurrent()) {
                 //a current input buffer has the dimension of pA, thus generate such a unit and dimension
                 if (tempDimesion == null) {
@@ -726,7 +729,7 @@ public class LEMSCollector extends Collector {
 
         }
         //processes all output-buffers
-        for (ASTOutput var : neuronBody.getOutputs()) {
+        for (ASTOutput var : _neuronBody.getOutputs()) {
             this.addEventPort(new EventPort(var));
         }
 
@@ -735,26 +738,26 @@ public class LEMSCollector extends Collector {
     /**
      * Checks if a dynamic routine is present and handles it.
      *
-     * @param neuronBody the body of a neuron
+     * @param _neuronBody the body of a neuron
      */
-    private void handleDynamicsBlock(ASTBody neuronBody) {
-        checkNotNull(neuronBody);
-        if (neuronBody.getDynamicsBlock().isPresent()) {
-            routine = new DynamicRoutine(neuronBody.getDynamics(), this);
+    private void handleDynamicsBlock(ASTBody _neuronBody) {
+        checkNotNull(_neuronBody);
+        if (_neuronBody.getDynamicsBlock().isPresent()) {
+            routine = new DynamicRoutine(_neuronBody.getDynamics(), this);
         }
     }
 
     /**
      * This sub-routine handles the processing of a unit, thus converts it to an adequate internal representation.
      *
-     * @param var The variable which will processed.
+     * @param _typeSymbol The variable which will processed.
      */
-    private Optional<Unit> handleType(TypeSymbol var) {
+    private Optional<Unit> handleType(TypeSymbol _typeSymbol) {
         // in case that a provided variable uses a concrete unit, this unit has to be processed.
         // otherwise, nothing happens
-        checkNotNull(var);
-        if (var.getType() == TypeSymbol.Type.UNIT) {
-            Unit temp = new Unit(var);
+        checkNotNull(_typeSymbol);
+        if (_typeSymbol.getType() == TypeSymbol.Type.UNIT) {
+            Unit temp = new Unit(_typeSymbol);
             this.addDimension(temp.getDimension());
             this.addUnit(temp);
             return Optional.of(temp);
@@ -765,12 +768,12 @@ public class LEMSCollector extends Collector {
     /**
      * This sub-routine handles the processing of a unit, thus converts it to an adequate internal representation.
      *
-     * @param var The variable which will processed, here the type is stored as an ASTDatatype object.
+     * @param _dataType The variable which will processed, here the type is stored as an ASTDatatype object.
      */
-    private Optional<Unit> handleType(ASTDatatype var) {
-        checkNotNull(var);
-        if (var.getUnitType().isPresent()) {
-            Unit temp = new Unit(var.getUnitType().get());
+    private Optional<Unit> handleType(ASTDatatype _dataType) {
+        checkNotNull(_dataType);
+        if (_dataType.getUnitType().isPresent()) {
+            Unit temp = new Unit(_dataType.getUnitType().get());
             this.addDimension(temp.getDimension());
             this.addUnit(temp);
             return Optional.of(temp);
@@ -978,6 +981,7 @@ public class LEMSCollector extends Collector {
      * it is not possible to retrieve values from maps where keys are non-strings.
      * @return a map with of type <string,expression> where the first value is the key as string, secod the element
      */
+    @SuppressWarnings("unsued")//used in the template
     public Map<String, Expression> getEquationsAsStrings(){
         Map<String,Expression> ret = new HashMap<String,Expression>();
         for(Variable key:this.getEquations().keySet()){
