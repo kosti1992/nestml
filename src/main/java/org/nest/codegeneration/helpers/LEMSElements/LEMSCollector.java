@@ -328,8 +328,10 @@ public class LEMSCollector extends Collector {
                     //only ode, i.e. integrate directives have to be manipulated
                     equation.put(new Variable(tLhs), expr);
                     //now generate the corresponding activator
-                    this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + eq.getLhs().getSimpleName(),
-                            HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
+                    if(SimulationConfiguration.mWithActivator) {
+                        this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
+                                HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
+                    }
                     this.localTimeDerivative.add(new Variable(tLhs));
                 } else {
                     //otherwise the integration is global, no further steps required
@@ -338,6 +340,10 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
                     expr = HelperCollection.replaceDifferentialVariable(expr);
+                    if(SimulationConfiguration.mWithActivator) {
+                        this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
+                                HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
+                    }
                     equation.put(new Variable(tLhs), expr);
                 }
             }
@@ -716,7 +722,7 @@ public class LEMSCollector extends Collector {
                 }
                 tempAttachment = new Attachment(var.getName(), "baseSynapse");//TODO: here further changes can be done
             } else {//is spike
-                tempAttachment = new Attachment(var.getName(), "baseSynapse");
+                tempAttachment = new Attachment(var.getName(), "baseSynapseDL");
             }
             tempDerivedVar = new DerivedElement(var);
             this.addDerivedElement(tempDerivedVar);

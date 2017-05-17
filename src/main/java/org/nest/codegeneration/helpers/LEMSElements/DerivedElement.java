@@ -194,6 +194,7 @@ public class DerivedElement extends LEMSElement{
         this.mValue.replaceOp(tempOp);
         this.mValue.replaceRhs(rhs);
         this.mIsDynamic = true;//a buffer is a is a dynamic element
+        this.mIsExternal = true;
     }
 
     /**

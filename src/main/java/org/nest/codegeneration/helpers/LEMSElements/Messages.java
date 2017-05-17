@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.ode._ast.ASTEquation;
 import org.nest.ode._ast.ASTShape;
 import org.nest.spl._ast.ASTSmall_Stmt;
@@ -106,5 +107,33 @@ class Messages {
                 + ".");
     }
 
+    /**
+     * Prints a message in the error out-stream which states that the handed over integration function call has a
+     * wrong number of arguments.
+     * @param _functionCall the function call in which integration is contained
+     * @param _container a container as required to retrieve the name of the neuron
+     */
+    public static void printIntegrateWronglyDeclared(ASTFunctionCall _functionCall,LEMSCollector _container){
+        System.err.println(
+                "LEMS Error (Line: "
+                        + _container.getNeuronName() + "/"
+                        + _functionCall.get_SourcePositionStart().getLine()
+                        + "):"
+                        + " Integrate is wrongly declared, <>1 argument provided.");
+    }
+
+
+    /**
+     * Prints a message which states that a error during processing of a small statement occured.
+     *
+     */
+    public static void printErrorInSmallStatement(ASTSmall_Stmt _astSmall_stmt,LEMSCollector _container){
+        System.err.println(
+                "LEMS Error (Line: "
+                        + _container.getNeuronName() + "/"
+                        + _astSmall_stmt.get_SourcePositionStart().getLine()
+                        + "):"
+                        + " Something went wrong in small statement processing.");
+    }
 
 }
