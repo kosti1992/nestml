@@ -336,7 +336,7 @@ public class LEMSCollector extends Collector {
                 } else {
                     //otherwise the integration is global, no further steps required
                     Expression expr = new Expression(eq.getRhs());
-                    expr = HelperCollection.extendExpressionByCON1ms(expr);
+                    //expr = HelperCollection.extendExpressionByCON1ms(expr);
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
                     expr = HelperCollection.replaceDifferentialVariable(expr);
@@ -345,6 +345,7 @@ public class LEMSCollector extends Collector {
                                 HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
                     }
                     equation.put(new Variable(tLhs), expr);
+
                 }
             }
         }

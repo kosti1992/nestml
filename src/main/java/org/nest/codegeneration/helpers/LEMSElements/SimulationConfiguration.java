@@ -33,7 +33,7 @@ public class SimulationConfiguration {
 	//the path to a configuration file
 	private Path mConfigPath = null;
 	//should the concept of activator variables be used?
-	public static boolean mWithActivator = true;
+	public static boolean mWithActivator = false;
 
 	public SimulationConfiguration() {
 	}

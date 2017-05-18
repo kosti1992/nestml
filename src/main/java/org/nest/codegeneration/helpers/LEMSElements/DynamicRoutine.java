@@ -337,7 +337,7 @@ public class DynamicRoutine {
         if (input.declarationIsPresent()) {
             return handleASTDeclaration(input.getDeclaration().get(), this.mContainer);
         }
-        Messages.printErrorInSmallStatement(input,mContainer);
+        Messages.printErrorInSmallStatement(input, mContainer);
         return res;
     }
 
@@ -507,7 +507,7 @@ public class DynamicRoutine {
      * For a given conditional block and an assignment inside which uses the ternary operator, this method
      * replaces it by means of two sub mBlocks with corresponding conditions.
      *
-     * @param _smallStmt     the input small statement with ternary operator
+     * @param _smallStmt the input small statement with ternary operator
      * @param _condition the condition, if one is present, of the super block containing the assignment
      * @return the list containing two conditions
      */
@@ -673,13 +673,15 @@ public class DynamicRoutine {
     private List<Instruction> handleIntegrate_ode() {
         //since all variables have to be integrated, we create a list of integrate instructions
         List<Instruction> res = new ArrayList<>();
-        NumericalLiteral tempLiteral;
-        for (Variable var : mContainer.getEquations().keySet()) {
-            //integrate the corresponding variable in this block
-            tempLiteral = new NumericalLiteral(1, null);
-            res.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
-            //moreover, since a integrate_odes function call has been found, we make all integrations local
-            mContainer.addLocalTimeDerivative(var);
+        if(SimulationConfiguration.mWithActivator) {
+            NumericalLiteral tempLiteral;
+            for (Variable var : mContainer.getEquations().keySet()) {
+                //integrate the corresponding variable in this block
+                tempLiteral = new NumericalLiteral(1, null);
+                res.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
+                //moreover, since a integrate_odes function call has been found, we make all integrations local
+                mContainer.addLocalTimeDerivative(var);
+            }
         }
         return res;
     }
