@@ -759,7 +759,7 @@ public class LEMSCollector extends Collector {
      *
      * @param _typeSymbol The variable which will processed.
      */
-    private Optional<Unit> handleType(TypeSymbol _typeSymbol) {
+    protected Optional<Unit> handleType(TypeSymbol _typeSymbol) {
         // in case that a provided variable uses a concrete unit, this unit has to be processed.
         // otherwise, nothing happens
         checkNotNull(_typeSymbol);
@@ -777,7 +777,7 @@ public class LEMSCollector extends Collector {
      *
      * @param _dataType The variable which will processed, here the type is stored as an ASTDatatype object.
      */
-    private Optional<Unit> handleType(ASTDatatype _dataType) {
+    protected Optional<Unit> handleType(ASTDatatype _dataType) {
         checkNotNull(_dataType);
         if (_dataType.getUnitType().isPresent()) {
             Unit temp = new Unit(_dataType.getUnitType().get());
@@ -787,6 +787,20 @@ public class LEMSCollector extends Collector {
         }
         return Optional.empty();
     }
+
+    /**
+     * Handles ASTUnitType symbols and extracts a concrete unit and dimension from it.
+     * @param _unitType a unit type token
+     * @return an optional unit
+     */
+    protected Optional<Unit> handleType(ASTUnitType _unitType){
+        checkNotNull(_unitType);
+        Unit tUnit = new Unit(_unitType);
+        this.addDimension(tUnit.getDimension());
+        this.addUnit(tUnit);
+        return Optional.of(tUnit);
+    }
+
 
     /**
      * A pre-processing function.

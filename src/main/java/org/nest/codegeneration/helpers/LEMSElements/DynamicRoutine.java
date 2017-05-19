@@ -275,6 +275,7 @@ public class DynamicRoutine {
                 return res;
             } else {
                 Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
+                this.handleASTUnitTypeInExpression(tempExpression,mContainer);
                 tempExpression = HelperCollection.replaceResolutionByConstantReference(mContainer, tempExpression);
                 Expression ret = new Expression();
                 Variable tempVar = new Variable(input.getAssignment().get().getLhsVarialbe().getName().toString());
@@ -713,6 +714,21 @@ public class DynamicRoutine {
         }
         return new Expression();
     }
+
+    /**
+     * Inspects a given expression, retrieves all numericals which have a unit and generates the corresponding unit
+     * in the container.
+     * @param _expression an expression possibly containing numericals
+     * @param _container a LEMSCollector object with will stored generated units
+     */
+    private void handleASTUnitTypeInExpression(Expression _expression, LEMSCollector _container){
+        for(Expression tLit:_expression.getNumericals()){
+            if(((NumericalLiteral) tLit).hasType()){
+                _container.handleType(((NumericalLiteral) tLit).getType().get());
+            }
+        }
+    }
+
 
     /**
      * This method is called whenever it is required to generate a proper header
