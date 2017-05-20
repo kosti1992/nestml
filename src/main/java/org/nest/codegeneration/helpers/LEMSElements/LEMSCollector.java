@@ -37,8 +37,6 @@ public class LEMSCollector extends Collector {
 
     private String neuronName;
 
-    private Optional<String> extendedModel = Optional.empty();//this will be most probably deleted in a further release
-
     private LEMSExpressionsPrettyPrinter prettyPrint;//used in order to convert expressions to LEMS syntax
 
     private DynamicRoutine routine;//An internal representation of the update-block.
@@ -102,10 +100,6 @@ public class LEMSCollector extends Collector {
         //first adapt the settings according to the handed over artifact if required
         config.adaptSettings(this);
 
-        //checks whether the model extends an other model
-        if (_neuron.getBase().isPresent()) {
-            extendedModel = Optional.of(_neuron.getBase().get());//store the name of the extended model
-        }
         ASTBody neuronBody = _neuron.getBody();
 
         //process user defined functions in simple way
@@ -848,16 +842,6 @@ public class LEMSCollector extends Collector {
     @SuppressWarnings("unused")//Used in the template
     public String getNeuronName() {
         return this.neuronName.replace("_nestml", "");
-    }
-
-    @SuppressWarnings("unused")//Used in the template
-    public String getExtendedModel() {
-        return this.extendedModel.get();
-    }
-
-    @SuppressWarnings("unused")//Used in the template
-    public boolean getModelIsExtension() {
-        return this.extendedModel.isPresent();
     }
 
     @SuppressWarnings("unused")//Used in the template

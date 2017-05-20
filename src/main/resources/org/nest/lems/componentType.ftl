@@ -9,8 +9,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
     <Include file="units_dimensions.xml"/>
 </#if>
 
-    <ComponentType name="${container.getNeuronName()}"<#if container.getModelIsExtension()>
-                   extends="${container.getExtendedModel()}" </#if>>
+    <ComponentType name="${container.getNeuronName()}">
     <#if (container.getNotConvertedElements()?size > 0)>
         <!--Following elements are not supported or required by LEMS:-->
         <#list container.getNotConvertedElements() as notSupported>
