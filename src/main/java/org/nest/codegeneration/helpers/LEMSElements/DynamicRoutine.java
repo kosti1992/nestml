@@ -274,26 +274,17 @@ public class DynamicRoutine {
                 res.add(retAssignment);
                 return res;
             } else {
+                String varName = Names.convertToCPPName(input.getAssignment().get().getLhsVarialbe().toString());
                 Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
                 this.handleASTUnitTypeInExpression(tempExpression,mContainer);
                 tempExpression = HelperCollection.replaceResolutionByConstantReference(mContainer, tempExpression);
                 Expression ret = new Expression();
-                Variable tempVar = new Variable(input.getAssignment().get().getLhsVarialbe().getName().toString());
+                Variable tempVar = new Variable(varName);
                 Operator tempOp = new Operator();
                 ret.replaceLhs(tempVar);
                 ret.replaceRhs(tempExpression);
                 Assignment retAssignment;
-                String varName = Names.convertToCPPName(input.getAssignment().get().getLhsVarialbe().getName().toString());
-
-
-                ASTVariable lhs = input.getAssignment().get().getLhsVarialbe();
-                //first check the order of the equation is bigger 0, then reduce it by one
-                if (lhs.getDifferentialOrder().size() > 0) {
-                    List<String> diffList = lhs.getDifferentialOrder();
-                    diffList.remove(diffList.size() - 1);
-                    lhs.setDifferentialOrder(diffList);
-                }
-                varName = Names.convertToCPPName(lhs.toString());//now retrieve the name and replace it by a proper representation
+                //now retrieve the name and replace it by a proper representation
 
 
                 //in order to process assignments of type x-=y
