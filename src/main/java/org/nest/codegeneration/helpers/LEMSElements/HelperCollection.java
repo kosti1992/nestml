@@ -785,6 +785,7 @@ public class HelperCollection {
         Expression tempExpression = replaceConstantsWithReferences(container, expr);
         tempExpression = replaceFunctionCallByReference(container, tempExpression);
         tempExpression = replaceDifferentialVariable(tempExpression);
+        tempExpression = replaceEulerByExponentialFunction(tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
@@ -830,6 +831,23 @@ public class HelperCollection {
 
         return _expr;
     }
+
+    /**
+     * LEMS does not support the constant e ( euler's number), thus each reference to this constant has to
+     * be replaced by exp(1).
+     * @param _expr the expression possibly containing e
+     * @return the expression without e
+     */
+    public static Expression replaceEulerByExponentialFunction(Expression _expr){
+        checkNotNull(_expr);
+        for(Expression tExpr:_expr.getVariables()){
+            if(((Variable) tExpr).getVariable().equals("e")){
+                _expr.replaceElement(tExpr,new Variable("exp(1)"));
+            }
+        }
+        return _expr;
+    }
+
 
 
 }

@@ -274,6 +274,7 @@ public class DynamicRoutine {
                 res.add(retAssignment);
                 return res;
             } else {
+                //first retrieve the name and replace it by a proper representation
                 String varName = Names.convertToCPPName(input.getAssignment().get().getLhsVarialbe().toString());
                 Expression tempExpression = new Expression(input.getAssignment().get().getExpr());
                 this.handleASTUnitTypeInExpression(tempExpression,mContainer);
@@ -284,9 +285,6 @@ public class DynamicRoutine {
                 ret.replaceLhs(tempVar);
                 ret.replaceRhs(tempExpression);
                 Assignment retAssignment;
-                //now retrieve the name and replace it by a proper representation
-
-
                 //in order to process assignments of type x-=y
                 if (input.getAssignment().get().isCompoundMinus()) {
                     tempOp.setMinusOp(true);
