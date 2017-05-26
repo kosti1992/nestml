@@ -80,7 +80,7 @@ public class CliConfigurationExecutor {
     final List<ASTNESTMLCompilationUnit> modelRoots = parseModels(modelFilenames, parser);
     final NESTMLScopeCreator scopeCreator = new NESTMLScopeCreator(config.getInputBase());
     modelRoots.forEach(scopeCreator::runSymbolTableCreator);
-    LEMSCodeGenerator generator = new LEMSCodeGenerator();
+    LEMSCodeGenerator generator = new LEMSCodeGenerator(scopeCreator,false);//TODO
     for(ASTNESTMLCompilationUnit elem :modelRoots){
       generator.generateLEMS(elem,config.getTargetPath(),config.getConfigPath());
     }

@@ -1,6 +1,7 @@
 <#--This template generates a LEMS model from the internal representation of a NESTML model stored in the -->
 <#--glex global-value "container".-->
 <#--@author perun -->
+<?xml version="1.0" encoding="utf-8"?><#--A type header is required by the beautifier.-->
 <Lems>
     <!-- Generated on ${.now} from NESTML-model "${container.getNeuronName()}".-->
 <#if (container.getConfig().isUnitsExternal())==false>

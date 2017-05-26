@@ -14,7 +14,7 @@ public class iaf_cond_alpha_test extends ModelbasedTest {
 
     @Test
     public void testGenerateLEMS() throws Exception {
-        String args[] = {INPUT_DIRECTORY+"/iaf_cond_alpha_implicit.nestml","-lems","-targetbuild"};
+        String args[] = {INPUT_DIRECTORY+"/iaf_cond_alpha.nestml","-lems","-targetbuild"};
         fe.start(args);
     }
 

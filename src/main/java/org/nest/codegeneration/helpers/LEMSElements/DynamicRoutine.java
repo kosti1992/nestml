@@ -547,8 +547,7 @@ public class DynamicRoutine {
         firstCondition = HelperCollection.encapsulateExpressionInConditions(firstCondition);
         //now generate an assignment for the first half
         Expression firstAssignmentExpression = new Expression(_smallStmt.getDeclaration().get().getExpr().get().getIfTrue().get());
-        firstAssignmentExpression = HelperCollection.replaceConstantsWithReferences(mContainer, firstAssignmentExpression);
-        firstAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(mContainer, firstAssignmentExpression);
+        firstAssignmentExpression = HelperCollection.replacementRoutine(mContainer,firstAssignmentExpression);
 
         Assignment firstAssignment;
         ConditionalBlock firstBlock;
@@ -575,8 +574,7 @@ public class DynamicRoutine {
         secondCondition = HelperCollection.encapsulateExpressionInConditions(secondCondition);
         //now generate an assignment for the second half
         Expression secondAssignmentExpression = new Expression(_smallStmt.getDeclaration().get().getExpr().get().getIfNot().get());
-        secondAssignmentExpression = HelperCollection.replaceConstantsWithReferences(mContainer, secondAssignmentExpression);
-        secondAssignmentExpression = HelperCollection.replaceResolutionByConstantReference(mContainer, secondAssignmentExpression);
+        secondAssignmentExpression = HelperCollection.replacementRoutine(mContainer,secondAssignmentExpression);
         Assignment secondAssignment;
         ConditionalBlock secondBlock;
         for (String var : _smallStmt.getDeclaration().get().getVars()) {
