@@ -325,7 +325,7 @@ public class LEMSCollector extends Collector {
                     //only ode, i.e. integrate directives have to be manipulated
                     equation.put(new Variable(tLhs), expr);
                     //now generate the corresponding activator
-                    if(SimulationConfiguration.mWithActivator) {
+                    if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
                                 HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
                     }
@@ -338,8 +338,8 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
                     expr = HelperCollection.replaceResolutionByConstantReference(this, expr);
                     expr = HelperCollection.replaceDifferentialVariable(expr);*/
-                    expr = HelperCollection.replacementRoutine(this,expr);
-                    if(SimulationConfiguration.mWithActivator) {
+                    expr = HelperCollection.replacementRoutine(this, expr);
+                    if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
                                 HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
                     }
@@ -464,7 +464,6 @@ public class LEMSCollector extends Collector {
                     } else if (var.getDeclaringExpression().get().exprIsPresent()) {
                         //in the case it is an expression, e.g. 10mV+V_m
                         tempDerivedElement = new DerivedElement(var, this, false, false);
-
                         //in the case it is a expression consisting of a left and a right hand side
                     } else if (var.getDeclaringExpression().get().leftIsPresent() && var.getDeclaringExpression().get().rightIsPresent()) {
                         Expression tempExpression = new Expression(var);
@@ -574,10 +573,15 @@ public class LEMSCollector extends Collector {
 
                         List<ASTExpr> args = var.getDeclaringExpression().get().getFunctionCall().get().getArgs();
                         Expression lhs = null;
+                        //TODO: here, also mutlidict is allowed -> fix it
                         //handle a numerical lit, e.g. 10ms
-                        if (args.get(0).nESTMLNumericLiteralIsPresent()) {
-                            lhs = new NumericalLiteral(args.get(0).getNESTMLNumericLiteral().get());
+                        if (args.get(0).numericLiteralIsPresent() && args.get(0).variableIsPresent()) {
+                            System.out.println(args.get(0).getType().toString());
+                            lhs = new NumericalLiteral(args.get(0).getNumericLiteral().get(), Optional.of(args.get(0).getType().getValue()));
                             //handle a variable ref, e.g. res_init
+                        } else if (args.get(0).numericLiteralIsPresent()) {
+                            System.out.println(args.get(0).getType().toString());
+                            lhs = new NumericalLiteral(args.get(0).getNumericLiteral().get(), Optional.empty());
                         } else if (args.get(0).variableIsPresent()) {
                             lhs = new Variable(args.get(0).getVariable().get());
                             //handle an expression, e.g. 10ms + res_init
@@ -637,7 +641,7 @@ public class LEMSCollector extends Collector {
                             }
                             // handle boolean literal or numLiteral, e.g. 1mV
                         } else if (var.getDeclaringExpression().get().booleanLiteralIsPresent() ||
-                                var.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
+                                var.getDeclaringExpression().get().numericLiteralIsPresent()) {
                             Expression tempExpression = new Expression(var.getDeclaringExpression().get());
                             Constant tempConstant = new Constant(var.getName(),
                                     HelperCollection.typeToDimensionConverter(var.getType()), tempExpression, false);
@@ -789,10 +793,11 @@ public class LEMSCollector extends Collector {
 
     /**
      * Handles ASTUnitType symbols and extracts a concrete unit and dimension from it.
+     *
      * @param _unitType a unit type token
      * @return an optional unit
      */
-    protected Optional<Unit> handleType(ASTUnitType _unitType){
+    protected Optional<Unit> handleType(ASTUnitType _unitType) {
         checkNotNull(_unitType);
         Unit tUnit = new Unit(_unitType);
         this.addDimension(tUnit.getDimension());
@@ -804,6 +809,7 @@ public class LEMSCollector extends Collector {
     /**
      * A pre-processing function.
      * Collects all boolean variables located in the model for further computations.
+     *
      * @param _neuronBody a body possible containing boolean variables
      */
     private void collectBooleanElements(ASTBody _neuronBody) {
@@ -989,13 +995,14 @@ public class LEMSCollector extends Collector {
     /**
      * This method is required since MontiCore and especially its backend freemarker has deactivated several function, amongst other
      * it is not possible to retrieve values from maps where keys are non-strings.
+     *
      * @return a map with of type <string,expression> where the first value is the key as string, secod the element
      */
     @SuppressWarnings("unsued")//used in the template
-    public Map<String, Expression> getEquationsAsStrings(){
-        Map<String,Expression> ret = new HashMap<String,Expression>();
-        for(Variable key:this.getEquations().keySet()){
-            ret.put(key.getVariable(),this.equation.get(key));
+    public Map<String, Expression> getEquationsAsStrings() {
+        Map<String, Expression> ret = new HashMap<String, Expression>();
+        for (Variable key : this.getEquations().keySet()) {
+            ret.put(key.getVariable(), this.equation.get(key));
         }
         return ret;
 

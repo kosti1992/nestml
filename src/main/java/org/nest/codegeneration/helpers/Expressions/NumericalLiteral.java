@@ -2,10 +2,11 @@ package org.nest.codegeneration.helpers.Expressions;
 
 import java.util.Optional;
 
+import de.monticore.literals.literals._ast.ASTNumericLiteral;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.types.prettyprint.TypesPrettyPrinterConcreteVisitor;
 import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
-import org.nest.commons._ast.ASTNESTMLNumericLiteral;
+import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.units._ast.ASTUnitType;
 
 /**
@@ -14,34 +15,36 @@ import org.nest.units._ast.ASTUnitType;
  * @author perun
  */
 public class NumericalLiteral extends Expression {
-	private double value;
-	private Optional<ASTUnitType> type = Optional.empty();
+	private double mValue;
+	private Optional<ASTUnitType> mType = Optional.empty();
 
-	public NumericalLiteral(ASTNESTMLNumericLiteral literal) {
-		this.value = Double.parseDouble(typesPrinter().prettyprint(literal.getNumericLiteral()));
-		if (literal.typeIsPresent()) {
-			this.type = Optional.of(literal.getType().get());
+	public NumericalLiteral(ASTNumericLiteral _literal, Optional<TypeSymbol> _type) {
+		this.mValue = Double.parseDouble(typesPrinter().prettyprint(_literal));
+		if (_type.isPresent()) {
+			//this.mType = _type.get().getType();
+			//TODO
+			//this.type = Optional.of(_type.get().toString());
 		}
 	}
 
 	public NumericalLiteral(double value, ASTUnitType type) {
-		this.value = value;
+		this.mValue = value;
 		if (type != null) {
-			this.type = Optional.of(type);
+			this.mType = Optional.of(type);
 		}
 	}
 
 
-	public double getValue() {
-		return value;
+	public double getmValue() {
+		return mValue;
 	}
 
 	public boolean hasType() {
-		return type.isPresent();
+		return mType.isPresent();
 	}
 
 	public Optional<ASTUnitType> getType() {
-		return type;
+		return mType;
 	}
 
 	private TypesPrettyPrinterConcreteVisitor typesPrinter() {
@@ -50,36 +53,36 @@ public class NumericalLiteral extends Expression {
 	}
 
 	public void setType(Optional<ASTUnitType> type) {
-		this.type = type;
+		this.mType = type;
 	}
 
 	public String print(SyntaxContainer container) {
 		return container.print(this);
 	}
 
-	public void setValue(double value) {
-		this.value = value;
+	public void setmValue(double mValue) {
+		this.mValue = mValue;
 	}
 
 	/**
-	 * This method prints the value of the numerical literal and also - if present- the unit/type.
+	 * This method prints the mValue of the numerical literal and also - if present- the unit/type.
 	 *
 	 * @return a string representation of the literal.
 	 */
 	public String printValueType() {
-		if (this.type.isPresent()) {
-			if (this.value - (int) this.value == 0) {
-				return String.valueOf((int) this.value) + "_" +
-						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.type.get()).print());
+		if (this.mType.isPresent()) {
+			if (this.mValue - (int) this.mValue == 0) {
+				return String.valueOf((int) this.mValue) + "_" +
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get()).print());
 			} else {
-				return String.valueOf(this.value) + "_" +
-						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.type.get()).print());
+				return String.valueOf(this.mValue) + "_" +
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get()).print());
 			}
 		} else {
-			if (this.value - (int) this.value == 0) {
-				return String.valueOf((int) this.value);
+			if (this.mValue - (int) this.mValue == 0) {
+				return String.valueOf((int) this.mValue);
 			} else {
-				return String.valueOf(this.value);
+				return String.valueOf(this.mValue);
 			}
 		}
 	}
@@ -93,9 +96,9 @@ public class NumericalLiteral extends Expression {
 
 		NumericalLiteral that = (NumericalLiteral) o;
 
-		if (Double.compare(that.value, value) != 0)
+		if (Double.compare(that.mValue, mValue) != 0)
 			return false;
-		return type != null ? type.toString().equals(that.type.toString()) : that.type == null;
+		return mType != null ? mType.toString().equals(that.mType.toString()) : that.mType == null;
 
 	}
 
@@ -103,9 +106,9 @@ public class NumericalLiteral extends Expression {
 	public int hashCode() {
 		int result = super.hashCode();
 		long temp;
-		temp = Double.doubleToLongBits(value);
+		temp = Double.doubleToLongBits(mValue);
 		result = 31 * result + (int) (temp ^ (temp >>> 32));
-		result = 31 * result + (type != null ? type.hashCode() : 0);
+		result = 31 * result + (mType != null ? mType.hashCode() : 0);
 		return result;
 	}
 
@@ -117,10 +120,10 @@ public class NumericalLiteral extends Expression {
 	 * @return a deep clone of this
 	 */
 	public NumericalLiteral deepClone() {
-		if (this.type.isPresent()) {
-			return new NumericalLiteral(this.value, this.type.get());
+		if (this.mType.isPresent()) {
+			return new NumericalLiteral(this.mValue, this.mType.get());
 		} else {
-			return new NumericalLiteral(this.value, null);
+			return new NumericalLiteral(this.mValue, null);
 		}
 	}
 

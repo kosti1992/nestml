@@ -1,5 +1,5 @@
 <#--
-  Assigns a tmp value which was read from the dictionary to the corresponding block variable.
+  Assigns a tmp mValue which was read from the dictionary to the corresponding block variable.
 
   @param variable VariableSymbol
   @result C++ Block

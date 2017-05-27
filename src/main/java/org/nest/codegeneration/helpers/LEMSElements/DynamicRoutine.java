@@ -14,7 +14,6 @@ import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
-import org.nest.commons._ast.ASTVariable;
 import org.nest.nestml._ast.ASTDynamics;
 import org.nest.spl._ast.*;
 import org.nest.spl.prettyprinter.SPLPrettyPrinter;
@@ -640,7 +639,7 @@ public class DynamicRoutine {
         } else {
             for (StateVariable var : mContainer.getStateVariablesList()) {              //the integrate function call has exactly one argument
                 if (var.getName().equals(HelperCollection.PREFIX_ACT + _functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-                    ((NumericalLiteral) var.getDefaultValue().get()).setValue(0);
+                    ((NumericalLiteral) var.getDefaultValue().get()).setmValue(0);
                 }
             }
             //integrate the corresponding variable in this block

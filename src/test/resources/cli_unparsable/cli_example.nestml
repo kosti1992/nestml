@@ -27,7 +27,7 @@ neuron iaf_neuron_ode:
     I_e     pA = 0 # special
     # some aliases Threshold.
     function V_th mV = Theta + E_L
-    # Reset value of the membrane potential.
+    # Reset mValue of the membrane potential.
     function  V_reset mV = delta_V_reset + E_L
     # invariant V_reset >= Theta
   end

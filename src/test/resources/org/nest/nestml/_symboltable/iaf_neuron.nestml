@@ -35,7 +35,7 @@ neuron iaf_neuron:
     # some aliases
     # Threshold.
     function V_th mV = Theta + E_L
-    # Reset value of the membrane potential.
+    # Reset mValue of the membrane potential.
     recordable function  V_reset mV = delta_V_reset + E_L
     # invariant V_reset >= Theta
 

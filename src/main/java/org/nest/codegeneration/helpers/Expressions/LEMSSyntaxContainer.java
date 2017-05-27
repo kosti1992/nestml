@@ -13,23 +13,23 @@ import static de.se_rwth.commons.logging.Log.info;
 public class LEMSSyntaxContainer implements SyntaxContainer {
 
 	public String print(NumericalLiteral expr) {
-		if (expr.getValue() - (int) expr.getValue() == 0) {
+		if (expr.getmValue() - (int) expr.getmValue() == 0) {
 			if (expr.hasType()) {
 				/*
 				return String.valueOf((int) expr.getmValue()) +" "+ HelperCollection.formatComplexUnit(
 						expr.getType().get().getmUnit().get().toString());
 						*/
-				return String.valueOf((int) expr.getValue()) +" "+
+				return String.valueOf((int) expr.getmValue()) +" "+
 						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
 			} else {
-				return String.valueOf((int) expr.getValue());
+				return String.valueOf((int) expr.getmValue());
 			}
 		}
 		if (expr.hasType()) {
-			return String.valueOf(expr.getValue()) +" "+
+			return String.valueOf(expr.getmValue()) +" "+
 					HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
 		} else {
-			return String.valueOf(expr.getValue());
+			return String.valueOf(expr.getmValue());
 		}
 	}
 

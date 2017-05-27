@@ -44,7 +44,7 @@ config: Indicates the path to an external artifact which contains additional ele
     <Attachments name="pulseGeneratorDL" type="pulseGeneratorDL"/>
 </Target>    
 ```                                
-The _name_ parameter of the artifact is used to specify the target model for which the encapsulated specifications are used. The value of this option has to be the name of a specific target model or a list of such in the following format: _TARGET-NAME1;TARGET-NAME2;...._ , i.e. individual names separated by a colon. The remaining options as contained in the header represent an interface for additional specifications. Currently supported are _units_external_ to indicate that, all physical units have to be generated to a separate file, and _simulation_steps_ which can be used to provide the duration of a single simulation step as sometimes required for the derivation of explicit values. Inside the _Target_ specification, a handwritten code can be placed. The framework currently supports the following LEMS elements: _Attachment_, _Parameter_, _DerivedParameter_, _EventPort_, _StateVariable_ and _TimeDerivative_. In the case that a not well-formed artifact has been provided, a corresponding error message is printed to the screen and the artifact is skipped.                                       
+The _name_ parameter of the artifact is used to specify the target model for which the encapsulated specifications are used. The mValue of this option has to be the name of a specific target model or a list of such in the following format: _TARGET-NAME1;TARGET-NAME2;...._ , i.e. individual names separated by a colon. The remaining options as contained in the header represent an interface for additional specifications. Currently supported are _units_external_ to indicate that, all physical units have to be generated to a separate file, and _simulation_steps_ which can be used to provide the duration of a single simulation step as sometimes required for the derivation of explicit values. Inside the _Target_ specification, a handwritten code can be placed. The framework currently supports the following LEMS elements: _Attachment_, _Parameter_, _DerivedParameter_, _EventPort_, _StateVariable_ and _TimeDerivative_. In the case that a not well-formed artifact has been provided, a corresponding error message is printed to the screen and the artifact is skipped.
                                     
 The NESTML2LEMS framework supports almost all characteristics of the NestML specification language. For a list of all fully supported source models and corresponding keywords please refer to sub-folder _examples_. Currently, the concept of _buffers_ is supported by means of synapses attached to the target model. Additionally, only a small set of function calls has been provided with a semantic preserving transformation. User-defined functions are part of the future work.
 
@@ -53,7 +53,7 @@ Currently, supported functions are:
 - **integrate(VAR)** : the integration of a variable VAR.
 - **integrate_odes()** : instructs the simulator to integrate all ODEs. 
 - **emit_spike()**: instructs the component to emit an event/spike.
-- **step(VAR)**: calculates the number of steps that can be done during a VAR amount of time. This function call is replaced by an explicitly derived value during the transformation process.
+- **step(VAR)**: calculates the number of steps that can be done during a VAR amount of time. This function call is replaced by an explicitly derived mValue during the transformation process.
 
 The framework supports the following mathematical functions:
 
@@ -66,7 +66,7 @@ The framework supports the following mathematical functions:
 - **ceil(_X_)** : the ceil function
 - **random(_X_)** : the random function with results in the interval [0;_X_]
 - **factorial(_X_)** : the factorial function of _X_
-- **abs(_X_)** : the absolute value of _X_
+- **abs(_X_)** : the absolute mValue of _X_
 
 And the following global constants:
 

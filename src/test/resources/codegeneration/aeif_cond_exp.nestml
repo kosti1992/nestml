@@ -32,7 +32,7 @@ Dynamic state variables:
 Membrane Parameters:
   C_m        double - Capacity of the membrane in pF
   t_ref      double - Duration of refractory period in ms.
-  V_reset    double - Reset value for V_m after a spike. In mV.
+  V_reset    double - Reset mValue for V_m after a spike. In mV.
   E_L        double - Leak reversal potential in mV.
   g_L        double - Leak conductance in nS.
   I_e        double - Constant external input current in pA.

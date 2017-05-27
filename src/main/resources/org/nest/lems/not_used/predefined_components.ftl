@@ -25,7 +25,7 @@
         </Structure>
     </ComponentType>
 
-    <#--Connects a generator to a value of a model.-->
+    <#--Connects a generator to a mValue of a model.-->
     <ComponentType name="explicitInput">
         <ComponentReference name="input" type="basePointCurrentDL"/>
         <Path name="target"/>
@@ -157,15 +157,15 @@
         <Exposure name="tsince" dimension="time"/>
         <Dynamics>
             <StateVariable name="tsince" exposure="tsince" dimension="time"/>
-            <TimeDerivative variable="tsince" value="1"/>
+            <TimeDerivative variable="tsince" mValue="1"/>
             <OnCondition test="tsince .gt. period">
-                <StateAssignment variable="tsince" value="0"/>
+                <StateAssignment variable="tsince" mValue="0"/>
                 <EventOut port="a"/>
             </OnCondition>
         </Dynamics>
     </ComponentType>
 
-    <#--A base type for all current generatores which emit a dimensionless value.-->
+    <#--A base type for all current generatores which emit a dimensionless mValue.-->
     <ComponentType name="basePointCurrentDL">
         <Exposure name="I" dimension="none"
                   description="The total (time varying) current produced by this ComponentType"/>
@@ -185,15 +185,15 @@
         <Dynamics>
             <StateVariable name="I" exposure="I" dimension="none"/>
             <OnCondition test="t .lt. delay">
-                <StateAssignment variable="I" value="0"/>
+                <StateAssignment variable="I" mValue="0"/>
             </OnCondition>
 
             <OnCondition test="t .geq. delay .and. t .lt. duration + delay">
-                <StateAssignment variable="I" value="amplitude"/>
+                <StateAssignment variable="I" mValue="amplitude"/>
             </OnCondition>
 
             <OnCondition test="t .geq. duration + delay">
-                <StateAssignment variable="I" value="0"/>
+                <StateAssignment variable="I" mValue="0"/>
             </OnCondition>
         </Dynamics>
     </ComponentType>
@@ -205,33 +205,33 @@
         <Dynamics>
             <StateVariable name="I" exposure="I" dimension="none"/>
             <OnStart>
-                <StateAssignment variable="I" value="amplitude"/>
+                <StateAssignment variable="I" mValue="amplitude"/>
             </OnStart>
         </Dynamics>
     </ComponentType>
 
-    <#--Generates a current generator which evolves over the time by adding a constant value "delta" to the output.-->
+    <#--Generates a current generator which evolves over the time by adding a constant mValue "delta" to the output.-->
     <ComponentType name="linearEvolvingGeneratorDL" extends="basePointCurrentDL">
         <Parameter name="offset" dimension="time" description="The duration of time after which the component start to evolve."/>
         <Parameter name="duration" dimension="time" description="The duration of the emission."/>
-        <Parameter name="delta" dimension="none" description="The value added to the current value in each step."/>
+        <Parameter name="delta" dimension="none" description="The mValue added to the current mValue in each step."/>
         <EventPort name="in" direction="in"/><!--required by LEMS in order to establish connections.-->
-        <Constant name="CON1ms" dimension="time" value="1ms"/>
+        <Constant name="CON1ms" dimension="time" mValue="1ms"/>
         <Dynamics>
             <StateVariable name="I" exposure="I" dimension="none"/>
             <StateVariable name="tsinceStart" dimension="time"/>
             <StateVariable name="activator" dimension="none"/>
-            <TimeDerivative variable="tsinceStart" value="1"/>
-            <TimeDerivative variable="I" value="activator*(delta)/CON1ms"/>
+            <TimeDerivative variable="tsinceStart" mValue="1"/>
+            <TimeDerivative variable="I" mValue="activator*(delta)/CON1ms"/>
             <OnStart>
-                <StateAssignment variable="activator" value="0"/>
+                <StateAssignment variable="activator" mValue="0"/>
             </OnStart>
             <OnCondition test="tsinceStart.geq.offset">
-                <StateAssignment variable="activator" value="1"/>
+                <StateAssignment variable="activator" mValue="1"/>
             </OnCondition>
             <OnCondition test="tsinceStart.geq.(offset+duration)">
-                <StateAssignment variable="activator" value="0"/>
-                <StateAssignment variable="I" value="0"/>
+                <StateAssignment variable="activator" mValue="0"/>
+                <StateAssignment variable="I" mValue="0"/>
             </OnCondition>
         </Dynamics>
     </ComponentType>

@@ -39,7 +39,7 @@ neuron testNeuron:
 
         if foo: # 13 integer is not a valid boolean expression
 
-        elif randomInt(): # 14 integer which is the return value of randomInt is not a valid boolean expression
+        elif randomInt(): # 14 integer which is the return mValue of randomInt is not a valid boolean expression
 
         elif b < 7: # 15 cannot compare boolean to integer
 

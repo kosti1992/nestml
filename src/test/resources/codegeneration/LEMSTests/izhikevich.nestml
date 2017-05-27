@@ -7,7 +7,7 @@ neuron izhikevich_nestml:
   end
 
   equations:
-    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)*1mV
+    V_m' = 0.04 * V_m*V_m/1mV + 5.0 * V_m + (140 - u + I)
     u' = a*(b*V_m/1mV-u)
   end
 
@@ -29,7 +29,7 @@ neuron izhikevich_nestml:
 
   update:
     integrate_odes()
-    test mV = a<b?10mV: 20mV + V_m
+    test mV = a<b?10mV: 20mV
 
     V_m = spikes*1mV
 

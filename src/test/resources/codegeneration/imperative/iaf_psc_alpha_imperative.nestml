@@ -21,7 +21,7 @@ neuron iaf_psc_alpha_mc_imperative:
     U0 mV = -70
     # External current in pA
     I_e pA = 0
-    # Reset value of the membrane potential
+    # Reset mValue of the membrane potential
     function V_reset real = -70 - U0
     # Threshold, RELATIVE TO RESTING POTENTIAL(!).
     #    I.e. the real threshold is (U0_+Theta_)

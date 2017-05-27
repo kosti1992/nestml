@@ -42,10 +42,10 @@ public class StateVariable extends LEMSElement{
             }
             //now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
             //reference to it.
-            else if (_variable.getDeclaringExpression().get().nESTMLNumericLiteralIsPresent()) {
+            else if (_variable.getDeclaringExpression().get().numericLiteralIsPresent()) {
                 if (this.mDimension.equals(HelperCollection.DIMENSION_NONE)) {
                     this.mDefaultValue = Optional.of(new NumericalLiteral(_variable.getDeclaringExpression().
-                            get().getNESTMLNumericLiteral().get()));
+                            get().getNumericLiteral().get(),Optional.empty()));
                 } else {
                     Constant temp = new Constant(_variable, true, false, _container);
                     _container.addConstant(temp);

@@ -4,7 +4,7 @@
    The most important properties are:
 
    - Integrate-and-fire with threshold that is increased on spiking
-     and decays back to an equilibrium value.
+     and decays back to an equilibrium mValue.
    - No hard reset, but repolarizing potassium current.
    - AMPA, NMDA, GABA_A, and GABA_B conductance-based synapses with
      beta-function (difference of two exponentials) time course.
@@ -135,7 +135,7 @@ neuron ht_neuron_nestml:
     g_NaL nS =  0.2nS
     g_KL nS = 1.0nS       # 1.0 - 1.85
     Tau_m ms = 16.0ms     # membrane time constant applying to all currents but repolarizing K-current (see [1, p 1677])
-    Theta_eq mV = -51.0mV # equilibrium value
+    Theta_eq mV = -51.0mV # equilibrium mValue
     Tau_theta ms = 2.0ms  # time constant
     Tau_spike ms = 1.75ms # membrane time constant applying to repolarizing K-current
     t_spike ms = 2.0ms    # duration of re-polarizing potassium current

@@ -9,7 +9,7 @@ import org.nest.frontend.NestmlFrontend;
  * Created by kperun on 10.05.17.
  */
 public class iaf_cond_alpha_test extends ModelbasedTest {
-    private static final String INPUT_DIRECTORY = "lemsmodels";
+    private static final String INPUT_DIRECTORY = "models";
     NestmlFrontend fe = new NestmlFrontend();
 
     @Test

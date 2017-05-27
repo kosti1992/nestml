@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
@@ -850,5 +851,14 @@ public class HelperCollection {
     }
 
 
+    /**
+     * The latest update of NESTML proposed a new concept, where units are no longer part of a numeric literal, but
+     * a separate variable, e.g. instead of 10mV we now use 10*mV where mV has the correct unit. This method checks
+     * a given ASTExpr, extracts all implicitly declared variables (like mV) and stores them as new variables in
+     * the handed over container.
+     */
+    public static void collectImplicitVariables(LEMSCollector _container,Expression _ASTExpr){
+
+    }
 
 }

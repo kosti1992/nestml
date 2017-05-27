@@ -16,7 +16,7 @@ barfo integer = 3.2 ^ 5 ^ 6.4 # error 9+10 no bit operation on float values
 
 if foo: # 11 integer is not a valid boolean expression
 
-elif randomInt(): # 12 integer which is the return value of randomInt is not a valid boolean expression
+elif randomInt(): # 12 integer which is the return mValue of randomInt is not a valid boolean expression
 
 elif b < 7: # 13 cannot compare boolean to integer
 

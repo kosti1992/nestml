@@ -153,7 +153,7 @@ if dev_t_dev${ode.getLhs().getSimpleName()} == 0:
             initialValue = simplify(pscInitialValues[orders[shapeIndex] - i - 1].subs(t, 0))
             if initialValue != 0:
                 initialValueFile.write(stateVariables[i] + shapes[shapeIndex] + "PSCInitialValue real = " + str(
-                    initialValue) + "# PSCInitial value\n")
+                    initialValue) + "# PSCInitial mValue\n")
 
         for i in reversed(range(0, orders[shapeIndex])):
             stateVectors[i, shapeIndex] = stateVariables[i] + shapes[shapeIndex]
@@ -284,7 +284,7 @@ else:
         for i in range(0, orders[shape_index]):
             initialValue = simplify(pscInitialValues[i].subs(t, 0))
             if initialValue != 0:
-                initialValuesFile.write(str(derivatives[i]) + "_PSCInitialValue real = " + str(initialValue) + "# PSCInitial value\n")
+                initialValuesFile.write(str(derivatives[i]) + "_PSCInitialValue real = " + str(initialValue) + "# PSCInitial mValue\n")
 
         rhs = 0
         VecA = VecAs[shape_index]

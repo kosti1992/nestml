@@ -57,12 +57,12 @@ public class LEMSExpressionsPrettyPrinter {
 	 */
 	public String doPrint(final ASTExpr expr, boolean isNegated) {
 		checkNotNull(expr);
-		if (expr.getNESTMLNumericLiteral().isPresent()) {
+		if (expr.numericLiteralIsPresent()) {
 			//copy the numerical value
-			String temp = typesPrinter().prettyprint(expr.getNESTMLNumericLiteral().get().getNumericLiteral());
+			String temp = typesPrinter().prettyprint(expr.getNumericLiteral().get());
 			//now check whether a unit is present
 
-			if (expr.getNESTMLNumericLiteral().get().getType().isPresent()) {
+			if (expr.variableIsPresent()) {
 				container.addUnit(new Unit(expr.getType().getValue()));
 				temp = temp + expr.getType().getValue().prettyPrint();
 			}

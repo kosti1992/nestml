@@ -245,7 +245,7 @@ class ShapeODE(object):
     defined with the name of the shape (i.e a function of `t`
     that satisfies a certain ODE), the variables on the left handside
     of the ODE system, the right handsides of the ODE systems
-    and the initial value of the function.
+    and the initial mValue of the function.
         
     Canonical calculation of the properties, `order`, `name`,
     `initial_values` and the system of ODEs in matrix form are made.

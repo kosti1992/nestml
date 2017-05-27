@@ -7,6 +7,6 @@
 <#compress>
 ${signature("functionCall","container")}
 <#if functionCall.getFunctionName()=="integrate"><#assign args = functionCall.getArgs()>
-<TimeDerivative variable="${args}" value="${container.getDifferentialEquationOnVariable(args)}"/>
+<TimeDerivative variable="${args}" mValue="${container.getDifferentialEquationOnVariable(args)}"/>
 </#if>
 </#compress>

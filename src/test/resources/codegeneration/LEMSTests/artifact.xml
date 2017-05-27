@@ -2,8 +2,8 @@
 	<Attachments name="testAttachment" type="testAttachmentType"/>
 	<DerivedVariable name="testDerivedVariable" dimension="testDimension" select="testSelect" reduce="testReduce"/>
 	<Parameter name="testParameter" dimension="testDimension"/>
-	<Constant name="testConst" dimension="testDimension" value="testValue"/>
+	<Constant name="testConst" dimension="testDimension" mValue="testValue"/>
 	<EventPort name="testEventPort" direction="testDir"/>
 	<StateVariable name="testStateVariable" dimension="testDimension"/>
-	<TimeDerivative variable="testTimeDerivative" value="testEquation"/>
+	<TimeDerivative variable="testTimeDerivative" mValue="testEquation"/>
 </Target>	

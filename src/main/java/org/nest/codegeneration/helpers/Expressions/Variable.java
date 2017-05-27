@@ -1,8 +1,10 @@
 package org.nest.codegeneration.helpers.Expressions;
 
-import org.nest.commons._ast.ASTVariable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Optional;
+import org.nest.commons._ast.ASTVariable;
+import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.symboltable.symbols.VariableSymbol;
 
 /**
  * This class is used to store variables of an expression.
@@ -11,10 +13,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Variable extends Expression {
 	private String variable;
+	private TypeSymbol mType;
 
 	public Variable(ASTVariable variable) {
 		this.variable = variable.getName().toString();
 	}
+
+	public Variable(VariableSymbol variable){
+	    this.variable = variable.getName();
+	    this.mType = variable.getType();
+    }
 
 	public Variable(String variable) {
 		this.variable = variable;

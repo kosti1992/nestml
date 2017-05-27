@@ -95,7 +95,7 @@ neuron iaf_psc_exp_neuron:
     tau_syn_ex ms = 2ms  # Time constant of synaptic current.
     t_ref ms = 2ms       # Duration of refractory period
     E_L  mV = -70mV      # Resting potential.
-    function V_reset mV = -70mV - E_L # reset value of the membrane potential
+    function V_reset mV = -70mV - E_L # reset mValue of the membrane potential
     function Theta   mV = -55mV - E_L # Threshold, RELATIVE TO RESTING POTENTAIL(!).
                                    # I.e. the real threshold is (E_L_+V_th_)
     I_e     pA = 0pA     # External current.

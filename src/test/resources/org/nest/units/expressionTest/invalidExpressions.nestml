@@ -35,7 +35,7 @@ neuron invalidExpressionTest:
     elif A1 == R1:              #Warning: Compared unitTypes do not match
     elif 0 < R1:                #Warning: Comparison of primitive and unit 
     elif R1 > "string":         #Error: Illegal comparison
-    elif R1+R1:                 #Error: Not a boolean value 
+    elif R1+R1:                 #Error: Not a boolean mValue
     end    
     
     V4 = V1+V2?2V:0V            #Error: first expression is not a condition.

@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units.unitrepresentation.UnitRepresentation;
 
 /**
  * This class represents an internal representation of an expression, e.g
@@ -52,10 +53,21 @@ public class Expression {
 		if (_expr.getTerm().isPresent()) {
 			this.mOperator = Optional.of(new Operator(_expr));
 			this.mRhs = Optional.of(new Expression(_expr.getTerm().get()));
-		} else if (_expr.nESTMLNumericLiteralIsPresent()) {
-			this.mRhs = Optional.of(new NumericalLiteral(_expr.getNESTMLNumericLiteral().get()));
+		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
+			this.mRhs = Optional.of(new NumericalLiteral(_expr.getNumericLiteral().get(),Optional.of(_expr.getType().getValue())));
 		} else if (_expr.variableIsPresent()) {
-			this.mRhs = Optional.of(new Variable(_expr.getVariable().get().toString()));
+
+            Optional<VariableSymbol> tSymbol =
+                    _expr.getEnclosingScope().get().resolve(_expr.getVariable().get().getName().toString(), VariableSymbol.KIND);
+		    /*
+            System.out.println(tSymbol.get().getType().getName());//type
+            UnitRepresentation uR = UnitRepresentation.getBuilder().serialization(tSymbol.get().getType().getName()).build();
+            System.out.println(uR.prettyPrint());//the name
+            */
+            //System.out.println(_expr.getVariable().get().getName().toString());
+		    //System.out.println(_expr.getType().getValue());
+            this.mRhs = Optional.of(new Variable(tSymbol.get()));
+			//this.mRhs = Optional.of(new Variable(_expr.getVariable().get().toString()));
 		} else if (_expr.functionCallIsPresent()) {
 			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
 		} else if (_expr.exprIsPresent()) {
