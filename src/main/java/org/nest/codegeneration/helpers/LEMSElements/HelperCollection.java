@@ -2,9 +2,9 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.nest.codegeneration.LEMSCodeGenerator;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
@@ -14,8 +14,10 @@ import org.nest.spl._ast.ASTBlock;
 import org.nest.spl._ast.ASTELIF_Clause;
 import org.nest.spl._ast.ASTStmt;
 import org.nest.symboltable.symbols.TypeSymbol;
+import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTDatatype;
 import org.nest.units._ast.ASTUnitType;
+import org.nest.units.unitrepresentation.UnitRepresentation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
@@ -257,23 +259,30 @@ public class HelperCollection {
     public static Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
         List<Expression> temp = expr.getNumericals();
         //in the case we get a numerical literal directly
-        if (expr instanceof NumericalLiteral) {
-            if ((((NumericalLiteral) expr).hasType())) {
-                int[] dec = convertTypeDeclToArray(((NumericalLiteral) expr).getType().get().getSerializedUnit());
+        if (expr instanceof NumericLiteral) {
+            if ((((NumericLiteral) expr).hasType())) {
+                //int[] dec = convertTypeDeclToArray(((NumericLiteral) expr).getType().get().getSerializedUnit());
+                int[] dec = convertTypeDeclToArray(((NumericLiteral) expr).getType().get().prettyPrint());
                 //create the required units and dimensions
+                /*
                 Dimension tempDimension =
                         new Dimension(PREFIX_DIMENSION +
-                                HelperCollection.getExpressionFromUnitType(((NumericalLiteral) expr).getType().get()).print(),
+                                HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get()).print(),
                                 dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-
-                Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral) expr).getType().get()).print(),
+                */
+                Dimension tempDimension = new Dimension(((NumericLiteral) expr).getType().get());
+                /*
+                Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get()).print(),
                         dec[7], tempDimension);
+                */
+                Unit tempUnit = new Unit(((NumericLiteral) expr).getType().get());
+
 
                 container.addDimension(tempDimension);
                 container.addUnit(tempUnit);
 
                 //finally a constant representing the concrete value, a reference is set to this constant
-                Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) expr).printValueType(),
+                Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericLiteral) expr).printValueType(),
                         tempDimension.getName(), expr, false);
                 container.addConstant(tempConstant);
 
@@ -282,21 +291,20 @@ public class HelperCollection {
         }
         //otherwise it is an expression
         for (Expression exp : temp) {
-            if (((NumericalLiteral) exp).hasType()) {
-                if (((NumericalLiteral) exp).getType().isPresent() &&
-                        ((NumericalLiteral) exp).getType().get()
-                                .getSerializedUnit() == null) {
+            if (((NumericLiteral) exp).hasType()) {
+                if (((NumericLiteral) exp).getType().isPresent() &&
+                        ((NumericLiteral) exp).getType().get().getSerializedUnit() == null) {
                     //this is a rather bad approach, since it requires that the same unit is already somewhere defined
                     //in the model, however, this part of the method it only invoked for artificial extensions, thus not critical
                     Dimension tempDimension = null;
                     for (Unit u : container.getUnitsSet()) {
-                        if (u.getSymbol().equals(((NumericalLiteral) exp).getType().get().getUnit().get())) {
+                        if (u.getSymbol().equals(((NumericLiteral) exp).getType().get().getUnit().get())) {
                             tempDimension = u.getDimension();
                             break;
                         }
                     }
                     if (tempDimension != null) {
-                        Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
+                        Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericLiteral) exp).printValueType(),
                                 tempDimension.getName(), exp, false);
                         container.addConstant(tempConstant);
                         Variable var = new Variable(tempConstant.getName());
@@ -305,18 +313,18 @@ public class HelperCollection {
                         System.err.println("A problematic case occurred during constant replacement!");
                     }
                 } else {
-                    int[] dec = convertTypeDeclToArray(((NumericalLiteral) exp).getType().get().getSerializedUnit());
+                    int[] dec = convertTypeDeclToArray(((NumericLiteral) exp).getType().get().getSerializedUnit());
                     //create the required units and dimensions
                     Dimension tempDimension =
                             new Dimension(PREFIX_DIMENSION +
-                                    HelperCollection.getExpressionFromUnitType(((NumericalLiteral) exp).getType().get()).print(),
+                                    HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get()).print(),
                                     dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-                    Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericalLiteral) exp).getType().get()).print(),
+                    Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get()).print(),
                             dec[7], tempDimension);
                     container.addDimension(tempDimension);
                     container.addUnit(tempUnit);
                     //finally a constant representing the concrete value, a reference is set to this constant
-                    Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericalLiteral) exp).printValueType(),
+                    Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericLiteral) exp).printValueType(),
                             tempDimension.getName(), exp, false);
                     container.addConstant(tempConstant);
                     Variable var = new Variable(tempConstant.getName());
@@ -340,7 +348,7 @@ public class HelperCollection {
     public static Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
 
         if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
-            NumericalLiteral lit1 = new NumericalLiteral(1, null);
+            NumericLiteral lit1 = new NumericLiteral(1, null);
             Operator op1 = new Operator();
             op1.setEq(true);
             Expression ex1 = new Expression();
@@ -550,19 +558,20 @@ public class HelperCollection {
      * @return the modified expression
      */
     public static Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
+        /*
         if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit(container.getConfig().getSimulationStepsUnit().getSymbol());
             Function tempFunction = new Function("resolution", new ArrayList<>());
-            NumericalLiteral literal = new NumericalLiteral(container.getConfig().getSimulationStepsLength(),
-                    tempType);
+            NumericLiteral literal;// = new NumericLiteral(container.getConfig().getSimulationStepsLength(),
+                   // tempType);TODO
             Constant tempConstant = new Constant(HelperCollection.PREFIX_CONSTANT + container.getConfig().getSimulationStepsLengthAsString() +
                     tempType.getUnit().get().toString(), HelperCollection.PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
             container.addConstant(tempConstant);
             expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
             return expr;
-        }
-        return expr;
+        }*/
+        return new Expression();//expr;//TODO
     }
 
     /**
@@ -605,6 +614,7 @@ public class HelperCollection {
      */
     public static Expression getExpressionFromUnitType(ASTUnitType unitType) {
         checkNotNull(unitType);
+
         Expression ret = new Expression();
         if (unitType.isPow()) {
             Operator op = new Operator();
@@ -626,7 +636,7 @@ public class HelperCollection {
             ret.replaceLhs(var);
         }
         if (unitType.unitlessLiteralIsPresent()) {
-            NumericalLiteral lit = new NumericalLiteral(unitType.getUnitlessLiteral().get().getValue(), null);
+            NumericLiteral lit = new NumericLiteral(unitType.getUnitlessLiteral().get().getValue(), null);
             ret.replaceLhs(lit);
         }
         if (unitType.baseIsPresent() && unitType.exponentIsPresent()) {
@@ -634,7 +644,7 @@ public class HelperCollection {
             op.setPower(true);
             ret.replaceLhs(getExpressionFromUnitType(unitType.getBase().get()));
             ret.replaceOp(op);
-            ret.replaceRhs(new NumericalLiteral(unitType.getExponent().get().getValue(), null));
+            ret.replaceRhs(new NumericLiteral(unitType.getExponent().get().getValue(), null));
         }
         if (unitType.unitTypeIsPresent()) {
             ret.replaceLhs(getExpressionFromUnitType(unitType.getUnitType().get()));
@@ -680,11 +690,12 @@ public class HelperCollection {
      *
      * @return a list of ASTUnitTypes of the numerical stated in a given expression.
      */
-    public static List<ASTUnitType> collectUnitsFromNumericals(Expression expr) {
+    public static List<ASTUnitType> collectUnitsFromNumerics(Expression expr) {
         List<ASTUnitType> ret = new ArrayList<>();
         for (Expression lit : expr.getNumericals()) {
-            if (((NumericalLiteral) lit).hasType()) {
-                ret.add(((NumericalLiteral) lit).getType().get());
+            if (((NumericLiteral) lit).hasType()) {
+                //TODO
+                //ret.add(((NumericLiteral) lit).getType().get());
             }
         }
         return ret;
@@ -692,8 +703,8 @@ public class HelperCollection {
 
     public static void retrieveUnitsFromExpression(Expression expr, LEMSCollector container) {
         for (Expression numerical : expr.getNumericals()) {
-            if (((NumericalLiteral) numerical).hasType()) {
-                Unit temp = new Unit(((NumericalLiteral) numerical).getType().get());
+            if (((NumericLiteral) numerical).hasType()) {
+                Unit temp = new Unit(((NumericLiteral) numerical).getType().get());
                 container.addUnit(temp);
                 container.addDimension(temp.getDimension());
             }
@@ -736,7 +747,7 @@ public class HelperCollection {
      * @return the Expression 0/0.
      */
     public static Expression generateExceptionCondition() {
-        Expression lhs = new NumericalLiteral(0, null);
+        Expression lhs = new NumericLiteral(0, null);
         Operator op = new Operator();
         op.setDivOp(true);
         Expression rhs = lhs.deepClone();
@@ -787,14 +798,16 @@ public class HelperCollection {
         tempExpression = replaceFunctionCallByReference(container, tempExpression);
         tempExpression = replaceDifferentialVariable(tempExpression);
         tempExpression = replaceEulerByExponentialFunction(tempExpression);
-        tempExpression = replaceResolutionByConstantReference(container,tempExpression);
+        tempExpression = replaceResolutionByConstantReference(container, tempExpression);
+        collectImplicitVariables(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
     /**
      * Replaces in a given expression function calls to user defined function by a proper derived variable.
+     *
      * @param container a container containing the variable
-     * @param expr the expression
+     * @param expr      the expression
      * @return expression with replace function call
      */
     public static Expression replaceFunctionCallByReference(LEMSCollector container, Expression expr) {
@@ -817,6 +830,7 @@ public class HelperCollection {
 
     /**
      * Replaces the differential equation in a given expression by a proper representation.
+     *
      * @param _expr the expression
      * @return the modified expression
      */
@@ -824,10 +838,10 @@ public class HelperCollection {
         if (_expr instanceof Variable) {//if it is a variable replace by a proper name
             ((Variable) _expr).setVariable(Names.convertToCPPName(((Variable) _expr).getVariable()));
         }
-        if(_expr.lhsIsPresent()){
+        if (_expr.lhsIsPresent()) {
             HelperCollection.replaceDifferentialVariable(_expr.getLhs().get());
         }
-        if(_expr.rhsIsPresent()){
+        if (_expr.rhsIsPresent()) {
             HelperCollection.replaceDifferentialVariable(_expr.getRhs().get());
         }
 
@@ -837,14 +851,17 @@ public class HelperCollection {
     /**
      * LEMS does not support the constant e ( euler's number), thus each reference to this constant has to
      * be replaced by exp(1).
+     *
      * @param _expr the expression possibly containing e
      * @return the expression without e
      */
-    public static Expression replaceEulerByExponentialFunction(Expression _expr){
+    public static Expression replaceEulerByExponentialFunction(Expression _expr) {
         checkNotNull(_expr);
-        for(Expression tExpr:_expr.getVariables()){
-            if(((Variable) tExpr).getVariable().equals("e")){
-                _expr.replaceElement(tExpr,new Variable("exp(1)"));
+        List<Expression> tListOfArgs = new ArrayList<>();
+        tListOfArgs.add(new NumericLiteral(1));
+        for (Expression tExpr : _expr.getVariables()) {
+            if (((Variable) tExpr).getVariable().equals("e")) {
+                _expr.replaceElement(tExpr, new Function("exp",tListOfArgs));
             }
         }
         return _expr;
@@ -857,8 +874,38 @@ public class HelperCollection {
      * a given ASTExpr, extracts all implicitly declared variables (like mV) and stores them as new variables in
      * the handed over container.
      */
-    public static void collectImplicitVariables(LEMSCollector _container,Expression _ASTExpr){
-
+    public static void collectImplicitVariables(LEMSCollector _container, Expression _expression) {
+        List<Expression> tVariableList = _expression.getVariables();
+        for (Expression tVariable : tVariableList) {
+            if (((Variable) tVariable).typeIsPresent()) {
+                _container.handleType(((Variable) tVariable).getType());
+            }
+        }
     }
 
+
+    /**
+     * Checks if the handed over expression contains a variable, resolves this variable and returns the corresponding variable
+     * symbol.
+     *
+     * @param _expr an expression object possibly containing a variable
+     * @return a optional variable symbol
+     */
+    public static Optional<VariableSymbol> resolveVariableSymbol(ASTExpr _expr) {
+        Optional<VariableSymbol> tSymbol = Optional.empty();
+        if (_expr.variableIsPresent()) {
+            tSymbol = _expr.getEnclosingScope().get().resolve(_expr.getVariable().get().getName().toString(), VariableSymbol.KIND);
+        }
+        return tSymbol;
+    }
+
+
+    /**
+     * Prints the name of a unit stored in the type symbol if present,otherwise only an empty optional.
+     * @return
+     */
+    public static String getNameOfTypeSymbolUnit(TypeSymbol _tSymbol){
+        UnitRepresentation uR = UnitRepresentation.getBuilder().serialization(_tSymbol.getName()).build();
+        return uR.prettyPrint();
+    }
 }

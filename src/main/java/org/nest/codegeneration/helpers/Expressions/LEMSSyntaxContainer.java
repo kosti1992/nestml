@@ -12,7 +12,7 @@ import static de.se_rwth.commons.logging.Log.info;
  */
 public class LEMSSyntaxContainer implements SyntaxContainer {
 
-	public String print(NumericalLiteral expr) {
+	public String print(NumericLiteral expr) {
 		if (expr.getmValue() - (int) expr.getmValue() == 0) {
 			if (expr.hasType()) {
 				/*

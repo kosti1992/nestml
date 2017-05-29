@@ -1,10 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import de.monticore.types.types._ast.ASTQualifiedName;
-import javassist.expr.Expr;
 import org.nest.codegeneration.helpers.Collector;
 import org.nest.codegeneration.helpers.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
@@ -15,7 +12,6 @@ import org.nest.ode._ast.ASTDerivative;
 import org.nest.ode._ast.ASTEquation;
 import org.nest.ode._ast.ASTOdeFunction;
 import org.nest.ode._ast.ASTShape;
-import org.nest.spl._ast.ASTStmt;
 import org.nest.spl.prettyprinter.LEMS.LEMSExpressionsPrettyPrinter;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -120,7 +116,7 @@ public class LEMSCollector extends Collector {
             //create a new constant in order to achieve a correct dimension of the equation:
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit("ms");
-            this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericalLiteral(1, tempType), false));
+            this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericLiteral(1, tempType), false));
             Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
             this.addDimension(msDimension);
             this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
@@ -214,14 +210,14 @@ public class LEMSCollector extends Collector {
                     Expression defaultValue;
                     StateVariable paramStateVar;
                     if (tempUnit.isPresent()) {
-                        defaultValue = new NumericalLiteral(0, param.getDatatype().getUnitType().get());
+                        defaultValue = new NumericLiteral(0, param.getDatatype().getUnitType().get());
                         defaultValue = HelperCollection.replaceConstantsWithReferences(this, defaultValue);
                         paramStateVar = new StateVariable(param.getName(),
                                 HelperCollection.typeToDimensionConverter(param.getDatatype()),
                                 defaultValue, Optional.of(tempUnit.get().getSymbol()));
 
                     } else {
-                        defaultValue = new NumericalLiteral(0, null);
+                        defaultValue = new NumericLiteral(0, null);
                         paramStateVar = new StateVariable(param.getName(),
                                 HelperCollection.typeToDimensionConverter(param.getDatatype()),
                                 defaultValue, Optional.empty());
@@ -327,7 +323,7 @@ public class LEMSCollector extends Collector {
                     //now generate the corresponding activator
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1, null), Optional.empty()));
                     }
                     this.localTimeDerivative.add(new Variable(tLhs));
                 } else {
@@ -341,7 +337,7 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replacementRoutine(this, expr);
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericalLiteral(1, null), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1, null), Optional.empty()));
                     }
                     equation.put(new Variable(tLhs), expr);
 
@@ -510,7 +506,7 @@ public class LEMSCollector extends Collector {
         if (!neuronBody.getParameterInvariants().isEmpty()) {
             //we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
             StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
-                    new NumericalLiteral(0, null), Optional.empty());
+                    new NumericLiteral(0, null), Optional.empty());
             this.addStateVariable(tempVar);
             //finally process each guard
             Expression tempExpression;
@@ -563,7 +559,7 @@ public class LEMSCollector extends Collector {
                             var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("resolution")) {
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericalLiteral tempNumerical = new NumericalLiteral(config.getSimulationStepsLength(), tempType);
+                        NumericLiteral tempNumerical = new NumericLiteral(config.getSimulationStepsLength(), tempType);
                         Constant tempConstant = new Constant(var.getName(), config.getSimulationStepsUnit().
                                 getDimensionName(), tempNumerical, false);
                         this.addConstant(tempConstant);
@@ -577,13 +573,13 @@ public class LEMSCollector extends Collector {
                         //handle a numerical lit, e.g. 10ms
                         if (args.get(0).numericLiteralIsPresent() && args.get(0).variableIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
-                            lhs = new NumericalLiteral(args.get(0).getNumericLiteral().get(), Optional.of(args.get(0).getType().getValue()));
+                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.of(args.get(0).getType().getValue()));
                             //handle a variable ref, e.g. res_init
                         } else if (args.get(0).numericLiteralIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
-                            lhs = new NumericalLiteral(args.get(0).getNumericLiteral().get(), Optional.empty());
+                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.empty());
                         } else if (args.get(0).variableIsPresent()) {
-                            lhs = new Variable(args.get(0).getVariable().get());
+                            lhs = new Variable(HelperCollection.resolveVariableSymbol(args.get(0)).get());
                             //handle an expression, e.g. 10ms + res_init
                         } else if (args.get(0).leftIsPresent() && args.get(0).rightIsPresent()) {
                             lhs = new Expression();
@@ -597,7 +593,7 @@ public class LEMSCollector extends Collector {
 
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericalLiteral rhs = new NumericalLiteral(config.getSimulationStepsLength(), tempType);
+                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(), tempType);
 
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);

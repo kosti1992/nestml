@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.symboltable.symbols.VariableSymbol;
-import org.nest.units.unitrepresentation.UnitRepresentation;
 
 /**
  * This class represents an internal representation of an expression, e.g
@@ -54,11 +53,8 @@ public class Expression {
 			this.mOperator = Optional.of(new Operator(_expr));
 			this.mRhs = Optional.of(new Expression(_expr.getTerm().get()));
 		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
-			this.mRhs = Optional.of(new NumericalLiteral(_expr.getNumericLiteral().get(),Optional.of(_expr.getType().getValue())));
+			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get(),Optional.of(_expr.getType().getValue())));
 		} else if (_expr.variableIsPresent()) {
-
-            Optional<VariableSymbol> tSymbol =
-                    _expr.getEnclosingScope().get().resolve(_expr.getVariable().get().getName().toString(), VariableSymbol.KIND);
 		    /*
             System.out.println(tSymbol.get().getType().getName());//type
             UnitRepresentation uR = UnitRepresentation.getBuilder().serialization(tSymbol.get().getType().getName()).build();
@@ -66,7 +62,7 @@ public class Expression {
             */
             //System.out.println(_expr.getVariable().get().getName().toString());
 		    //System.out.println(_expr.getType().getValue());
-            this.mRhs = Optional.of(new Variable(tSymbol.get()));
+            this.mRhs = Optional.of(new Variable(HelperCollection.resolveVariableSymbol(_expr).get()));
 			//this.mRhs = Optional.of(new Variable(_expr.getVariable().get().toString()));
 		} else if (_expr.functionCallIsPresent()) {
 			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
@@ -81,9 +77,9 @@ public class Expression {
 			this.mOperator = Optional.of(tempOperator);
 		} else if (_expr.booleanLiteralIsPresent()) {
 			if (_expr.getBooleanLiteral().get().getValue()) {
-				this.mRhs = Optional.of(new NumericalLiteral(1, null));
+				this.mRhs = Optional.of(new NumericLiteral(1, null));
 			} else {
-				this.mRhs = Optional.of(new NumericalLiteral(0, null));
+				this.mRhs = Optional.of(new NumericLiteral(0, null));
 			}
 		} else {
 			if (_expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
@@ -185,7 +181,7 @@ public class Expression {
 	 */
 	public List<Expression> getNumericals() {
 		List<Expression> resNums = new ArrayList<>();
-		if (this.getClass().equals(NumericalLiteral.class)) {
+		if (this.getClass().equals(NumericLiteral.class)) {
 			resNums.add(this);
 		}
 		if (this.mLhs.isPresent()) {
@@ -310,7 +306,7 @@ public class Expression {
 		//first the whole expression
 		Expression ret = new Expression();
 		//since both sides equal, it is sufficient to create a single object
-		NumericalLiteral lhs_rhs = new NumericalLiteral(1, null);
+		NumericLiteral lhs_rhs = new NumericLiteral(1, null);
 		//connection between
 		Operator op = new Operator();
 		op.setEq(true);

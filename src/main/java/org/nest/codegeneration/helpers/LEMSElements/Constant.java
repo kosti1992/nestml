@@ -2,7 +2,7 @@ package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
 import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -53,10 +53,10 @@ public class Constant extends LEMSElement{
                     /*
 					ASTUnitType tempType = new ASTUnitType();
 					tempType.setUnit(variable.getType().prettyPrint());
-					NumericalLiteral literal = new NumericalLiteral(0, tempType);*/
+					NumericLiteral literal = new NumericLiteral(0, tempType);*/
                     this.mValue = new Expression(_variable.getDeclaringExpression().get());
                 } else {//var does not have unit, a variable with mValue 0 is sufficient
-                    this.mValue = new NumericalLiteral(0, null);
+                    this.mValue = new NumericLiteral(0, null);
                 }
             }
         }
@@ -120,8 +120,8 @@ public class Constant extends LEMSElement{
     TODO:Unused since 10.05.2017 -> check and delete
     @SuppressWarnings("unused")//used in the template
     public String getmUnit() {
-        if (mValue.getClass().equals(NumericalLiteral.class) && ((NumericalLiteral) mValue).hasType()) {
-            return ((NumericalLiteral) mValue).getType().get().getmUnit().get();
+        if (mValue.getClass().equals(NumericLiteral.class) && ((NumericLiteral) mValue).hasType()) {
+            return ((NumericLiteral) mValue).getType().get().getmUnit().get();
         }
         return "";
     }
@@ -186,7 +186,7 @@ public class Constant extends LEMSElement{
         if (_variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit(_container.getConfig().getSimulationStepsUnit().getSymbol());
-            return new NumericalLiteral(_container.getConfig().getSimulationStepsLength(), tempType);
+            return new NumericLiteral(_container.getConfig().getSimulationStepsLength(), tempType);
         } else {
             Messages.printNotSupportedFunctionCallInExpression(_variable, _container);
             return new Variable(HelperCollection.NOT_SUPPORTED

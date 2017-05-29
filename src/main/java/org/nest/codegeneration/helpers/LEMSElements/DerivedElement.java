@@ -1,7 +1,7 @@
 package org.nest.codegeneration.helpers.LEMSElements;
 
 import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
 import org.nest.codegeneration.helpers.Expressions.Operator;
 import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.commons._ast.ASTExpr;
@@ -208,9 +208,9 @@ public class DerivedElement extends LEMSElement{
             this.mValue = new Expression(_declaration.getExpr().get());
         }else{
             if(_declaration.getDatatype().getUnitType().isPresent()){
-                this.mValue = new NumericalLiteral(0,_declaration.getDatatype().getUnitType().get());
+                this.mValue = new NumericLiteral(0,_declaration.getDatatype().getUnitType().get());
             }else {
-                this.mValue = new NumericalLiteral(0,null);
+                this.mValue = new NumericLiteral(0,null);
             }
         }
         //TODO: ternary op handling -> this is only in user defined functions

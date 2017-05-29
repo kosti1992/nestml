@@ -5,12 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.*;
 
 import de.monticore.emf._ast.ASTECNode;
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.Function;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
-import org.nest.codegeneration.helpers.Expressions.Operator;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
@@ -392,9 +388,9 @@ public class DynamicRoutine {
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(declaration.getDatatype().getUnitType().get().getUnit().get());
                 tempType.setSerializedUnit(declaration.getDatatype().getUnitType().get().getSerializedUnit());
-                tempExpression = new NumericalLiteral(0, tempType);
+                tempExpression = new NumericLiteral(0, tempType);
             } else {
-                tempExpression = new NumericalLiteral(0, null);
+                tempExpression = new NumericLiteral(0, null);
             }
         }
         tempExpression = HelperCollection.replacementRoutine(container, tempExpression);
@@ -582,9 +578,9 @@ public class DynamicRoutine {
             ret.add(secondBlock);
         }
 
-        Expression tempLiteral = new NumericalLiteral(0, null);
+        Expression tempLiteral = new NumericLiteral(0, null);
         if (_smallStmt.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
-            ((NumericalLiteral) tempLiteral).setType(Optional.of(_smallStmt.getDeclaration().get().getDatatype().getUnitType().get()));
+            ((NumericLiteral) tempLiteral).setType(Optional.of(_smallStmt.getDeclaration().get().getDatatype().getUnitType().get()));
         }
         tempLiteral = HelperCollection.replacementRoutine(mContainer, tempLiteral);
         for (String var : _smallStmt.getDeclaration().get().getVars()) {
@@ -618,7 +614,7 @@ public class DynamicRoutine {
             }
             //add a deactivation assignment to the list of directives if no integrate directive has been found
             if (!temp) {
-                NumericalLiteral tempLiteral = new NumericalLiteral(0, null);
+                NumericLiteral tempLiteral = new NumericLiteral(0, null);
                 _listOfInstructions.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
             }
         }
@@ -639,11 +635,11 @@ public class DynamicRoutine {
         } else {
             for (StateVariable var : mContainer.getStateVariablesList()) {              //the integrate function call has exactly one argument
                 if (var.getName().equals(HelperCollection.PREFIX_ACT + _functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-                    ((NumericalLiteral) var.getDefaultValue().get()).setmValue(0);
+                    ((NumericLiteral) var.getDefaultValue().get()).setmValue(0);
                 }
             }
             //integrate the corresponding variable in this block
-            NumericalLiteral tempLiteral = new NumericalLiteral(1, null);
+            NumericLiteral tempLiteral = new NumericLiteral(1, null);
             //the method requires a list of instructions rather than a single instruction
             List<Instruction> res = new ArrayList<>();
             res.add(new Assignment(HelperCollection.PREFIX_ACT +
@@ -661,10 +657,10 @@ public class DynamicRoutine {
         //since all variables have to be integrated, we create a list of integrate instructions
         List<Instruction> res = new ArrayList<>();
         if(SimulationConfiguration.mWithActivator) {
-            NumericalLiteral tempLiteral;
+            NumericLiteral tempLiteral;
             for (Variable var : mContainer.getEquations().keySet()) {
                 //integrate the corresponding variable in this block
-                tempLiteral = new NumericalLiteral(1, null);
+                tempLiteral = new NumericLiteral(1, null);
                 res.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
                 //moreover, since a integrate_odes function call has been found, we make all integrations local
                 mContainer.addLocalTimeDerivative(var);
@@ -709,8 +705,8 @@ public class DynamicRoutine {
      */
     private void handleASTUnitTypeInExpression(Expression _expression, LEMSCollector _container){
         for(Expression tLit:_expression.getNumericals()){
-            if(((NumericalLiteral) tLit).hasType()){
-                _container.handleType(((NumericalLiteral) tLit).getType().get());
+            if(((NumericLiteral) tLit).hasType()){
+                _container.handleType(((NumericLiteral) tLit).getType().get());
             }
         }
     }

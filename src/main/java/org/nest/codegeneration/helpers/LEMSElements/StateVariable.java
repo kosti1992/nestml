@@ -5,7 +5,7 @@ import java.util.Optional;
 //import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import org.nest.codegeneration.helpers.Expressions.Expression;
 import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericalLiteral;
+import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
 import org.nest.codegeneration.helpers.Expressions.Variable;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -38,13 +38,14 @@ public class StateVariable extends LEMSElement{
         if (_variable.getDeclaringExpression().isPresent()) {
             //in the case it is a reference just set it as it is
             if (_variable.getDeclaringExpression().get().variableIsPresent()) {
-                this.mDefaultValue = Optional.of(new Variable(_variable.getDeclaringExpression().get().getVariable().get()));
+                this.mDefaultValue = Optional.of(new Variable(HelperCollection.resolveVariableSymbol(
+                        _variable.getDeclaringExpression().get()).get()));
             }
             //now otherwise, if it is a single value, e.g. 10mV, generate a constant and set
             //reference to it.
             else if (_variable.getDeclaringExpression().get().numericLiteralIsPresent()) {
                 if (this.mDimension.equals(HelperCollection.DIMENSION_NONE)) {
-                    this.mDefaultValue = Optional.of(new NumericalLiteral(_variable.getDeclaringExpression().
+                    this.mDefaultValue = Optional.of(new NumericLiteral(_variable.getDeclaringExpression().
                             get().getNumericLiteral().get(),Optional.empty()));
                 } else {
                     Constant temp = new Constant(_variable, true, false, _container);
@@ -69,13 +70,13 @@ public class StateVariable extends LEMSElement{
             //no declaration is present, generate a 0 as init value, but with a unit if present
             if (this.mDimension.equals(HelperCollection.DIMENSION_NONE) ||
                     this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
-                this.mDefaultValue = Optional.of(new NumericalLiteral(0, null));
+                this.mDefaultValue = Optional.of(new NumericLiteral(0, null));
             } else {
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(_variable.getType().prettyPrint());
                 tempType.setSerializedUnit(_variable.getType().getName());
                 Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + Names.convertToCPPName(_variable.getName()),
-                        this.mDimension, new NumericalLiteral(0, tempType), false);
+                        this.mDimension, new NumericLiteral(0, tempType), false);
                 _container.addConstant(defaultValue);
                 this.mDefaultValue = Optional.of(new Variable(defaultValue.getName()));
             }
