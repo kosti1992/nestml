@@ -1,7 +1,7 @@
-package org.nest.codegeneration.helpers.Expressions;
+package org.nest.codegeneration.helpers.LEMS.Expressions;
 
 import org.nest.codegeneration.LEMSCodeGenerator;
-import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
+import org.nest.codegeneration.helpers.LEMS.Elements.HelperCollection;
 
 import static de.se_rwth.commons.logging.Log.info;
 
@@ -13,23 +13,23 @@ import static de.se_rwth.commons.logging.Log.info;
 public class LEMSSyntaxContainer implements SyntaxContainer {
 
 	public String print(NumericLiteral expr) {
-		if (expr.getmValue() - (int) expr.getmValue() == 0) {
-			if (expr.hasType()) {
+		if (expr.getValue() - (int) expr.getValue() == 0) {
+			if (expr.hasType()&&expr.getType().get().isRight()) {
 				/*
 				return String.valueOf((int) expr.getmValue()) +" "+ HelperCollection.formatComplexUnit(
 						expr.getType().get().getmUnit().get().toString());
 						*/
-				return String.valueOf((int) expr.getmValue()) +" "+
-						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
+				return String.valueOf((int) expr.getValue()) +" "+
+						HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get().getRight()).print());
 			} else {
-				return String.valueOf((int) expr.getmValue());
+				return String.valueOf((int) expr.getValue());
 			}
 		}
-		if (expr.hasType()) {
-			return String.valueOf(expr.getmValue()) +" "+
-					HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get()).print());
+		if (expr.hasType() && expr.getType().get().isRight()) {
+			return String.valueOf(expr.getValue()) +" "+
+					HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(expr.getType().get().getRight()).print());
 		} else {
-			return String.valueOf(expr.getmValue());
+			return String.valueOf(expr.getValue());
 		}
 	}
 

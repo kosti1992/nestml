@@ -7,10 +7,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSCodeGenerator;
-import org.nest.codegeneration.helpers.Expressions.Variable;
-import org.nest.codegeneration.helpers.LEMSElements.*;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Elements.*;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
-import org.nest.symboltable.symbols.TypeSymbol;
 
 /**
  * This test checks whether duplicate elements are correctly recognized and not added to the corresponding list.

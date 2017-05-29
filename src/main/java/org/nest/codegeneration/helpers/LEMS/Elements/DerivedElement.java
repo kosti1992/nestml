@@ -1,9 +1,10 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
-import org.nest.codegeneration.helpers.Expressions.Operator;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
+import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Operator;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.commons._ast.ASTExpr;
 
 import org.nest.nestml._ast.ASTInputLine;
@@ -208,7 +209,7 @@ public class DerivedElement extends LEMSElement{
             this.mValue = new Expression(_declaration.getExpr().get());
         }else{
             if(_declaration.getDatatype().getUnitType().isPresent()){
-                this.mValue = new NumericLiteral(0,_declaration.getDatatype().getUnitType().get());
+                this.mValue = new NumericLiteral(0,Optional.of(EitherTuple.newRight(_declaration.getDatatype().getUnitType().get())));
             }else {
                 this.mValue = new NumericLiteral(0,null);
             }

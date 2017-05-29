@@ -1,10 +1,9 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

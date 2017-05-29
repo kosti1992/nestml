@@ -1,11 +1,11 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.helpers.LEMS.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
@@ -261,23 +261,20 @@ public class HelperCollection {
         //in the case we get a numerical literal directly
         if (expr instanceof NumericLiteral) {
             if ((((NumericLiteral) expr).hasType())) {
-                //int[] dec = convertTypeDeclToArray(((NumericLiteral) expr).getType().get().getSerializedUnit());
-                int[] dec = convertTypeDeclToArray(((NumericLiteral) expr).getType().get().prettyPrint());
-                //create the required units and dimensions
-                /*
-                Dimension tempDimension =
-                        new Dimension(PREFIX_DIMENSION +
-                                HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get()).print(),
-                                dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-                */
-                Dimension tempDimension = new Dimension(((NumericLiteral) expr).getType().get());
-                /*
-                Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get()).print(),
-                        dec[7], tempDimension);
-                */
-                Unit tempUnit = new Unit(((NumericLiteral) expr).getType().get());
-
-
+                Dimension tempDimension;
+                Unit tempUnit;
+                if(((NumericLiteral) expr).getType().get().isLeft()){//Value -> its a TypeSymbol
+                    //create the required units and dimensions
+                    tempDimension = new Dimension(((NumericLiteral) expr).getType().get().getLeft());
+                    tempUnit = new Unit(((NumericLiteral) expr).getType().get().getLeft());
+                }else{//error -> its a AStUnitType
+                    int[] dec = convertTypeDeclToArray(((NumericLiteral) expr).getType().get().getRight().getSerializedUnit());
+                    tempDimension = new Dimension(PREFIX_DIMENSION +
+                                    HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get().getRight()).print(),
+                                    dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+                    tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) expr).getType().get().getRight()).print(),
+                            dec[7], tempDimension);
+                }
                 container.addDimension(tempDimension);
                 container.addUnit(tempUnit);
 
@@ -292,13 +289,13 @@ public class HelperCollection {
         //otherwise it is an expression
         for (Expression exp : temp) {
             if (((NumericLiteral) exp).hasType()) {
-                if (((NumericLiteral) exp).getType().isPresent() &&
-                        ((NumericLiteral) exp).getType().get().getSerializedUnit() == null) {
+                if (((NumericLiteral) exp).getType().isPresent() && ((NumericLiteral) exp).getType().get().isRight()&&
+                        ((NumericLiteral) exp).getType().get().getRight().getSerializedUnit() == null) {
                     //this is a rather bad approach, since it requires that the same unit is already somewhere defined
                     //in the model, however, this part of the method it only invoked for artificial extensions, thus not critical
                     Dimension tempDimension = null;
                     for (Unit u : container.getUnitsSet()) {
-                        if (u.getSymbol().equals(((NumericLiteral) exp).getType().get().getUnit().get())) {
+                        if (u.getSymbol().equals(((NumericLiteral) exp).getType().get().getRight().getUnit().get())) {
                             tempDimension = u.getDimension();
                             break;
                         }
@@ -313,20 +310,26 @@ public class HelperCollection {
                         System.err.println("A problematic case occurred during constant replacement!");
                     }
                 } else {
-                    int[] dec = convertTypeDeclToArray(((NumericLiteral) exp).getType().get().getSerializedUnit());
-                    //create the required units and dimensions
-                    Dimension tempDimension =
-                            new Dimension(PREFIX_DIMENSION +
-                                    HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get()).print(),
-                                    dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
-                    Unit tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get()).print(),
-                            dec[7], tempDimension);
-                    container.addDimension(tempDimension);
-                    container.addUnit(tempUnit);
+                    Dimension tempDimension;
+                    Unit tempUnit;
+                    if(((NumericLiteral) exp).getType().get().isLeft()){//Value -> its a TypeSymbol
+                        //create the required units and dimensions
+                        tempDimension = new Dimension(((NumericLiteral) exp).getType().get().getLeft());
+                        tempUnit = new Unit(((NumericLiteral) exp).getType().get().getLeft());
+                    }else{//error -> its a AStUnitType
+                        int[] dec = convertTypeDeclToArray(((NumericLiteral) exp).getType().get().getRight().getSerializedUnit());
+                        tempDimension = new Dimension(PREFIX_DIMENSION +
+                                HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get().getRight()).print(),
+                                dec[2], dec[3], dec[1], dec[6], dec[0], dec[5], dec[4]);
+                        tempUnit = new Unit(HelperCollection.getExpressionFromUnitType(((NumericLiteral) exp).getType().get().getRight()).print(),
+                                dec[7], tempDimension);
+                    }
                     //finally a constant representing the concrete value, a reference is set to this constant
                     Constant tempConstant = new Constant(PREFIX_CONSTANT + ((NumericLiteral) exp).printValueType(),
                             tempDimension.getName(), exp, false);
                     container.addConstant(tempConstant);
+                    container.addUnit(tempUnit);
+                    container.addDimension(tempDimension);
                     Variable var = new Variable(tempConstant.getName());
                     expr.replaceElement(exp, var);
                 }
@@ -688,25 +691,13 @@ public class HelperCollection {
      * Collects all units from a handed over numerical. This method is required in order to process
      * complex units stated as part of constants in expressions.
      *
-     * @return a list of ASTUnitTypes of the numerical stated in a given expression.
      */
-    public static List<ASTUnitType> collectUnitsFromNumerics(Expression expr) {
-        List<ASTUnitType> ret = new ArrayList<>();
-        for (Expression lit : expr.getNumericals()) {
-            if (((NumericLiteral) lit).hasType()) {
-                //TODO
-                //ret.add(((NumericLiteral) lit).getType().get());
-            }
-        }
-        return ret;
-    }
-
     public static void retrieveUnitsFromExpression(Expression expr, LEMSCollector container) {
-        for (Expression numerical : expr.getNumericals()) {
-            if (((NumericLiteral) numerical).hasType()) {
-                Unit temp = new Unit(((NumericLiteral) numerical).getType().get());
-                container.addUnit(temp);
-                container.addDimension(temp.getDimension());
+        for (Expression numeric : expr.getNumericals()) {
+            if (((NumericLiteral) numeric).hasType()&& ((NumericLiteral) numeric).getType().get().isLeft()) {
+                container.handleType(((NumericLiteral) numeric).getType().get().getLeft());
+            }else if(((NumericLiteral) numeric).hasType()&& ((NumericLiteral) numeric).getType().get().isRight()){
+                container.handleType(((NumericLiteral) numeric).getType().get().getRight());
             }
         }
     }

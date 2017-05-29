@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import org.nest.nestml._ast.ASTInputLine;
 import org.nest.nestml._ast.ASTOutput;

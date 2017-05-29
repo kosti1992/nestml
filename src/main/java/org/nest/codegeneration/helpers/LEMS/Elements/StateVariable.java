@@ -1,13 +1,15 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.util.Optional;
 
 //import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
+import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.codegeneration.helpers.Names;
+import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
 import org.w3c.dom.Node;
@@ -70,13 +72,13 @@ public class StateVariable extends LEMSElement{
             //no declaration is present, generate a 0 as init value, but with a unit if present
             if (this.mDimension.equals(HelperCollection.DIMENSION_NONE) ||
                     this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
-                this.mDefaultValue = Optional.of(new NumericLiteral(0, null));
+                this.mDefaultValue = Optional.of(new NumericLiteral(0, Optional.empty()));
             } else {
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(_variable.getType().prettyPrint());
                 tempType.setSerializedUnit(_variable.getType().getName());
                 Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + Names.convertToCPPName(_variable.getName()),
-                        this.mDimension, new NumericLiteral(0, tempType), false);
+                        this.mDimension, new NumericLiteral(0, Optional.of(EitherTuple.newRight(tempType))), false);
                 _container.addConstant(defaultValue);
                 this.mDefaultValue = Optional.of(new Variable(defaultValue.getName()));
             }

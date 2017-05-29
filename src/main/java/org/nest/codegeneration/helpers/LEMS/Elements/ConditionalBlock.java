@@ -1,10 +1,10 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
+import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
 
 /**
  * This class stores a block which will be evoked during the simulation on a certain mCondition. A condtional block is

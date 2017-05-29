@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSCodeGenerator;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
 /**

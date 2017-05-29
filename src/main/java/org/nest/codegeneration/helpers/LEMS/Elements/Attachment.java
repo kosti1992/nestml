@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import org.w3c.dom.Node;
 

@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers;
+package org.nest.codegeneration.helpers.LEMS;
 
 /**
  * An abstract class which need to be extended if a concrete collector shall

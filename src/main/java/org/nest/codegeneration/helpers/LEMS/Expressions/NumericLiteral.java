@@ -1,11 +1,13 @@
-package org.nest.codegeneration.helpers.Expressions;
+package org.nest.codegeneration.helpers.LEMS.Expressions;
 
 import java.util.Optional;
 
 import de.monticore.literals.literals._ast.ASTNumericLiteral;
 import de.monticore.prettyprint.IndentPrinter;
 import de.monticore.types.prettyprint.TypesPrettyPrinterConcreteVisitor;
-import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
+import org.nest.codegeneration.helpers.LEMS.Elements.HelperCollection;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
+import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.units._ast.ASTUnitType;
 
@@ -16,16 +18,16 @@ import org.nest.units._ast.ASTUnitType;
  */
 public class NumericLiteral extends Expression {
     private double mValue;
-    private Optional<TypeSymbol> mType = Optional.empty();
+    private Optional<EitherTuple<TypeSymbol,ASTUnitType>> mType = Optional.empty();
 
-    public NumericLiteral(ASTNumericLiteral _literal, Optional<TypeSymbol> _type) {
+    public NumericLiteral(ASTNumericLiteral _literal, Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
         this.mValue = Double.parseDouble(typesPrinter().prettyprint(_literal));
         if (_type.isPresent()) {
             this.mType = _type;
         }
     }
 
-    public NumericLiteral(double _value, Optional<TypeSymbol> _type) {
+    public NumericLiteral(double _value, Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
         this.mValue = _value;
         if (_type.isPresent()) {
             this.mType = _type;
@@ -46,7 +48,7 @@ public class NumericLiteral extends Expression {
         return mType.isPresent();
     }
 
-    public Optional<TypeSymbol> getType() {
+    public Optional<EitherTuple<TypeSymbol,ASTUnitType>> getType() {
         return mType;
     }
 
@@ -55,7 +57,7 @@ public class NumericLiteral extends Expression {
         return new TypesPrettyPrinterConcreteVisitor(printer);
     }
 
-    public void setType(Optional<TypeSymbol> _type) {
+    public void setType(Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
         if (_type.isPresent()) {
             this.mType = _type;
         }
@@ -75,14 +77,14 @@ public class NumericLiteral extends Expression {
      * @return a string representation of the literal.
      */
     public String printValueType() {
-        if (this.mType.isPresent()) {
+        if (this.mType.isPresent() && this.mType.get().isRight()) {
             if (this.mValue - (int) this.mValue == 0) {
                 return String.valueOf((int) this.mValue) + "_" +
-                        HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get()).print());
+                        HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get().getRight()).print());
             } else {
                 return String.valueOf(this.mValue) + "_" +
                     //TODO
-                HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get()).print());
+                HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get().getRight()).print());
             }
         } else {
             if (this.mValue - (int) this.mValue == 0) {
@@ -102,7 +104,7 @@ public class NumericLiteral extends Expression {
         NumericLiteral that = (NumericLiteral) o;
 
         if (Double.compare(that.mValue, mValue) != 0) return false;
-        return mType.equals(that.mType);
+        return mType != null ? mType.equals(that.mType) : that.mType == null;
     }
 
     @Override
@@ -111,7 +113,7 @@ public class NumericLiteral extends Expression {
         long temp;
         temp = Double.doubleToLongBits(mValue);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + mType.hashCode();
+        result = 31 * result + (mType != null ? mType.hashCode() : 0);
         return result;
     }
 

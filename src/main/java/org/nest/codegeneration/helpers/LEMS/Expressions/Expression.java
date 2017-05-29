@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers.Expressions;
+package org.nest.codegeneration.helpers.LEMS.Expressions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.nest.codegeneration.helpers.LEMSElements.HelperCollection;
+import org.nest.codegeneration.helpers.LEMS.Elements.HelperCollection;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.commons._ast.ASTExpr;
+import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.VariableSymbol;
 
 /**
@@ -53,7 +55,8 @@ public class Expression {
 			this.mOperator = Optional.of(new Operator(_expr));
 			this.mRhs = Optional.of(new Expression(_expr.getTerm().get()));
 		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
-			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get(),Optional.of(_expr.getType().getValue())));
+			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get(),
+					Optional.of(EitherTuple.newLeft(_expr.getType().getValue()))));
 		} else if (_expr.variableIsPresent()) {
 		    /*
             System.out.println(tSymbol.get().getType().getName());//type
@@ -306,7 +309,7 @@ public class Expression {
 		//first the whole expression
 		Expression ret = new Expression();
 		//since both sides equal, it is sufficient to create a single object
-		NumericLiteral lhs_rhs = new NumericLiteral(1, null);
+		NumericLiteral lhs_rhs = new NumericLiteral(1, Optional.empty());
 		//connection between
 		Operator op = new Operator();
 		op.setEq(true);

@@ -1,4 +1,4 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.io.BufferedReader;
 import java.io.StringReader;

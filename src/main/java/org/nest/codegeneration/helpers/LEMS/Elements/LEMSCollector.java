@@ -1,9 +1,10 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.util.*;
 
-import org.nest.codegeneration.helpers.Collector;
-import org.nest.codegeneration.helpers.Expressions.*;
+import org.nest.codegeneration.helpers.LEMS.Collector;
+import org.nest.codegeneration.helpers.LEMS.Expressions.*;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.codegeneration.sympy.OdeTransformer;
 import org.nest.commons._ast.ASTExpr;
@@ -116,7 +117,8 @@ public class LEMSCollector extends Collector {
             //create a new constant in order to achieve a correct dimension of the equation:
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit("ms");
-            this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms", HelperCollection.PREFIX_DIMENSION + "ms", new NumericLiteral(1, tempType), false));
+            this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms",
+                    HelperCollection.PREFIX_DIMENSION + "ms", new NumericLiteral(1, Optional.of(EitherTuple.newRight(tempType))), false));
             Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
             this.addDimension(msDimension);
             this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
@@ -559,7 +561,7 @@ public class LEMSCollector extends Collector {
                             var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("resolution")) {
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral tempNumerical = new NumericLiteral(config.getSimulationStepsLength(), tempType);
+                        NumericLiteral tempNumerical = new NumericLiteral(config.getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
                         Constant tempConstant = new Constant(var.getName(), config.getSimulationStepsUnit().
                                 getDimensionName(), tempNumerical, false);
                         this.addConstant(tempConstant);
@@ -573,7 +575,8 @@ public class LEMSCollector extends Collector {
                         //handle a numerical lit, e.g. 10ms
                         if (args.get(0).numericLiteralIsPresent() && args.get(0).variableIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
-                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.of(args.get(0).getType().getValue()));
+                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.of(EitherTuple.newLeft(
+                                    args.get(0).getType().getValue())));
                             //handle a variable ref, e.g. res_init
                         } else if (args.get(0).numericLiteralIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
@@ -593,7 +596,7 @@ public class LEMSCollector extends Collector {
 
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(), tempType);
+                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
 
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);

@@ -1,6 +1,6 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
-import org.nest.codegeneration.helpers.Expressions.Expression;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
 import org.nest.commons._ast.ASTFunctionCall;
 import org.nest.ode._ast.ASTEquation;
 import org.nest.ode._ast.ASTShape;

@@ -1,13 +1,16 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
-import org.nest.codegeneration.helpers.Expressions.Expression;
-import org.nest.codegeneration.helpers.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
-import org.nest.codegeneration.helpers.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
+import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
+import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
+import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
 import org.w3c.dom.Node;
+
+import java.util.Optional;
 
 /**
  * This class represents a static non-alias element of the modeled neuron derived from the mParameter or the internal
@@ -186,7 +189,7 @@ public class Constant extends LEMSElement{
         if (_variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit(_container.getConfig().getSimulationStepsUnit().getSymbol());
-            return new NumericLiteral(_container.getConfig().getSimulationStepsLength(), tempType);
+            return new NumericLiteral(_container.getConfig().getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
         } else {
             Messages.printNotSupportedFunctionCallInExpression(_variable, _container);
             return new Variable(HelperCollection.NOT_SUPPORTED

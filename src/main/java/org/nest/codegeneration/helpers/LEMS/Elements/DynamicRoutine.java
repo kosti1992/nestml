@@ -1,12 +1,13 @@
-package org.nest.codegeneration.helpers.LEMSElements;
+package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
 
 import de.monticore.emf._ast.ASTECNode;
-import org.nest.codegeneration.helpers.Expressions.*;
-import org.nest.codegeneration.helpers.Expressions.NumericLiteral;
+import org.nest.codegeneration.helpers.LEMS.Expressions.*;
+import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
+import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.commons._ast.ASTFunctionCall;
@@ -388,7 +389,7 @@ public class DynamicRoutine {
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(declaration.getDatatype().getUnitType().get().getUnit().get());
                 tempType.setSerializedUnit(declaration.getDatatype().getUnitType().get().getSerializedUnit());
-                tempExpression = new NumericLiteral(0, tempType);
+                tempExpression = new NumericLiteral(0, Optional.of(EitherTuple.newRight(tempType)));
             } else {
                 tempExpression = new NumericLiteral(0, null);
             }
@@ -580,7 +581,8 @@ public class DynamicRoutine {
 
         Expression tempLiteral = new NumericLiteral(0, null);
         if (_smallStmt.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
-            ((NumericLiteral) tempLiteral).setType(Optional.of(_smallStmt.getDeclaration().get().getDatatype().getUnitType().get()));
+            ((NumericLiteral) tempLiteral).setType(Optional.of(EitherTuple.newRight(
+                    _smallStmt.getDeclaration().get().getDatatype().getUnitType().get())));
         }
         tempLiteral = HelperCollection.replacementRoutine(mContainer, tempLiteral);
         for (String var : _smallStmt.getDeclaration().get().getVars()) {
@@ -635,7 +637,7 @@ public class DynamicRoutine {
         } else {
             for (StateVariable var : mContainer.getStateVariablesList()) {              //the integrate function call has exactly one argument
                 if (var.getName().equals(HelperCollection.PREFIX_ACT + _functionCall.getArgs().get(0).getVariable().get().getName().toString())) {
-                    ((NumericLiteral) var.getDefaultValue().get()).setmValue(0);
+                    ((NumericLiteral) var.getDefaultValue().get()).setValue(0);
                 }
             }
             //integrate the corresponding variable in this block
@@ -706,7 +708,11 @@ public class DynamicRoutine {
     private void handleASTUnitTypeInExpression(Expression _expression, LEMSCollector _container){
         for(Expression tLit:_expression.getNumericals()){
             if(((NumericLiteral) tLit).hasType()){
-                _container.handleType(((NumericLiteral) tLit).getType().get());
+                if(((NumericLiteral) tLit).getType().get().isLeft()){
+                    _container.handleType(((NumericLiteral) tLit).getType().get().getLeft());
+                }else{
+                    _container.handleType(((NumericLiteral) tLit).getType().get().getRight());
+                }
             }
         }
     }

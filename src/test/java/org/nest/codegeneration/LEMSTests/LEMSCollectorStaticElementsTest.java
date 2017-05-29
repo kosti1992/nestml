@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.nest.base.ModelbasedTest;
 import org.nest.codegeneration.LEMSCodeGenerator;
-import org.nest.codegeneration.helpers.LEMSElements.EventPort;
+import org.nest.codegeneration.helpers.LEMS.Elements.EventPort;
 import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 
 /**
