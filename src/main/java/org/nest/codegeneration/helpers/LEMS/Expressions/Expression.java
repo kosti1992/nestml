@@ -55,8 +55,7 @@ public class Expression {
 			this.mOperator = Optional.of(new Operator(_expr));
 			this.mRhs = Optional.of(new Expression(_expr.getTerm().get()));
 		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
-			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get(),
-					Optional.of(EitherTuple.newLeft(_expr.getType().getValue()))));
+			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get()));
 		} else if (_expr.variableIsPresent()) {
 		    /*
             System.out.println(tSymbol.get().getType().getName());//type
@@ -80,9 +79,9 @@ public class Expression {
 			this.mOperator = Optional.of(tempOperator);
 		} else if (_expr.booleanLiteralIsPresent()) {
 			if (_expr.getBooleanLiteral().get().getValue()) {
-				this.mRhs = Optional.of(new NumericLiteral(1, null));
+				this.mRhs = Optional.of(new NumericLiteral(1));
 			} else {
-				this.mRhs = Optional.of(new NumericLiteral(0, null));
+				this.mRhs = Optional.of(new NumericLiteral(0));
 			}
 		} else {
 			if (_expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
@@ -309,7 +308,7 @@ public class Expression {
 		//first the whole expression
 		Expression ret = new Expression();
 		//since both sides equal, it is sufficient to create a single object
-		NumericLiteral lhs_rhs = new NumericLiteral(1, Optional.empty());
+		NumericLiteral lhs_rhs = new NumericLiteral(1);
 		//connection between
 		Operator op = new Operator();
 		op.setEq(true);

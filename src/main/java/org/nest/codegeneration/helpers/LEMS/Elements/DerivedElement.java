@@ -209,9 +209,9 @@ public class DerivedElement extends LEMSElement{
             this.mValue = new Expression(_declaration.getExpr().get());
         }else{
             if(_declaration.getDatatype().getUnitType().isPresent()){
-                this.mValue = new NumericLiteral(0,Optional.of(EitherTuple.newRight(_declaration.getDatatype().getUnitType().get())));
+                this.mValue = new NumericLiteral(0);
             }else {
-                this.mValue = new NumericLiteral(0,null);
+                this.mValue = new NumericLiteral(0);
             }
         }
         //TODO: ternary op handling -> this is only in user defined functions

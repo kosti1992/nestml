@@ -1,5 +1,5 @@
 <#--This template generates a LEMS model from the internal representation of a NESTML model stored in the -->
-<#--glex global-mValue "container".-->
+<#--glex global-value "container".-->
 <#--@author perun -->
 <?xml version="1.0" encoding="utf-8"?><#--A type header is required by the beautifier.-->
 <Lems>
@@ -23,14 +23,14 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
         <Parameter name="${constant.getName()}" dimension="${constant.getDimension()}"/>
     <#else>
         <Constant <@compress single_line=true>name="${constant.getName()}" dimension="${constant.getDimension()}"
-                      mValue="${constant.getValueUnit()}"/></@compress>
+                      value="${constant.getValueUnit()}"/></@compress>
     </#if>
     </#list>
 
     <#list container.getDerivedParametersList() as derivedParameter>
         <DerivedParameter <@compress single_line=true>name="${derivedParameter.getName()}"
                               dimension="${derivedParameter.getDimension()}"
-                              mValue="${derivedParameter.getValue().print()}"/></@compress>
+                              value="${derivedParameter.getValue().print()}"/></@compress>
     </#list>
 
     <#list container.getPortsList() as port>
@@ -52,12 +52,12 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
 
               <DerivedVariable <@compress single_line=true> name="${derivedVariable.getName()}"
                                                             dimension="${derivedVariable.getDimension()}"
-                                                            mValue="${derivedVariable.getValue().print()}" </@compress>/>
+                                                            value="${derivedVariable.getValue().print()}" </@compress>/>
             <#else>
 
               <ConditionalDerivedVariable name="${derivedVariable.getName()}" dimension="${derivedVariable.getDimension()}">
                    <#list (derivedVariable.getConditionalDerivedValuesAsStrings())?keys as var>
-                      <Case condition="${var}" mValue="${derivedVariable.getConditionalDerivedValuesAsStrings()[var]}"/>
+                      <Case condition="${var}" value="${derivedVariable.getConditionalDerivedValuesAsStrings()[var]}"/>
                   </#list>
               </ConditionalDerivedVariable>
             </#if>
@@ -72,7 +72,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
           <#if (container.getStateVariablesList()?size>0) >
               <OnStart>
                 <#list container.getStateVariablesList() as defaults>
-                <StateAssignment variable="${defaults.getName()}" mValue="${defaults.print()}"/>
+                <StateAssignment variable="${defaults.getName()}" value="${defaults.print()}"/>
                 </#list>
               </OnStart>
           </#if>
@@ -81,14 +81,14 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
             <!--Guards block start -->
             <#list (container.getGuards())?keys as cond>
                 <OnCondition test="${cond.print()}">
-                    <StateAssignment variable="${container.printGuardName(cond)}" mValue="log(-1)"/>
+                    <StateAssignment variable="${container.printGuardName(cond)}" value="log(-1)"/>
                 </OnCondition>
             </#list>
             <!--Guards block end -->
           </#if>
 
           <#list (container.getEquationsAsStrings())?keys as var>
-              <TimeDerivative variable="${var}" mValue="${container.getEquationsAsStrings()[var].print()}"/>
+              <TimeDerivative variable="${var}" value="${container.getEquationsAsStrings()[var].print()}"/>
           </#list>
 
           <#if container.conditionsPresent()>
@@ -99,7 +99,7 @@ ${tc.includeArgs("org.nest.lems.units_dimensions",[container.getUnitsSet(),conta
               <OnCondition test="${condBlock.getCondition().print()}">
                   <#list condBlock.getInstructions() as instr>
                   <#if condBlock.getInstructionType(instr)=="Assignment">
-                  <StateAssignment variable="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedVariable()}" mValue="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedValue()}"/>
+                  <StateAssignment variable="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedVariable()}" value="${container.getAutomaton().getAssignmentFromInstruction(instr).printAssignedValue()}"/>
                   <#elseif condBlock.getInstructionType(instr)=="FunctionCall">
                   <#attempt>
                   ${tc.includeArgs("org.nest.lems.functions.${container.getAutomaton().getFunctionCallFromInstruction(instr).printName()}",

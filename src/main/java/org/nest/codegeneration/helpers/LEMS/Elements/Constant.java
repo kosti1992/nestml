@@ -32,7 +32,6 @@ public class Constant extends LEMSElement{
      * @param _isParameter indicates whether it is a mParameter or not
      * @param _container   the container in which the new object will be stored and whose prettyPrinter shall be used
      */
-
     public Constant(VariableSymbol _variable, boolean _isInit, boolean _isParameter, LEMSCollector _container) {
         this.mName = _variable.getName();
         this.mDimension = HelperCollection.typeToDimensionConverter(_variable.getType());
@@ -59,7 +58,7 @@ public class Constant extends LEMSElement{
 					NumericLiteral literal = new NumericLiteral(0, tempType);*/
                     this.mValue = new Expression(_variable.getDeclaringExpression().get());
                 } else {//var does not have unit, a variable with mValue 0 is sufficient
-                    this.mValue = new NumericLiteral(0, null);
+                    this.mValue = new NumericLiteral(0);
                 }
             }
         }
@@ -89,6 +88,20 @@ public class Constant extends LEMSElement{
             System.err.println("LEMS Error: Constant artifact wrongly formatted.");
         }
     }
+
+    /**
+     * This constructor is used to generate concrete constants from stated implicit units. E.g. the variable
+     * ms is transformed to the constant 1ms, where ms can still be used as reference.
+     * @param _name the name of the implicit unit
+     * @param _type the type
+     */
+    public Constant(String _name, TypeSymbol _type){
+        this.mName = _name;
+        this.mDimension = HelperCollection.typeToDimensionConverter(_type);
+        this.mValue = new Variable("1"+_name);
+        this.mParameter = false;
+    }
+
 
     /**
      * This constructor is used to generate handmade constants if required.
@@ -189,7 +202,7 @@ public class Constant extends LEMSElement{
         if (_variable.getDeclaringExpression().get().getFunctionCall().get().getCalleeName().equals("resolution")) {
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit(_container.getConfig().getSimulationStepsUnit().getSymbol());
-            return new NumericLiteral(_container.getConfig().getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
+            return new NumericLiteral(_container.getConfig().getSimulationStepsLength());
         } else {
             Messages.printNotSupportedFunctionCallInExpression(_variable, _container);
             return new Variable(HelperCollection.NOT_SUPPORTED

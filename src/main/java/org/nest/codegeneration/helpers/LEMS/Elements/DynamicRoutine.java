@@ -389,9 +389,9 @@ public class DynamicRoutine {
                 ASTUnitType tempType = new ASTUnitType();
                 tempType.setUnit(declaration.getDatatype().getUnitType().get().getUnit().get());
                 tempType.setSerializedUnit(declaration.getDatatype().getUnitType().get().getSerializedUnit());
-                tempExpression = new NumericLiteral(0, Optional.of(EitherTuple.newRight(tempType)));
+                tempExpression = new NumericLiteral(0);
             } else {
-                tempExpression = new NumericLiteral(0, null);
+                tempExpression = new NumericLiteral(0);
             }
         }
         tempExpression = HelperCollection.replacementRoutine(container, tempExpression);
@@ -578,16 +578,18 @@ public class DynamicRoutine {
             secondBlock = new ConditionalBlock(secondAssignment, secondCondition, null);
             ret.add(secondBlock);
         }
-
+        /*
         Expression tempLiteral = new NumericLiteral(0, null);
         if (_smallStmt.getDeclaration().get().getDatatype().unitTypeIsPresent()) {
             ((NumericLiteral) tempLiteral).setType(Optional.of(EitherTuple.newRight(
                     _smallStmt.getDeclaration().get().getDatatype().getUnitType().get())));
         }
+
         tempLiteral = HelperCollection.replacementRoutine(mContainer, tempLiteral);
         for (String var : _smallStmt.getDeclaration().get().getVars()) {
             mContainer.addStateVariable(new StateVariable(var, dimension, tempLiteral, unit));
         }
+        */
         return ret;
     }
 
@@ -616,7 +618,7 @@ public class DynamicRoutine {
             }
             //add a deactivation assignment to the list of directives if no integrate directive has been found
             if (!temp) {
-                NumericLiteral tempLiteral = new NumericLiteral(0, null);
+                NumericLiteral tempLiteral = new NumericLiteral(0);
                 _listOfInstructions.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
             }
         }
@@ -641,7 +643,7 @@ public class DynamicRoutine {
                 }
             }
             //integrate the corresponding variable in this block
-            NumericLiteral tempLiteral = new NumericLiteral(1, null);
+            NumericLiteral tempLiteral = new NumericLiteral(1);
             //the method requires a list of instructions rather than a single instruction
             List<Instruction> res = new ArrayList<>();
             res.add(new Assignment(HelperCollection.PREFIX_ACT +
@@ -662,7 +664,7 @@ public class DynamicRoutine {
             NumericLiteral tempLiteral;
             for (Variable var : mContainer.getEquations().keySet()) {
                 //integrate the corresponding variable in this block
-                tempLiteral = new NumericLiteral(1, null);
+                tempLiteral = new NumericLiteral(1);
                 res.add(new Assignment(HelperCollection.PREFIX_ACT + var.getVariable(), tempLiteral));
                 //moreover, since a integrate_odes function call has been found, we make all integrations local
                 mContainer.addLocalTimeDerivative(var);
@@ -706,6 +708,7 @@ public class DynamicRoutine {
      * @param _container a LEMSCollector object with will stored generated units
      */
     private void handleASTUnitTypeInExpression(Expression _expression, LEMSCollector _container){
+        return;/*
         for(Expression tLit:_expression.getNumericals()){
             if(((NumericLiteral) tLit).hasType()){
                 if(((NumericLiteral) tLit).getType().get().isLeft()){
@@ -714,7 +717,7 @@ public class DynamicRoutine {
                     _container.handleType(((NumericLiteral) tLit).getType().get().getRight());
                 }
             }
-        }
+        }*/
     }
 
 

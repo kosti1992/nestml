@@ -12,56 +12,34 @@ import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.units._ast.ASTUnitType;
 
 /**
- * This class stores a numerical literal (e.g. 10mV) together with its type.
+ * This class stores a numeric literal.
  *
  * @author perun
  */
 public class NumericLiteral extends Expression {
     private double mValue;
-    private Optional<EitherTuple<TypeSymbol,ASTUnitType>> mType = Optional.empty();
 
-    public NumericLiteral(ASTNumericLiteral _literal, Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
+    public NumericLiteral(ASTNumericLiteral _literal) {
         this.mValue = Double.parseDouble(typesPrinter().prettyprint(_literal));
-        if (_type.isPresent()) {
-            this.mType = _type;
-        }
     }
 
-    public NumericLiteral(double _value, Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
+    public NumericLiteral(double _value) {
         this.mValue = _value;
-        if (_type.isPresent()) {
-            this.mType = _type;
-        }
     }
-
-    public NumericLiteral(double value) {
-        this.mValue = value;
-        this.mType = Optional.empty();
-    }
-
 
     public double getValue() {
         return mValue;
     }
 
-    public boolean hasType() {
-        return mType.isPresent();
-    }
-
-    public Optional<EitherTuple<TypeSymbol,ASTUnitType>> getType() {
-        return mType;
-    }
-
+    /**
+     * This method is required in order to be able to print the value of a handed over literal
+     * @return a TypesPrettyPrinterConcreteVisitor object which can be used to visit an ast node
+     */
     private TypesPrettyPrinterConcreteVisitor typesPrinter() {
         final IndentPrinter printer = new IndentPrinter();
         return new TypesPrettyPrinterConcreteVisitor(printer);
     }
 
-    public void setType(Optional<EitherTuple<TypeSymbol,ASTUnitType>> _type) {
-        if (_type.isPresent()) {
-            this.mType = _type;
-        }
-    }
 
     public String print(SyntaxContainer container) {
         return container.print(this);
@@ -76,22 +54,11 @@ public class NumericLiteral extends Expression {
      *
      * @return a string representation of the literal.
      */
-    public String printValueType() {
-        if (this.mType.isPresent() && this.mType.get().isRight()) {
-            if (this.mValue - (int) this.mValue == 0) {
-                return String.valueOf((int) this.mValue) + "_" +
-                        HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get().getRight()).print());
-            } else {
-                return String.valueOf(this.mValue) + "_" +
-                    //TODO
-                HelperCollection.formatComplexUnit(HelperCollection.getExpressionFromUnitType(this.mType.get().getRight()).print());
-            }
+    public String printValue() {
+        if (this.mValue - (int) this.mValue == 0) {
+            return String.valueOf((int) this.mValue);
         } else {
-            if (this.mValue - (int) this.mValue == 0) {
-                return String.valueOf((int) this.mValue);
-            } else {
-                return String.valueOf(this.mValue);
-            }
+            return String.valueOf(this.mValue);
         }
     }
 
@@ -103,8 +70,7 @@ public class NumericLiteral extends Expression {
 
         NumericLiteral that = (NumericLiteral) o;
 
-        if (Double.compare(that.mValue, mValue) != 0) return false;
-        return mType != null ? mType.equals(that.mType) : that.mType == null;
+        return Double.compare(that.mValue, mValue) == 0;
     }
 
     @Override
@@ -113,7 +79,6 @@ public class NumericLiteral extends Expression {
         long temp;
         temp = Double.doubleToLongBits(mValue);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (mType != null ? mType.hashCode() : 0);
         return result;
     }
 
@@ -124,11 +89,7 @@ public class NumericLiteral extends Expression {
      * @return a deep clone of this
      */
     public NumericLiteral deepClone() {
-        if (this.mType.isPresent()) {
-            return new NumericLiteral(this.mValue, this.mType);
-        } else {
-            return new NumericLiteral(this.mValue);
-        }
+        return new NumericLiteral(this.mValue);
     }
 
 }

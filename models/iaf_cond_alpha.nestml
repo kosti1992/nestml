@@ -34,7 +34,7 @@ SeeAlso: iaf_cond_exp, iaf_cond_alpha_mc
 neuron iaf_cond_alpha_neuron:
 
   state:
-    V_m mV = E_L   # membrane potential
+    V_m mV = 10mV #E_L   # membrane potential
   end
 
   equations:
@@ -49,7 +49,7 @@ neuron iaf_cond_alpha_neuron:
   end
 
   parameters:
-    V_th mV = -55.0mV*30nS    # Threshold Potential in mV
+    V_th mV = -55.0mV    # Threshold Potential in mV
     V_reset mV = -60.0mV # Reset Potential in mV
     t_ref ms = 2.ms     # Refractory period in ms
     g_L nS = 16.6667nS   # Leak Conductance in nS

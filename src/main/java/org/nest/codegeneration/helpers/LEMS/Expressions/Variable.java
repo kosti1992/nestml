@@ -3,6 +3,7 @@ package org.nest.codegeneration.helpers.LEMS.Expressions;
 
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
+import org.nest.units._ast.ASTUnitType;
 
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ import java.util.Optional;
 public class Variable extends Expression {
 	private String mVariable;
 	private Optional<TypeSymbol> mType;
+	private boolean mIsImplicitUnit;
 
 	public Variable(VariableSymbol variable){
 	    this.mVariable = variable.getName();
@@ -24,6 +26,11 @@ public class Variable extends Expression {
 		this.mVariable = _variableName;
 		this.mType = Optional.of(_typeSymbol);
 	}
+
+	public Variable(String _variableName, ASTUnitType _unitType){
+
+	}
+
 
 	public Variable(String _variableName){
 	    this.mVariable = _variableName;
@@ -78,9 +85,13 @@ public class Variable extends Expression {
 	 */
 	public Variable deepClone() {
 	    if(mType.isPresent()){
-            return new Variable(this.mVariable,mType.get());
+            return new Variable(this.mVariable,this.mType.get());
         }else{
 	        return new Variable(this.mVariable);
         }
+	}
+
+	public boolean isImplicitUnit() {
+		return mIsImplicitUnit;
 	}
 }

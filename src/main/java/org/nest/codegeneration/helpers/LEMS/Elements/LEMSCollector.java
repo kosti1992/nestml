@@ -101,6 +101,7 @@ public class LEMSCollector extends Collector {
 
         //process user defined functions in simple way
         //we process user defined functions at the beginning in order to mark them as supported
+        //TODO
         this.handleUserDefinedFunctions(neuronBody);
 
         //collect all boolean elements
@@ -118,7 +119,7 @@ public class LEMSCollector extends Collector {
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit("ms");
             this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms",
-                    HelperCollection.PREFIX_DIMENSION + "ms", new NumericLiteral(1, Optional.of(EitherTuple.newRight(tempType))), false));
+                    HelperCollection.PREFIX_DIMENSION + "ms", new NumericLiteral(1), false));
             Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
             this.addDimension(msDimension);
             this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
@@ -173,7 +174,11 @@ public class LEMSCollector extends Collector {
             } else {
                 //otherwise process the object to a state variable
                 this.addStateVariable(new StateVariable(var, this));
-                handleType(var.getType());//handle the type of the variable
+                handleType(var.getType());//handle the type of the variable, not the declaration
+
+                /*
+                if(HelperCollection.resolveVariableSymbol(var.getDeclaringExpression().get().getRight().get()).get().isPredefined()){
+                */
             }
         }
 
@@ -325,7 +330,7 @@ public class LEMSCollector extends Collector {
                     //now generate the corresponding activator
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1, null), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1), Optional.empty()));
                     }
                     this.localTimeDerivative.add(new Variable(tLhs));
                 } else {
@@ -339,7 +344,7 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replacementRoutine(this, expr);
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1, null), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1), Optional.empty()));
                     }
                     equation.put(new Variable(tLhs), expr);
 
@@ -508,7 +513,7 @@ public class LEMSCollector extends Collector {
         if (!neuronBody.getParameterInvariants().isEmpty()) {
             //we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
             StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
-                    new NumericLiteral(0, null), Optional.empty());
+                    new NumericLiteral(0), Optional.empty());
             this.addStateVariable(tempVar);
             //finally process each guard
             Expression tempExpression;
@@ -561,7 +566,7 @@ public class LEMSCollector extends Collector {
                             var.getDeclaringExpression().get().getFunctionCall().get().getName().toString().equals("resolution")) {
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral tempNumerical = new NumericLiteral(config.getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
+                        NumericLiteral tempNumerical = new NumericLiteral(config.getSimulationStepsLength());
                         Constant tempConstant = new Constant(var.getName(), config.getSimulationStepsUnit().
                                 getDimensionName(), tempNumerical, false);
                         this.addConstant(tempConstant);
@@ -575,12 +580,11 @@ public class LEMSCollector extends Collector {
                         //handle a numerical lit, e.g. 10ms
                         if (args.get(0).numericLiteralIsPresent() && args.get(0).variableIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
-                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.of(EitherTuple.newLeft(
-                                    args.get(0).getType().getValue())));
+                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get());
                             //handle a variable ref, e.g. res_init
                         } else if (args.get(0).numericLiteralIsPresent()) {
                             System.out.println(args.get(0).getType().toString());
-                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get(), Optional.empty());
+                            lhs = new NumericLiteral(args.get(0).getNumericLiteral().get());
                         } else if (args.get(0).variableIsPresent()) {
                             lhs = new Variable(HelperCollection.resolveVariableSymbol(args.get(0)).get());
                             //handle an expression, e.g. 10ms + res_init
@@ -596,7 +600,7 @@ public class LEMSCollector extends Collector {
 
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(), Optional.of(EitherTuple.newRight(tempType)));
+                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength());
 
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);

@@ -258,6 +258,8 @@ public class HelperCollection {
      */
     public static Expression replaceConstantsWithReferences(LEMSCollector container, Expression expr) {
         List<Expression> temp = expr.getNumericals();
+
+        /*
         //in the case we get a numerical literal directly
         if (expr instanceof NumericLiteral) {
             if ((((NumericLiteral) expr).hasType())) {
@@ -335,7 +337,7 @@ public class HelperCollection {
                 }
             }
         }
-
+        */
         return expr;
     }
 
@@ -351,7 +353,7 @@ public class HelperCollection {
     public static Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
 
         if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
-            NumericLiteral lit1 = new NumericLiteral(1, null);
+            NumericLiteral lit1 = new NumericLiteral(1);
             Operator op1 = new Operator();
             op1.setEq(true);
             Expression ex1 = new Expression();
@@ -561,6 +563,7 @@ public class HelperCollection {
      * @return the modified expression
      */
     public static Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
+        return expr;
         /*
         if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
             ASTUnitType tempType = new ASTUnitType();
@@ -574,7 +577,7 @@ public class HelperCollection {
             expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
             return expr;
         }*/
-        return new Expression();//expr;//TODO
+        //return new Expression();//expr;//TODO
     }
 
     /**
@@ -639,7 +642,7 @@ public class HelperCollection {
             ret.replaceLhs(var);
         }
         if (unitType.unitlessLiteralIsPresent()) {
-            NumericLiteral lit = new NumericLiteral(unitType.getUnitlessLiteral().get().getValue(), null);
+            NumericLiteral lit = new NumericLiteral(unitType.getUnitlessLiteral().get().getValue());
             ret.replaceLhs(lit);
         }
         if (unitType.baseIsPresent() && unitType.exponentIsPresent()) {
@@ -647,7 +650,7 @@ public class HelperCollection {
             op.setPower(true);
             ret.replaceLhs(getExpressionFromUnitType(unitType.getBase().get()));
             ret.replaceOp(op);
-            ret.replaceRhs(new NumericLiteral(unitType.getExponent().get().getValue(), null));
+            ret.replaceRhs(new NumericLiteral(unitType.getExponent().get().getValue()));
         }
         if (unitType.unitTypeIsPresent()) {
             ret.replaceLhs(getExpressionFromUnitType(unitType.getUnitType().get()));
@@ -693,13 +696,14 @@ public class HelperCollection {
      *
      */
     public static void retrieveUnitsFromExpression(Expression expr, LEMSCollector container) {
+        /*
         for (Expression numeric : expr.getNumericals()) {
             if (((NumericLiteral) numeric).hasType()&& ((NumericLiteral) numeric).getType().get().isLeft()) {
                 container.handleType(((NumericLiteral) numeric).getType().get().getLeft());
             }else if(((NumericLiteral) numeric).hasType()&& ((NumericLiteral) numeric).getType().get().isRight()){
                 container.handleType(((NumericLiteral) numeric).getType().get().getRight());
             }
-        }
+        }*/
     }
 
     /**
@@ -738,7 +742,7 @@ public class HelperCollection {
      * @return the Expression 0/0.
      */
     public static Expression generateExceptionCondition() {
-        Expression lhs = new NumericLiteral(0, null);
+        Expression lhs = new NumericLiteral(0);
         Operator op = new Operator();
         op.setDivOp(true);
         Expression rhs = lhs.deepClone();
@@ -790,7 +794,8 @@ public class HelperCollection {
         tempExpression = replaceDifferentialVariable(tempExpression);
         tempExpression = replaceEulerByExponentialFunction(tempExpression);
         tempExpression = replaceResolutionByConstantReference(container, tempExpression);
-        collectImplicitVariables(container,tempExpression);
+        createConstantsFromPredefinedUnits(container,tempExpression);
+        processUnitsOfImplicitVariables(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
@@ -859,13 +864,25 @@ public class HelperCollection {
     }
 
 
+    public static void createConstantsFromPredefinedUnits(LEMSCollector _container, Expression _expression){
+        List<Expression> tVariableList = _expression.getVariables();
+        Constant tConstant;
+        for(Expression tVariable:tVariableList){
+            if(((Variable) tVariable).typeIsPresent()){
+                tConstant = new Constant(((Variable) tVariable).getVariable(), ((Variable) tVariable).getType());
+                _container.addConstant(tConstant);
+            }
+        }
+    }
+
+
     /**
      * The latest update of NESTML proposed a new concept, where units are no longer part of a numeric literal, but
      * a separate variable, e.g. instead of 10mV we now use 10*mV where mV has the correct unit. This method checks
      * a given ASTExpr, extracts all implicitly declared variables (like mV) and stores them as new variables in
      * the handed over container.
      */
-    public static void collectImplicitVariables(LEMSCollector _container, Expression _expression) {
+    public static void processUnitsOfImplicitVariables(LEMSCollector _container, Expression _expression) {
         List<Expression> tVariableList = _expression.getVariables();
         for (Expression tVariable : tVariableList) {
             if (((Variable) tVariable).typeIsPresent()) {
@@ -899,4 +916,38 @@ public class HelperCollection {
         UnitRepresentation uR = UnitRepresentation.getBuilder().serialization(_tSymbol.getName()).build();
         return uR.prettyPrint();
     }
+
+    /**
+     * Returns true iff no operator is active
+     * @param _expr a expression object
+     * @return true iff no operator
+     */
+    public static boolean hasNoOperator(ASTExpr _expr){
+        return !_expr.isLeftParentheses()&&!_expr.isRightParentheses()&&!_expr.isPow()&&_expr.isUnaryPlus()&&
+                !_expr.isUnaryMinus()&&!_expr.isUnaryTilde()&&!_expr.isTimesOp()&&!_expr.isDivOp()&&!_expr.isModuloOp()&&
+                !_expr.isPlusOp()&&!_expr.isPlusOp()&&!_expr.isMinusOp()&&!_expr.isShiftLeft()&&!_expr.isShiftRight()&&
+                !_expr.isBitXor()&&!_expr.isBitOr()&&!_expr.isBitAnd()&&!_expr.isLt()&&!_expr.isLe()&&!_expr.isEq()&&
+                !_expr.isNe()&&!_expr.isNe2()&&!_expr.isGe()&&!_expr.isGt()&&!_expr.isLogicalAnd()&&!_expr.isLogicalOr()&&
+                !_expr.isLogicalNot()&& !_expr.isInf();
+    }
+
+    public static boolean isLiteralUnit(ASTExpr _expr){
+        if(!(_expr.leftIsPresent() && _expr.rightIsPresent())){
+            return false;
+        }
+        if(!_expr.getLeft().get().getNumericLiteral().isPresent()){
+            return false;
+        }
+        if(!_expr.getRight().get().getVariable().isPresent()){
+            return false;
+        }
+        if(!_expr.isTimesOp()){
+            return false;
+        }
+        return true;
+    }
+
+
+
+
 }
