@@ -87,6 +87,7 @@ neuron iaf_psc_alpha_neuron:
   end
 
   parameters:
+    g_L nS = 16.6667nS
     C_m     pF = 250pF   # Capacity of the membrane
     Tau     ms = 10ms    # Membrane time constant.
     tau_syn_in ms = 2ms  # Time constant of synaptic current.

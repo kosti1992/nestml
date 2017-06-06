@@ -57,15 +57,7 @@ public class Expression {
 		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
 			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get()));
 		} else if (_expr.variableIsPresent()) {
-		    /*
-            System.out.println(tSymbol.get().getType().getName());//type
-            UnitRepresentation uR = UnitRepresentation.getBuilder().serialization(tSymbol.get().getType().getName()).build();
-            System.out.println(uR.prettyPrint());//the name
-            */
-            //System.out.println(_expr.getVariable().get().getName().toString());
-		    //System.out.println(_expr.getType().getValue());
             this.mRhs = Optional.of(new Variable(HelperCollection.resolveVariableSymbol(_expr).get()));
-			//this.mRhs = Optional.of(new Variable(_expr.getVariable().get().toString()));
 		} else if (_expr.functionCallIsPresent()) {
 			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
 		} else if (_expr.exprIsPresent()) {

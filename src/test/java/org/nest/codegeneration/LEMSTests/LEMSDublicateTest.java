@@ -50,11 +50,6 @@ public class LEMSDublicateTest extends ModelbasedTest {
       testant.getListOfNeurons().get(0).addUnit(new Unit("test",0,
               new Dimension("test",1,1,1,1,1,1,1)));
       Assert.assertTrue(varCount == testant.getListOfNeurons().get(0).getUnitsSet().size());
-
-
-
-
-
     }
     System.out.println("---------------------------------------------------------------------------------------");
   }

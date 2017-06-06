@@ -1,9 +1,6 @@
 package org.nest.codegeneration.helpers.LEMS.Elements;
 
-import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
-import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
-import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.*;
 import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -91,7 +88,7 @@ public class Constant extends LEMSElement{
 
     /**
      * This constructor is used to generate concrete constants from stated implicit units. E.g. the variable
-     * ms is transformed to the constant 1ms, where ms can still be used as reference.
+     * ms is transformed to the constant 1 ms, where ms can still be used as reference.
      * @param _name the name of the implicit unit
      * @param _type the type
      */
@@ -100,7 +97,15 @@ public class Constant extends LEMSElement{
         this.mDimension = HelperCollection.typeToDimensionConverter(_type);
         //now format also the dimension to a lems processable format, e.g. 1 / ms -> 1_per_ms
         this.mDimension = HelperCollection.dimensionFormatter(this.mDimension);
-        this.mValue = new Variable("1"+_name);
+
+        Expression tExpression = new Expression();
+        Operator tOperator = new Operator();
+        tOperator.setNon(true);
+        Expression rhs = new Variable(_type.prettyPrint(),_type);
+        tExpression.replaceLhs(new NumericLiteral(1));
+        tExpression.replaceOp(tOperator);
+        tExpression.replaceRhs(rhs);
+        this.mValue = tExpression;
         this.mParameter = false;
     }
 

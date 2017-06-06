@@ -72,7 +72,7 @@ public class StateVariable extends LEMSElement {
                 this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
             this.mDefaultValue = Optional.of(new NumericLiteral(0));
         } else {
-            Variable tVariable = new Variable(_variable.getType().prettyPrint(),_variable.getType());
+            Variable tVariable = new Variable(_variable);
             Expression tExpr = new Expression();
             tExpr.replaceLhs(new NumericLiteral(0));
             Operator tOpr = new Operator();

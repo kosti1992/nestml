@@ -19,6 +19,8 @@ import org.nest.units._ast.ASTDatatype;
 import org.nest.units._ast.ASTUnitType;
 import org.nest.units.unitrepresentation.UnitRepresentation;
 
+import javax.swing.text.html.Option;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 
@@ -795,7 +797,6 @@ public class HelperCollection {
         tempExpression = replaceEulerByExponentialFunction(tempExpression);
         tempExpression = replaceResolutionByConstantReference(container, tempExpression);
         createConstantsFromPredefinedUnits(container,tempExpression);
-        processUnitsOfImplicitVariables(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }
 
@@ -870,6 +871,7 @@ public class HelperCollection {
         for(Expression tVariable:tVariableList){
             if(((Variable) tVariable).typeIsPresent()){
                 if(((Variable) tVariable).isImplicitUnit()){
+                    Optional<Unit> tUnit =  _container.handleType(((Variable) tVariable).getType());
                     tConstant = new Constant(((Variable) tVariable).getVariable(), ((Variable) tVariable).getType());
                     _container.addConstant(tConstant);
                 }
@@ -925,7 +927,7 @@ public class HelperCollection {
      * @return true iff no operator
      */
     public static boolean hasNoOperator(ASTExpr _expr){
-        return !_expr.isLeftParentheses()&&!_expr.isRightParentheses()&&!_expr.isPow()&&_expr.isUnaryPlus()&&
+        return !_expr.isLeftParentheses()&&!_expr.isRightParentheses()&&!_expr.isPow()&&!_expr.isUnaryPlus()&&
                 !_expr.isUnaryMinus()&&!_expr.isUnaryTilde()&&!_expr.isTimesOp()&&!_expr.isDivOp()&&!_expr.isModuloOp()&&
                 !_expr.isPlusOp()&&!_expr.isPlusOp()&&!_expr.isMinusOp()&&!_expr.isShiftLeft()&&!_expr.isShiftRight()&&
                 !_expr.isBitXor()&&!_expr.isBitOr()&&!_expr.isBitAnd()&&!_expr.isLt()&&!_expr.isLe()&&!_expr.isEq()&&

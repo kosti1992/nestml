@@ -207,6 +207,8 @@ public class Operator extends Expression {
 		return non;
 	}
 
+
+
 	public void setInf(boolean inf) {
 		this.inf = inf;
 	}

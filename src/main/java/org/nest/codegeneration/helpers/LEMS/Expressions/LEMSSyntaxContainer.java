@@ -107,7 +107,7 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
             return ")";
         }
         if (expr.isNon()) {
-            return "";
+            return " ";
         } else {
             info("New type of operator found. Please implement first.", LEMSCodeGenerator.LOG_NAME);
             return "";
