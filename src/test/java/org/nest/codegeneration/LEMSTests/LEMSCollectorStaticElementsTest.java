@@ -26,12 +26,12 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
     System.out.println("This test is not provided with an external artifact, message can be ignored!");
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY));
     //test constants
-    if(true) {
+    if(false) {
       Assert.assertEquals(8, testant.getListOfNeurons().get(0).getConstantsList().size());
-      Assert.assertEquals("INIT_V_abs", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
-      Assert.assertEquals("0 mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
-      Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());
-      Assert.assertEquals("55 mV", testant.getListOfNeurons().get(0).getConstantsList().get(10).getValueUnit());
+      Assert.assertEquals("CON_1_ms", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
+      Assert.assertEquals("1", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
+      Assert.assertEquals("DIM_ms", testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());
+      Assert.assertEquals("55 mV", testant.getListOfNeurons().get(0).getConstantsList().get(7).getValueUnit());
 
       //test derived parameter
       Assert.assertEquals(3, testant.getListOfNeurons().get(0).getDerivedParametersList().size());

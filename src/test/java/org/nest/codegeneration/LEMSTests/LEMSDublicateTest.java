@@ -17,8 +17,8 @@ import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
  */
 public class LEMSDublicateTest extends ModelbasedTest {
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
-  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/izhikevichNested.nestml";
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests/config.xml";
+  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/lems/izhikevichNested.nestml";
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/lems/config.xml";
   @Test
   public void testGenerateLEMS() throws Exception {
     System.out.println("-----------------------------Error messages can be ignored-----------------------------");

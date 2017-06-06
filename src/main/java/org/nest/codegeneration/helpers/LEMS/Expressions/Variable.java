@@ -1,6 +1,7 @@
 package org.nest.codegeneration.helpers.LEMS.Expressions;
 
 
+import org.nest.codegeneration.helpers.LEMS.Elements.HelperCollection;
 import org.nest.symboltable.symbols.TypeSymbol;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
@@ -24,7 +25,7 @@ public class Variable extends Expression {
      * @param variable a variable symbol object
      */
 	public Variable(VariableSymbol variable){
-	    this.mVariable = variable.getName();
+	    this.mVariable = HelperCollection.dimensionFormatter(variable.getName());
 	    this.mType = Optional.of(variable.getType());
 	    if(variable.isPredefined()){
 	    	mIsImplicitUnit = true;
@@ -37,7 +38,7 @@ public class Variable extends Expression {
      * @param _typeSymbol the type of the variable
      */
 	public Variable(String _variableName,TypeSymbol _typeSymbol) {
-		this.mVariable = _variableName;
+		this.mVariable = HelperCollection.dimensionFormatter(_variableName);
 		this.mType = Optional.of(_typeSymbol);
 		this.mIsImplicitUnit = false;
 	}
