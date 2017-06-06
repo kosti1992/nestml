@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.nest.codegeneration.helpers.LEMS.Elements.HelperCollection;
 import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
+import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
 import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.VariableSymbol;
@@ -57,7 +58,11 @@ public class Expression {
 		} else if (_expr.numericLiteralIsPresent()&&_expr.getType().isValue()) {
 			this.mRhs = Optional.of(new NumericLiteral(_expr.getNumericLiteral().get()));
 		} else if (_expr.variableIsPresent()) {
-            this.mRhs = Optional.of(new Variable(HelperCollection.resolveVariableSymbol(_expr).get()));
+		    if(_expr.getVariable().get().getDifferentialOrder().size()>0){
+		        this.mRhs = Optional.of(new Variable(Names.convertToCPPName(_expr.getVariable().get().toString()),_expr.getType().getValue()));
+            }else{
+                this.mRhs = Optional.of(new Variable(HelperCollection.resolveVariableSymbol(_expr).get()));
+            }
 		} else if (_expr.functionCallIsPresent()) {
 			this.mRhs = Optional.of(new Function(_expr.getFunctionCall().get()));
 		} else if (_expr.exprIsPresent()) {

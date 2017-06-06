@@ -336,6 +336,7 @@ public class LEMSCollector extends Collector {
                 } else {
                     //otherwise the integration is global, no further steps required
                     Expression expr = new Expression(eq.getRhs());
+                    System.out.println(expr.print());
                     //expr = HelperCollection.extendExpressionByCON1ms(expr);
                     /*
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
@@ -594,16 +595,23 @@ public class LEMSCollector extends Collector {
                         Operator tempOp = new Operator();
                         tempOp.setDivOp(true);
 
+                        //now create a numerical literal and a unit representing the duration of a step
+                        //first create a constant with the duration of a single simulation step
                         ASTUnitType tempType = new ASTUnitType();
                         tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength());
+                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(),tempType);
+
+
 
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);
                         tempExpr.replaceOp(tempOp);
                         tempExpr.replaceRhs(rhs);
+                        /*
                         tempExpr = HelperCollection.replaceConstantsWithReferences(this, tempExpr);
                         tempExpr = HelperCollection.replaceResolutionByConstantReference(this, tempExpr);
+                        */
+                        tempExpr = HelperCollection.replacementRoutine(this,tempExpr);
                         this.addDerivedElement(new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                 tempExpr, false, false));
 

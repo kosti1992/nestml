@@ -795,7 +795,6 @@ public class HelperCollection {
         tempExpression = replaceFunctionCallByReference(container, tempExpression);
         tempExpression = replaceDifferentialVariable(tempExpression);
         tempExpression = replaceEulerByExponentialFunction(tempExpression);
-        tempExpression = replaceResolutionByConstantReference(container, tempExpression);
         createConstantsFromPredefinedUnits(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }

@@ -18,6 +18,7 @@ import org.nest.units._ast.ASTUnitType;
  */
 public class NumericLiteral extends Expression {
     private double mValue;
+    private Optional<ASTUnitType> mType = Optional.empty();//obsolete
 
     public NumericLiteral(ASTNumericLiteral _literal) {
         this.mValue = Double.parseDouble(typesPrinter().prettyprint(_literal));
@@ -27,12 +28,18 @@ public class NumericLiteral extends Expression {
         this.mValue = _value;
     }
 
+    public NumericLiteral(double _value, ASTUnitType _type) {
+        this.mValue = _value;
+        this.mType = Optional.of(_type);
+    }
+
     public double getValue() {
         return mValue;
     }
 
     /**
      * This method is required in order to be able to print the value of a handed over literal
+     *
      * @return a TypesPrettyPrinterConcreteVisitor object which can be used to visit an ast node
      */
     private TypesPrettyPrinterConcreteVisitor typesPrinter() {
@@ -55,12 +62,21 @@ public class NumericLiteral extends Expression {
      * @return a string representation of the literal.
      */
     public String printValue() {
-        if (this.mValue - (int) this.mValue == 0) {
-            return String.valueOf((int) this.mValue);
+        if (mType.isPresent()) {
+            if (this.mValue - (int) this.mValue == 0) {
+                return String.valueOf((int) this.mValue) +  mType.get().prettyPrint();
+            } else {
+                return String.valueOf(this.mValue) + mType.get().prettyPrint();
+            }
         } else {
-            return String.valueOf(this.mValue);
+            if (this.mValue - (int) this.mValue == 0) {
+                return String.valueOf((int) this.mValue);
+            } else {
+                return String.valueOf(this.mValue);
+            }
         }
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -92,4 +108,7 @@ public class NumericLiteral extends Expression {
         return new NumericLiteral(this.mValue);
     }
 
+    public Optional<ASTUnitType> getType() {
+        return mType;
+    }
 }
