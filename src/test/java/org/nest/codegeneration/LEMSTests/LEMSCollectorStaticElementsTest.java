@@ -17,8 +17,8 @@ import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
 public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
 
-  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/iaf_psc_alpha.nestml";
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests";
+  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/lems/iaf_psc_alpha.nestml";
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/lems";
   @Test
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);
@@ -27,8 +27,8 @@ public class LEMSCollectorStaticElementsTest extends ModelbasedTest{
     testant.generateLEMS(testModel, OUTPUT_DIRECTORY,Paths.get(INPUT_DIRECTORY));
     //test constants
     if(true) {
-      Assert.assertEquals(12, testant.getListOfNeurons().get(0).getConstantsList().size());
-      Assert.assertEquals("INIT_V", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
+      Assert.assertEquals(8, testant.getListOfNeurons().get(0).getConstantsList().size());
+      Assert.assertEquals("INIT_V_abs", testant.getListOfNeurons().get(0).getConstantsList().get(0).getName());
       Assert.assertEquals("0 mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getValueUnit());
       Assert.assertEquals("DIM_mV", testant.getListOfNeurons().get(0).getConstantsList().get(0).getDimension());
       Assert.assertEquals("55 mV", testant.getListOfNeurons().get(0).getConstantsList().get(10).getValueUnit());

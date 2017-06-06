@@ -15,26 +15,41 @@ import java.util.Optional;
 public class Variable extends Expression {
 	private String mVariable;
 	private Optional<TypeSymbol> mType;
-	private boolean mIsImplicitUnit;
+	private boolean mIsImplicitUnit = false;
 
+
+    /**
+     * This constructor can be used to generate variable symbols. It checks if the handed over variable is a predefined
+     * and sets the corresponding argument.
+     * @param variable a variable symbol object
+     */
 	public Variable(VariableSymbol variable){
 	    this.mVariable = variable.getName();
 	    this.mType = Optional.of(variable.getType());
+	    if(variable.isPredefined()){
+	    	mIsImplicitUnit = true;
+		}
     }
 
+    /**
+     * This constructor can be used to generate a variable symbol with a concretely handed over type symbol.
+     * @param _variableName the name of the new variable
+     * @param _typeSymbol the type of the variable
+     */
 	public Variable(String _variableName,TypeSymbol _typeSymbol) {
 		this.mVariable = _variableName;
 		this.mType = Optional.of(_typeSymbol);
+		this.mIsImplicitUnit = false;
 	}
 
-	public Variable(String _variableName, ASTUnitType _unitType){
-
-	}
-
-
+    /**
+     * This constructor can be used to generate variables which consist only of a name.
+     * @param _variableName the name of the new variable symbol
+     */
 	public Variable(String _variableName){
 	    this.mVariable = _variableName;
 	    this.mType = Optional.empty();
+	    this.mIsImplicitUnit = false;
     }
 
 	public String getVariable() {

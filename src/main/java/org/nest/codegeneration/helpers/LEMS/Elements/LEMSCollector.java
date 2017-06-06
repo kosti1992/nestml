@@ -470,15 +470,13 @@ public class LEMSCollector extends Collector {
                         //in the case it is a expression consisting of a left and a right hand side
                     } else if (var.getDeclaringExpression().get().leftIsPresent() && var.getDeclaringExpression().get().rightIsPresent()) {
                         Expression tempExpression = new Expression(var);
-                        tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
-                        tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
+                        tempExpression = HelperCollection.replacementRoutine(this,tempExpression);
                         tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                 tempExpression, false, false);
                         //in the case it is an exponential expression
                     } else if (var.getDeclaringExpression().get().baseIsPresent() && var.getDeclaringExpression().get().exponentIsPresent()) {
                         Expression tempExpression = new Expression(var);
-                        tempExpression = HelperCollection.replaceConstantsWithReferences(this, tempExpression);
-                        tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
+                        tempExpression = HelperCollection.replacementRoutine(this,tempExpression);
                         tempDerivedElement = new DerivedElement(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
                                 tempExpression, false, false);
 
@@ -579,11 +577,9 @@ public class LEMSCollector extends Collector {
                         //TODO: here, also mutlidict is allowed -> fix it
                         //handle a numerical lit, e.g. 10ms
                         if (args.get(0).numericLiteralIsPresent() && args.get(0).variableIsPresent()) {
-                            System.out.println(args.get(0).getType().toString());
                             lhs = new NumericLiteral(args.get(0).getNumericLiteral().get());
                             //handle a variable ref, e.g. res_init
                         } else if (args.get(0).numericLiteralIsPresent()) {
-                            System.out.println(args.get(0).getType().toString());
                             lhs = new NumericLiteral(args.get(0).getNumericLiteral().get());
                         } else if (args.get(0).variableIsPresent()) {
                             lhs = new Variable(HelperCollection.resolveVariableSymbol(args.get(0)).get());

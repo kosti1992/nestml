@@ -3,16 +3,15 @@ package org.nest.codegeneration.helpers.LEMS.Elements;
 import java.util.Optional;
 
 //import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
-import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
-import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
-import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
-import org.nest.codegeneration.helpers.LEMS.Expressions.Variable;
+import org.nest.codegeneration.helpers.LEMS.Expressions.*;
 import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.spl.symboltable.typechecking.Either;
 import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTUnitType;
 import org.w3c.dom.Node;
+
+import javax.swing.text.html.Option;
 
 /**
  * This class represents a state-variable, a characteristic of the modeled neuron which possibly changes over the time.
@@ -47,26 +46,10 @@ public class StateVariable extends LEMSElement {
             //a derived parameter representing the init value of this variable and finally set the reference to it
             else if ((_variable.getDeclaringExpression().get().numericLiteralIsPresent() &&
                     _variable.getDeclaringExpression().get().variableIsPresent())||HelperCollection.isLiteralUnit(_variable.getDeclaringExpression().get())) {
-                /*
-                if (this.mDimension.equals(HelperCollection.DIMENSION_NONE)) {
-                    this.mDefaultValue = Optional.of(new NumericLiteral(_variable.getDeclaringExpression().get().getNumericLiteral().get()));
-                } else {
-                    Constant temp = new Constant(_variable, true, false, _container);
-                    _container.addConstant(temp);
-                    this.mDefaultValue = Optional.of(new Variable(temp.getName()));
-                */
                 Expression tDefaultValue = new Expression(_variable.getDeclaringExpression().get());
+                // the replacement routine takes all required actions, e.g. define implicit units
                 tDefaultValue = HelperCollection.replacementRoutine(_container,tDefaultValue);
-                // create a derived parameter representing the init value
-                System.out.println(tDefaultValue.print());
-                DerivedElement tElement = new DerivedElement(HelperCollection.PREFIX_INIT + this.mName, this.mDimension,
-                        tDefaultValue, false, false);
-                //set the init value
-                this.mDefaultValue = Optional.of(new Variable(tElement.getName()));
-                //store the new element in order to make the reference valid
-                _container.addDerivedElement(tElement);
-                //finally, we have to create a constant representing the
-
+                this.mDefaultValue = Optional.of(tDefaultValue);
             //if it is a ternary op, handle it correctly by means of a derived variable
         } else if (_variable.getDeclaringExpression().get().conditionIsPresent()) {
             DerivedElement temp = new DerivedElement(_variable.getName(),
@@ -89,13 +72,15 @@ public class StateVariable extends LEMSElement {
                 this.mDimension.equals(HelperCollection.NOT_SUPPORTED)) {
             this.mDefaultValue = Optional.of(new NumericLiteral(0));
         } else {
-            ASTUnitType tempType = new ASTUnitType();
-            tempType.setUnit(_variable.getType().prettyPrint());
-            tempType.setSerializedUnit(_variable.getType().getName());
-            Constant defaultValue = new Constant(HelperCollection.PREFIX_INIT + Names.convertToCPPName(_variable.getName()),
-                    this.mDimension, new NumericLiteral(0), false);
-            _container.addConstant(defaultValue);
-            this.mDefaultValue = Optional.of(new Variable(defaultValue.getName()));
+            Variable tVariable = new Variable(_variable.getType().prettyPrint(),_variable.getType());
+            Expression tExpr = new Expression();
+            tExpr.replaceLhs(new NumericLiteral(0));
+            Operator tOpr = new Operator();
+            tOpr.setTimesOp(true);
+            tExpr.replaceOp(tOpr);
+            tExpr.replaceRhs(tVariable);
+            tExpr = HelperCollection.replacementRoutine(_container,tExpr);
+            this.mDefaultValue = Optional.of(tExpr);
         }
     }
 

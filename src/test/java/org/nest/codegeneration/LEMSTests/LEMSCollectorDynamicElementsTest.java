@@ -20,7 +20,7 @@ public class LEMSCollectorDynamicElementsTest extends ModelbasedTest{
   //private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/iaf_psc_alpha.nestml";
   private static final String PSC_MODEL_WITH_ODE = "models/iaf_psc_alpha.nestml";
 
-  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/LEMSTests";
+  private static final String INPUT_DIRECTORY = "src/test/resources/codegeneration/lems";
   @Test
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);

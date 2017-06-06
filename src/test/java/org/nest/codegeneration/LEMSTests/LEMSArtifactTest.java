@@ -17,8 +17,8 @@ import org.nest.nestml._ast.ASTNESTMLCompilationUnit;
  */
 public class LEMSArtifactTest extends ModelbasedTest{
   private static final Path OUTPUT_DIRECTORY = Paths.get("target", "LEMS");
-  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/LEMSTests/empty_model.nestml";
-  private static final String CONFIG_PATH = "src/test/resources/codegeneration/LEMSTests/artifact.xml";
+  private static final String PSC_MODEL_WITH_ODE = "src/test/resources/codegeneration/lems/artifact_test/empty_model.nestml";
+  private static final String CONFIG_PATH = "src/test/resources/codegeneration/lems/artifact_test/artifact.xml";
   @Test
   public void testGenerateLEMS() throws Exception {
     final ASTNESTMLCompilationUnit testModel = parseAndBuildSymboltable(PSC_MODEL_WITH_ODE);

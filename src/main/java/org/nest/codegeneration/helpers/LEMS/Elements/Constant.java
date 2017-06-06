@@ -98,6 +98,8 @@ public class Constant extends LEMSElement{
     public Constant(String _name, TypeSymbol _type){
         this.mName = _name;
         this.mDimension = HelperCollection.typeToDimensionConverter(_type);
+        //now format also the dimension to a lems processable format, e.g. 1 / ms -> 1_per_ms
+        this.mDimension = HelperCollection.dimensionFormatter(this.mDimension);
         this.mValue = new Variable("1"+_name);
         this.mParameter = false;
     }

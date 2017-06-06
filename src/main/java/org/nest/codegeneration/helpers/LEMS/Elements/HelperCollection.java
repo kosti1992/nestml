@@ -869,8 +869,10 @@ public class HelperCollection {
         Constant tConstant;
         for(Expression tVariable:tVariableList){
             if(((Variable) tVariable).typeIsPresent()){
-                tConstant = new Constant(((Variable) tVariable).getVariable(), ((Variable) tVariable).getType());
-                _container.addConstant(tConstant);
+                if(((Variable) tVariable).isImplicitUnit()){
+                    tConstant = new Constant(((Variable) tVariable).getVariable(), ((Variable) tVariable).getType());
+                    _container.addConstant(tConstant);
+                }
             }
         }
     }
