@@ -1,4 +1,10 @@
 <Lems>
+    
+    
+    <Dimension name="conductance" m="-1" l="-2" t="3" i="2"/>
+    
+    <Unit symbol="nS" dimension="conductance" power="-9"/>    
+    
     <Target component="sim1" />
 
     <Include file="Network.xml" />
@@ -11,19 +17,27 @@
     <Component id="gen1" type="spikeGenerator" period="20ms"/>
     <Component id="gen2" type="spikeGenerator" period="30ms"/>
 
+    <stdpSynapse id="stdpSyn" gbase="0.1nS" erev="0mV" tauRise="0.1ms" tauDecay="2ms"/>
+
     <Network id="net1">
     	<Population id="p1" component="iaf1" size="1" />
     	<Population id="p2" component="iaf1" size="1" />
     	<Population id="g1" component="gen1" size="1" />
     	<Population id="g2" component="gen2" size="1" />
+    	<Population id="pul1" component="iA" size="1" />
 
         <projection id="proj1" presynapticPopulation="g1" postsynapticPopulation="p1" synapse="syn1">
             <connection id="0" preCellId="../g1[0]" postCellId="../p1[0]" destination="spikeInh"/>
         </projection>
-        
+         
         <projection id="proj2" presynapticPopulation="g2" postsynapticPopulation="p2" synapse="syn1">
             <connection id="0" preCellId="../g2[0]" postCellId="../p2[0]" destination="spikeInh"/>
         </projection>
+
+        <!-- current generators are explicit inpunts without a synapse in between-->
+	    <explicitInput input="iA" target="p1[0]" destination="currents"/>
+	    <explicitInput input="iA" target="p2[0]" destination="currents"/>
+
 
     </Network>
 
@@ -39,7 +53,7 @@
                 <Line id="izPhasicSpiking.__D_g_in" quantity="p1[0]/__D_g_in" scale="0.001" timeScale="1ms" color="#CDD9BB"/>
                 <Line id="izPhasicSpiking.__D_g_ex" quantity="p1[0]/__D_g_ex" scale="0.001" timeScale="1ms" color="#ff3f00"/>
                 <Line id="izPhasicSpiking.r" quantity="p1[0]/r" scale="1" timeScale="1ms" color="#43c40b"/>
-                <Line id="izPhasicSpiking.I_stim" quantity="p1[0]/I_stim" scale="0.01pA" timeScale="1ms" color="#146dfc"/>
+                <Line id="izPhasicSpiking.I_stim" quantity="p1[0]/I_stim" scale="100pA" timeScale="1ms" color="#146dfc"/>
                 <Line id="izPhasicSpiking.spikeInh" quantity="p1[0]/spikeInh" scale="1" timeScale="1ms" color="#a46dfc"/>
                 <Line id="izPhasicSpiking.spikeExc" quantity="p1[0]/spikeExc" scale="1" timeScale="1ms" color="#c46dfc"/>
         </Display>
@@ -52,7 +66,7 @@
                 <Line id="izPhasicSpiking.__D_g_in" quantity="p2[0]/__D_g_in" scale="0.001" timeScale="1ms" color="#CDD9BB"/>
                 <Line id="izPhasicSpiking.__D_g_ex" quantity="p2[0]/__D_g_ex" scale="0.001" timeScale="1ms" color="#ff3f00"/>
                 <Line id="izPhasicSpiking.r" quantity="p2[0]/r" scale="1" timeScale="1ms" color="#43c40b"/>
-                <Line id="izPhasicSpiking.I_stim" quantity="p2[0]/I_stim" scale="0.01pA" timeScale="1ms" color="#146dfc"/>
+                <Line id="izPhasicSpiking.I_stim" quantity="p2[0]/I_stim" scale="100pA" timeScale="1ms" color="#146dfc"/>
                 <Line id="izPhasicSpiking.spikeInh" quantity="p2[0]/spikeInh" scale="1" timeScale="1ms" color="#a46dfc"/>
                 <Line id="izPhasicSpiking.spikeExc" quantity="p2[0]/spikeExc" scale="1" timeScale="1ms" color="#c46dfc"/>
         </Display>

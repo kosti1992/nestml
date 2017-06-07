@@ -1,0 +1,122 @@
+<Lems>
+
+    
+    <Unit symbol="s" dimension="time" power="1"/>
+<!-- taken from the official NeuroMl2 git repo.-->
+    <ComponentType name="stdpSynapse"
+                   extends="expTwoSynapse"
+                   description="Spike timing dependent plasticity mechanism,  NOTE: EXAMPLE NOT YET WORKING!!!! cno_0000034">
+
+        <Constant name="tsinceRate" dimension="none" value="1"/>
+        <Constant name="longTime" dimension="time" value="1000s"/>
+
+        <Exposure name="tsince" dimension="time"/>
+
+        <Exposure name="M" dimension="none"/>
+        <Exposure name="P" dimension="none"/>
+
+        <Dynamics>
+            <StateVariable name="A" dimension="none"/>
+            <StateVariable name="B" dimension="none"/>
+
+            <StateVariable name="M" dimension="none" exposure="M"/>
+            <StateVariable name="P" dimension="none" exposure="P"/>
+
+            <StateVariable name="tsince" dimension="time" exposure="tsince"/>
+
+            <DerivedVariable name="g" dimension="conductance" exposure="g" value="gbase * (B - A)" />
+
+            <DerivedVariable name="i" exposure="i" dimension="current" value="g * (erev - v)" />
+
+
+            <TimeDerivative variable="A" value="-A / tauRise" />
+            <TimeDerivative variable="B" value="-B / tauDecay" />
+
+            <TimeDerivative variable="tsince" value="tsinceRate" />
+
+            <OnStart>
+                <StateAssignment variable="A" value="0" />
+                <StateAssignment variable="B" value="0" />
+
+                <StateAssignment variable="M" value="1" />
+                <StateAssignment variable="P" value="1" />
+
+                <StateAssignment variable="tsince" value="longTime" />
+            </OnStart>
+
+            <OnEvent port="in">
+                <StateAssignment variable="A" value="A + waveformFactor" />
+                <StateAssignment variable="B" value="B + waveformFactor" />
+                <StateAssignment variable="tsince" value="0" />
+            </OnEvent>
+
+        </Dynamics>
+
+    </ComponentType>
+    
+    <Dimension name="current" i="1"/>
+    <Dimension name="time" t="1"/>
+    
+      <ComponentType name="expTwoSynapse"
+                   extends="baseConductanceBasedSynapse"
+                   description="Ohmic synapse model whose conductance waveform on receiving an event has a rise time of _tauRise and a decay time of _tauDecay. Max conductance reached during this time (assuming zero conductance before) is _gbase * _weight.">
+
+        <Property name="weight" dimension="none" defaultValue="1"/> 
+        
+        <Parameter name="tauRise" dimension="time" />
+        <Parameter name="tauDecay" dimension="time" />
+        
+        <DerivedParameter name="peakTime" dimension="time" value="log(tauDecay / tauRise) * (tauRise * tauDecay)/(tauDecay - tauRise)"/>
+        <DerivedParameter name="waveformFactor" dimension="none" value="1 / (-exp(-peakTime / tauRise) + exp(-peakTime / tauDecay))"/>
+
+        <Dynamics>
+            <StateVariable name="A" dimension="none"/>
+            <StateVariable name="B" dimension="none"/>
+
+            <!-- TODO: catch tauRise = 0..! -->
+
+            <DerivedVariable name="g" dimension="conductance" exposure="g" value="gbase * (B - A)" />
+            <DerivedVariable name="i" exposure="i" dimension="current" value="g * (erev - v)" />
+
+            <TimeDerivative variable="A" value="-A / tauRise" />
+            <TimeDerivative variable="B" value="-B / tauDecay" />
+
+            <OnStart>
+                <StateAssignment variable="A" value="0" />
+                <StateAssignment variable="B" value="0" />
+            </OnStart>
+
+            <OnEvent port="in">
+                <StateAssignment variable="A" value="A + (weight * waveformFactor)" />
+                <StateAssignment variable="B" value="B + (weight * waveformFactor)" />
+            </OnEvent>
+
+        </Dynamics>
+    </ComponentType>
+    
+    
+    
+    <Dimension name="conductance" m="-1" l="-2" t="3" i="2"/>
+    
+     <ComponentType name="baseConductanceBasedSynapse"
+                   extends="baseVoltageDepSynapse"
+                   description="Synapse model which exposes a conductance _g in addition to producing a current. Not necessarily ohmic!! cno_0000027">
+
+        <Parameter name="gbase" dimension="conductance" description="Baseline conductance, generally the maximum conductance following a single spike"/>
+        <Parameter name="erev" dimension="voltage" description="Reversal potential of the synapse"/>
+
+        <Exposure name="g" dimension="conductance" description="Time varying conductance through the synapse"/>
+
+    </ComponentType>
+
+    <Dimension name="voltage"     m="1" l="2" t="-3" i="-1"/>
+
+      <ComponentType name="baseVoltageDepSynapse"
+                   extends="baseSynapse"
+                   description="Base type for synapses with a dependence on membrane potential"> <!-- http://bioportal.bioontology.org/ontologies/46856/?p=terms&conceptid=cno%3Acno_0000009 -->
+
+        <Requirement name="v" dimension="voltage" description="The current may vary with the voltage exposed by the ComponentType on which this is placed"/>
+
+    </ComponentType>
+    
+</Lems>    

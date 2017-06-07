@@ -1,5 +1,6 @@
 <Lems>
     <Include file="Misc.xml" />
+	<Include file="Synapses.xml"/>
 	
     <ComponentType name="Network">
         <Children name="populations" type="Population"/>

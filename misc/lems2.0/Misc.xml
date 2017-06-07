@@ -34,10 +34,14 @@
         <Dynamics>
                 <StateVariable name="i" exposure="i" dimension="none"/>
                 <OnEvent port="in">
-                    <StateAssignment variable="i" value="i+10"/>
+                    <StateAssignment variable="i" value="i+1000"/>
                 </OnEvent>
         </Dynamics>
     </ComponentType>
+
+
+
+ 
 
     <!-- a synapse without any functionality-->
     <ComponentType name="dummySynapse" extends="baseSynapseDL">
@@ -133,5 +137,8 @@
             </OnCondition>
         </Dynamics>
     </ComponentType>
+    
+    
+    
 
 </Lems>
