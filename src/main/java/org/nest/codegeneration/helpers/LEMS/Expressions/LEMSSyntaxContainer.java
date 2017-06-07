@@ -14,19 +14,12 @@ public class LEMSSyntaxContainer implements SyntaxContainer {
 
     public String print(NumericLiteral expr) {
         //in order to avoid declaration of integer doubles (e.g. 1) as a (1.0)
-        if (expr.getType().isPresent()) {
-            if (expr.getValue() - (int) expr.getValue() == 0) {
-                return String.valueOf((int) expr.getValue()) +  expr.getType().get().getUnit().get();
-            } else {
-                return String.valueOf(expr.getValue()) + expr.getType().get().getUnit().get();
-            }
+        if (expr.getValue() - (int) expr.getValue() == 0) {
+            return String.valueOf((int) expr.getValue());
         } else {
-            if (expr.getValue() - (int) expr.getValue() == 0) {
-                return String.valueOf((int) expr.getValue());
-            } else {
-                return String.valueOf(expr.getValue());
-            }
+            return String.valueOf(expr.getValue());
         }
+
     }
 
     public String print(Variable expr) {

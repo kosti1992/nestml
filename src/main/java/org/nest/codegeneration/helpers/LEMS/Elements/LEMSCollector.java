@@ -115,7 +115,9 @@ public class LEMSCollector extends Collector {
 
         //process the equations block
         if (!neuronBody.getEquations().isEmpty()) {
+
             //create a new constant in order to achieve a correct dimension of the equation:
+            /*
             ASTUnitType tempType = new ASTUnitType();
             tempType.setUnit("ms");
             this.addConstant(new Constant(HelperCollection.PREFIX_CONSTANT + "1_ms",
@@ -123,6 +125,7 @@ public class LEMSCollector extends Collector {
             Dimension msDimension = new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0);
             this.addDimension(msDimension);
             this.addUnit(new Unit("ms", HelperCollection.powerConverter("ms"), msDimension));
+            */
 
             //first process all shapes of the model
             this.handleShapes(neuronBody);
@@ -336,7 +339,6 @@ public class LEMSCollector extends Collector {
                 } else {
                     //otherwise the integration is global, no further steps required
                     Expression expr = new Expression(eq.getRhs());
-                    System.out.println(expr.print());
                     //expr = HelperCollection.extendExpressionByCON1ms(expr);
                     /*
                     expr = HelperCollection.replaceConstantsWithReferences(this, expr);
@@ -596,17 +598,36 @@ public class LEMSCollector extends Collector {
                         tempOp.setDivOp(true);
 
                         //now create a numerical literal and a unit representing the duration of a step
-                        //first create a constant with the duration of a single simulation step
-                        ASTUnitType tempType = new ASTUnitType();
-                        tempType.setUnit(config.getSimulationStepsUnit().getSymbol());
-                        NumericLiteral rhs = new NumericLiteral(config.getSimulationStepsLength(),tempType);
+                        NumericLiteral tLength = new NumericLiteral(config.getSimulationStepsLength());
+                        //additionally a variable stating the the unit
+                        Variable tVar = new Variable(this.config.getSimulationStepsUnit().getSymbol());
+                        //now combine them to a single, encapsulated expression, e.g. 10*ms
+                        Expression tDivisor = new Expression();
+                        Operator tTimesOp = new Operator();
+                        tTimesOp.setTimesOp(true);
+                        tDivisor.replaceOp(tTimesOp);
+                        tDivisor.replaceLhs(tLength);
+                        tDivisor.replaceRhs(tVar);
+                        tDivisor = Expression.encapsulateInBrackets(tDivisor);
+                        //we also need a constant as reference for the unit stated as variable
+                        Expression tConstantValue = new Expression();
+                        NumericLiteral tOne = new NumericLiteral(1);
+                        Operator tNonOp = new Operator();
+                        tNonOp.setNon(true);
+                        Variable tUnitVar = new Variable(this.config.getSimulationStepsUnit().getSymbol());
+                        tConstantValue.replaceLhs(tOne);
+                        tConstantValue.replaceOp(tNonOp);
+                        tConstantValue.replaceRhs(tUnitVar);
+                        Constant tConstant = new Constant(this.config.getSimulationStepsUnit().getSymbol(),
+                                this.config.getSimulationStepsUnit().getDimensionName(),tConstantValue,false);
+                        this.addConstant(tConstant);
 
 
-
+                        //and now the final expression
                         Expression tempExpr = new Expression();
                         tempExpr.replaceLhs(lhs);
                         tempExpr.replaceOp(tempOp);
-                        tempExpr.replaceRhs(rhs);
+                        tempExpr.replaceRhs(tDivisor);
                         /*
                         tempExpr = HelperCollection.replaceConstantsWithReferences(this, tempExpr);
                         tempExpr = HelperCollection.replaceResolutionByConstantReference(this, tempExpr);

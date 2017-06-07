@@ -18,7 +18,6 @@ import org.nest.units._ast.ASTUnitType;
  */
 public class NumericLiteral extends Expression {
     private double mValue;
-    private Optional<ASTUnitType> mType = Optional.empty();//obsolete
 
     public NumericLiteral(ASTNumericLiteral _literal) {
         this.mValue = Double.parseDouble(typesPrinter().prettyprint(_literal));
@@ -26,11 +25,6 @@ public class NumericLiteral extends Expression {
 
     public NumericLiteral(double _value) {
         this.mValue = _value;
-    }
-
-    public NumericLiteral(double _value, ASTUnitType _type) {
-        this.mValue = _value;
-        this.mType = Optional.of(_type);
     }
 
     public double getValue() {
@@ -62,19 +56,12 @@ public class NumericLiteral extends Expression {
      * @return a string representation of the literal.
      */
     public String printValue() {
-        if (mType.isPresent()) {
-            if (this.mValue - (int) this.mValue == 0) {
-                return String.valueOf((int) this.mValue) +  mType.get().prettyPrint();
-            } else {
-                return String.valueOf(this.mValue) + mType.get().prettyPrint();
-            }
+        if (this.mValue - (int) this.mValue == 0) {
+            return String.valueOf((int) this.mValue);
         } else {
-            if (this.mValue - (int) this.mValue == 0) {
-                return String.valueOf((int) this.mValue);
-            } else {
-                return String.valueOf(this.mValue);
-            }
+            return String.valueOf(this.mValue);
         }
+
     }
 
 
@@ -106,9 +93,5 @@ public class NumericLiteral extends Expression {
      */
     public NumericLiteral deepClone() {
         return new NumericLiteral(this.mValue);
-    }
-
-    public Optional<ASTUnitType> getType() {
-        return mType;
     }
 }

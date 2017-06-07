@@ -183,7 +183,7 @@ public class Constant extends LEMSElement{
         if (this.mValue == null && constant.mValue == null) {
             return true;
         }
-        return mValue.equals(constant.mValue);
+        return mValue.print().equals(constant.mValue.print());
 
     }
 

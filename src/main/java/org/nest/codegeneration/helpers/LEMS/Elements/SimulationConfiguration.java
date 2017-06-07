@@ -50,7 +50,7 @@ public class SimulationConfiguration {
 	public void adaptSettings(LEMSCollector _container) {
 		if (mConfigPath == null || mConfigPath.hashCode()==0) {// a hash of 0 means that there is no path
 			//if no artifact has been provided, use some standard settings:
-			this.mSimulationStepsLength = 10;
+			this.mSimulationStepsLength = 1;
 			this.mSimulationStepsUnit = new Unit("ms",HelperCollection.powerConverter("ms"),
 					new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 			return;
@@ -133,7 +133,7 @@ public class SimulationConfiguration {
 		}
 		//in the case that a correct artifact has been provided but without steps length and unit stated
 		if (this.mSimulationStepsLength == -1 && this.mSimulationStepsUnit == null) {
-			this.mSimulationStepsLength = 10;
+			this.mSimulationStepsLength = 1;
 			this.mSimulationStepsUnit = new Unit("ms",HelperCollection.powerConverter("ms"),new Dimension(HelperCollection.PREFIX_DIMENSION + "ms", 0, 0, 1, 0, 0, 0, 0));
 		}
 

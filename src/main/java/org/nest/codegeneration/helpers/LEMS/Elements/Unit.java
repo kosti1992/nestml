@@ -102,12 +102,18 @@ public class Unit extends LEMSElement{
 	 * Compares this unit to a given object. Required in order to
 	 * identify duplicates in unitsSet.
 	 *
-	 * @param _other Object which will be compared to this mDimension.
+	 * @param o Object which will be compared to this mDimension.
 	 * @return true, if objects equals
 	 */
-	public boolean equals(Object _other) {
-		return (this.getClass() == _other.getClass()) &&//same class
-				this.getSymbol().equals(((Unit) _other).getSymbol()) &&//same mSymbol
-				this.getPower() == ((Unit) _other).getPower();//same mPower
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Unit unit = (Unit) o;
+
+		if (mPower != unit.mPower) return false;
+		if (mSymbol != null ? !mSymbol.equals(unit.mSymbol) : unit.mSymbol != null) return false;
+		return mDimension != null ? mDimension.equals(unit.mDimension) : unit.mDimension == null;
 	}
 }
