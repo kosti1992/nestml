@@ -1,0 +1,210 @@
+<Lems>
+    <Include file="Misc.xml" />
+	
+    <ComponentType name="Network">
+        <Children name="populations" type="Population"/>
+        <Children name="connectivities" type="EventConnectivity"/>
+	    <Children name="ex_connectivities" type="PortToPortConnection"/>
+	    <Children name="explicitInput" type="explicitInput"/>
+	    <Children name="synapticConnection" type="explicitConnection"/>
+        <Children name="synapticConnectionDL" type="explicitConnection"/>
+	    <Children name="explicitInstanceInput" type="explicitInstanceInput"/>
+        <Children name="projections" type="projection"/>
+    </ComponentType>
+
+
+    <ComponentType name="Population">
+        <ComponentReference name="component" type="Component"/>
+        <Parameter name="size" dimension="none"/>
+        <Structure>
+            <MultiInstantiate number="size" component="component"/>
+        </Structure>
+    </ComponentType>
+
+
+    <ComponentType name="explicitConnection"
+        description="Explicit event connection between components">
+        <Path name="from"/>
+        <Path name="to"/>
+        <Text name="targetPort"/>
+    </ComponentType>
+    
+    <ComponentType name="projection"
+        description="Projection from one population, _presynapticPopulation to another, _postsynapticPopulation, through _synapse. Contains lists of _connection_ or _connectionWD_ elements.">
+
+        <Children name="connections" type="connection"/>
+        <Children name="connectionsWD" type="connectionWD"/>
+        <ComponentReference name="synapse" type="baseSynapse"/>
+        <Path name="presynapticPopulation"/>
+        <Path name="postsynapticPopulation"/>
+    </ComponentType>
+    
+      <ComponentType name="connection"
+        description="Event connection directly between named components, which gets processed via a new instance of a _synapse component which is created on the target component. Normally contained   inside a _projection_ element.">
+
+        <Path name="preCellId"/>
+        <Path name="postCellId"/>
+        <Text name="destination"/>
+        <Text name="preFractionAlong"/>
+        <Text name="postFractionAlong"/>
+        <Text name="preSegmentId"/>
+        <Text name="postSegmentId"/>
+
+        <Structure>
+            <With instance="preCellId" as="a"/>
+            <With instance="postCellId" as="b"/>
+            <EventConnection from="a" to="b" receiver="../synapse" receiverContainer="destination" sourcePort="sourcePort" targetPort="targetPort"/>
+        </Structure>
+
+    </ComponentType>
+    
+        <Dimension name="DIM_ms" t="1"/>
+    
+        <ComponentType name="connectionWD"
+                   description="Event connection between named components, which gets processed via a new instance of a synapse component which is created on the target component, includes setting of _weight and _delay for the synaptic connection"
+                   extends="connection">
+
+        <Parameter name="weight" dimension="none"/>
+        <Parameter name="delay" dimension="DIM_ms"/>
+        <Path name="preCellId"/>
+        <Path name="postCellId"/>
+        <Text name="destination"/>
+        <Text name="preFractionAlong"/>
+        <Text name="postFractionAlong"/>
+        <Text name="preSegmentId"/>
+        <Text name="postSegmentId"/>
+        
+        <Structure>
+            <With instance="preCellId" as="a"/>
+            <With instance="postCellId" as="b"/>
+            <EventConnection from="a" to="b" receiver="../synapse" delay="delay">
+                <Assign property="weight" value="weight"/>
+            </EventConnection>
+        </Structure>
+
+    </ComponentType>
+    
+<!--
+     <ComponentType name="synapticConnectionDL"
+        description="Explicit event connection between named components, which gets processed via a new instance of a _synapse component which is created on the target component"
+        extends="explicitConnection">
+
+        <ComponentReference name="synapse" type="baseSynapseDL"/>
+        <Path name="from"/>
+        <Path name="to"/>
+        <Text name="destination"/>
+
+        <Structure>
+            <With instance="from" as="a"/>
+            <With instance="to" as="b"/>
+            <EventConnection from="a" to="b" receiver="synapse" receiverContainer="destination" sourcePort="sourcePort" targetPort="targetPort"/>
+        </Structure>
+    </ComponentType>
+-->
+    <ComponentType name="synapticConnectionDL"
+        description="Explicit event connection between named components, which gets processed via a new instance of a _synapse component which is created on the target component"
+        extends="explicitConnection">
+
+        <ComponentReference name="synapse" type="baseSynapseDL"/>
+        <Path name="from"/>
+        <Path name="to"/>
+        <Text name="destination"/>
+
+        <Structure>
+            <With instance="from" as="a"/>
+            <With instance="to" as="b"/>
+            <EventConnection from="a" to="b" receiver="synapse" receiverContainer="destination" sourcePort="sourcePort" targetPort="targetPort"/>
+        </Structure>
+    </ComponentType>
+
+
+   <ComponentType name="synapticConnection"
+        description="Explicit event connection between named components, which gets processed via a new instance of a _synapse component which is created on the target component"
+        extends="explicitConnection">
+
+        <ComponentReference name="synapse" type="baseSynapse"/>
+        <Path name="from"/>
+        <Path name="to"/>
+        <Text name="destination"/>
+
+        <Structure>
+            <With instance="from" as="a"/>
+            <With instance="to" as="b"/>
+            <EventConnection from="a" to="b" receiver="synapse" receiverContainer="destination" sourcePort="sourcePort" targetPort="targetPort"/>
+        </Structure>
+    </ComponentType>
+
+
+   <ComponentType name="explicitInput" description="An explicit input (anything which extends _basePointCurrent_) to a target cell in a population">
+
+        <ComponentReference name="input" type="basePointCurrentDL"/>
+
+        <Path name="target"/>
+
+        <Text name="destination"/>
+        <Text name="sourcePort"/>
+        <Text name="targetPort"/>
+
+        <Structure>
+            <With instance="target" as="a"/>
+            <With instance="target" as="b"/>
+
+            <EventConnection from="a" to="b" receiver="input" receiverContainer="destination"/>
+        </Structure>
+    </ComponentType>	
+	
+    <ComponentType name="explicitInstanceInput" description="An explicit input (anything which extends _basePointCurrent_) to a target cell in a population">
+<!--
+        <ComponentReference name="input" type="basePointCurrentDL"/>
+-->
+        <Path name="target"/>
+	<Path name="input"/>
+        <Text name="destination"/>
+        <Text name="sourcePort"/>
+        <Text name="targetPort"/>
+
+        <Structure>
+            <With instance="input" as="a"/>
+            <With instance="target" as="b"/>
+
+            <EventConnection from="a" to="b" receiver="input" receiverContainer="destination"/>
+        </Structure>
+    </ComponentType>
+
+
+    <ComponentType name="PortToPortConnection">
+        <Path name="from"/>
+        <Path name="to"/>
+        <Path name="sourceport"/>
+        <Path name="targetport"/>
+        <Structure>
+            <With instance="from" as="a"/>
+            <With instance="to" as="b"/>
+            <EventConnection from="a" to="b" sourcePort="sourceport" targetPort="targetport"/>
+        </Structure>
+    </ComponentType>
+
+
+    <ComponentType name="EventConnectivity">
+        <Link name="source" type="Population"/>
+        <Link name="target" type="Population"/>
+        <Child name="Connections" type="ConnectionPattern"/>
+    </ComponentType>
+
+    <ComponentType name="ConnectionPattern"/>
+
+
+
+    <ComponentType name="AllAll" extends="ConnectionPattern">
+        <Structure>
+            <ForEach instances="../source" as="a">
+                <ForEach instances="../target" as="b">
+                    <EventConnection from="a" to="b"/>
+                </ForEach>
+            </ForEach>    
+        </Structure>
+       
+    </ComponentType>
+
+</Lems>
+

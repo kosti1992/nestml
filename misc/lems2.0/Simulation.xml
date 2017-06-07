@@ -1,0 +1,77 @@
+<Lems>
+    <!-- for more information referer to the original repo at https://github.com/NeuroML/NeuroML2-->
+    <Dimension name="DIM_ms" t="1"/>
+    <Unit symbol="ms" dimension="DIM_ms" power="-3"/>
+
+
+    <ComponentType name="Display">
+        <Text name="title"/>   
+        <Parameter name="xmin" dimension="none"/>
+        <Parameter name="xmax" dimension="none"/>
+        <Parameter name="ymin" dimension="none"/>
+        <Parameter name="ymax" dimension="none"/>
+        <Parameter name="timeScale" dimension="DIM_ms"/>
+        <Children name="lines" type="Line"/>
+
+        <Simulation>
+            <DataDisplay title="title" dataRegion="xmin,xmax,ymin,ymax"/>
+        </Simulation>
+    </ComponentType>
+
+
+    <ComponentType name="Line">
+        <Parameter name="scale" dimension="*"/>
+        <Parameter name="timeScale" dimension="*"/>
+        <Text name="color"/>
+        <Path name="quantity"/>
+        <Simulation>
+            <Record quantity="quantity" timeScale="timeScale" scale="scale" color="color"/>
+        </Simulation>
+    </ComponentType>
+
+
+    <ComponentType name="OutputFile">
+        <Text name="path"/>
+        <Text name="fileName"/>
+	
+        <Children name="outputColumn" type="OutputColumn"/>
+	
+        <Simulation>
+            <DataWriter path="path" fileName="fileName"/>
+        </Simulation>
+
+    </ComponentType>
+
+
+    <ComponentType name="OutputColumn">
+        <Path name="quantity"/>
+        <Simulation>
+            <Record quantity="quantity"/>
+        </Simulation>
+    </ComponentType>
+
+
+
+    <ComponentType name="Simulation">
+        <Parameter name="length" dimension="DIM_ms"/>
+        <Parameter name="step" dimension="DIM_ms"/>
+    
+        <ComponentReference name="target" type="Component"/>
+
+
+        <Children name="displays" type="Display"/>
+       
+        <Children name="outputs" type="OutputFile"/>
+   
+        <Dynamics>
+            <StateVariable name="t" dimension="DIM_ms"/>
+        </Dynamics>
+    
+        <Simulation>
+            <Run component="target" variable="t" increment="step" total="length"/>
+        </Simulation>
+    </ComponentType>
+
+
+
+</Lems>

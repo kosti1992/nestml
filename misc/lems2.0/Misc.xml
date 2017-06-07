@@ -1,0 +1,137 @@
+<Lems>
+    <!-- for more information referer to the original repo at https://github.com/NeuroML/NeuroML2-->
+   <ComponentType name="basePointCurrentDL">
+        <Exposure name="i" dimension="none"
+                  description="The total (time varying) current produced by this ComponentType"/>
+       <Exposure name="i" dimension="none" description="The total (time varying) current produced by this ComponentType"/>
+   </ComponentType>
+
+   <Dimension i="1" name="DIM_pA"/>
+
+    <!--taken from the orignal NeuroML2 definiton, source:https://github.com/NeuroML/NeuroML2/ -->
+    <ComponentType name="basePointCurrent"
+                  description="Base type for all ComponentTypes which produce a current _i (with dimension current)">
+       <Exposure name="i" dimension="DIM_pA" description="The total (time varying) current produced by this ComponentType"/>
+   </ComponentType>
+
+    <!-- taken from the orignal NeuroML2 definiton, source:https://github.com/NeuroML/NeuroML2/ -->
+    <ComponentType name="baseSynapseDL"
+               extends="basePointCurrentDL"
+               description="Base type for all synapses, i.e. ComponentTypes which produce a current (dimension current) and change Dynamics in response to an incoming event. cno_0000009"> <!-- http://bioportal.bioontology.org/ontologies/46856/?p=terms&conceptid=cno%3Acno_0000009 -->
+              <EventPort name="in" direction="in"/>
+    </ComponentType>
+
+     <ComponentType name="baseSynapse"
+               extends="basePointCurrent"
+               description="Base type for all synapses, i.e. ComponentTypes which produce a current (dimension current) and change Dynamics in response to an incoming event. cno_0000009"> <!-- http://bioportal.bioontology.org/ontologies/46856/?p=terms&conceptid=cno%3Acno_0000009 -->
+              <EventPort name="in" direction="in"/>
+    </ComponentType>
+
+   <!-- A set of several synapses without dimension, which can be attachted to target neurons-->
+    
+    <ComponentType name="testSynapse" extends="baseSynapseDL">
+        <EventPort name="in" direction="in"/>
+        <Dynamics>
+                <StateVariable name="i" exposure="i" dimension="none"/>
+                <OnEvent port="in">
+                    <StateAssignment variable="i" value="i+10"/>
+                </OnEvent>
+        </Dynamics>
+    </ComponentType>
+
+    <!-- a synapse without any functionality-->
+    <ComponentType name="dummySynapse" extends="baseSynapseDL">
+        <EventPort name="in" direction="in"/>
+        <Dynamics>
+                <StateVariable name="i" exposure="i" dimension="none"/>
+                <OnEvent port="in">
+                    <StateAssignment variable="i" value="i"/>
+                </OnEvent>
+        </Dynamics>
+    </ComponentType>
+
+    <!---  Emits permanently the same level of current-->
+    <ComponentType name="currentGenerator" extends="basePointCurrent">
+        <Parameter name="amplitude" dimension="DIM_pA" description="The amplitude of the transmitted current."/>
+        <EventPort name="in" direction="in"/>
+        <Dynamics>
+            <StateVariable name="i" exposure="i" dimension="DIM_pA"/>
+            <OnStart>
+                <StateAssignment variable="i" value="amplitude"/>
+            </OnStart>
+        </Dynamics>
+    </ComponentType>
+
+
+    <!-- A generator which emits a current which evolves over time, TODO: not fully tested-->
+    <ComponentType name="linearEvolvingGenerator" extends="basePointCurrent">
+        <Parameter name="offset" dimension="DIM_ms" description="The duration of time after which the component start to evolve."/>
+        <Parameter name="duration" dimension="DIM_ms" description="The duration of the emission."/>
+        <Parameter name="delta" dimension="DIM_pA" description="The value added to the current value in each step."/>
+        <EventPort name="in" direction="in"/><!--required by LEMS in order to establish connections.-->
+        <Constant name="CON1ms" dimension="DIM_ms" value="1ms"/>
+        <Dynamics>
+            <StateVariable name="i" exposure="i" dimension="DIM_pA"/>
+            <StateVariable name="tsinceStart" dimension="DIM_ms"/>
+            <StateVariable name="activator" dimension="none"/>
+            <TimeDerivative variable="tsinceStart" value="1"/>
+            <TimeDerivative variable="i" value="activator*(delta)/CON1ms"/>
+            <OnStart>
+                <StateAssignment variable="activator" value="0"/>
+            </OnStart>
+            <OnCondition test="tsinceStart.geq.offset">
+                <StateAssignment variable="activator" value="1"/>
+            </OnCondition>
+            <OnCondition test="tsinceStart.geq.(offset+duration)">
+                <StateAssignment variable="activator" value="0"/>
+                <StateAssignment variable="i" value="0"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+
+  <!--Several definition of current generators -->
+    <Unit dimension="DIM_pA" power="-12" symbol="pA"/>
+    <Dimension i="1" name="DIM_pA"/>
+
+    <!-- after _delay_ for _duration_ ms an current of value _amplitude_ is emitted-->
+    <ComponentType name="pulseGenerator" extends="basePointCurrent">
+        <Parameter name="delay" dimension="DIM_ms"
+                   description="Delay before change in current. Current is zero  prior to this."/>
+        <Parameter name="duration" dimension="DIM_ms"
+                   description="Duration for holding current at amplitude. Current is zero after delay + duration."/>
+        <Parameter name="amplitude" dimension="DIM_pA" description="Amplitude of current pulse"/>
+
+        <EventPort name="in" direction="in"/>
+
+        <Dynamics>
+            <StateVariable name="i" exposure="i" dimension="DIM_pA"/>
+            <OnCondition test="t .lt. delay">
+                <StateAssignment variable="i" value="0"/>
+            </OnCondition>
+
+            <OnCondition test="t .geq. delay .and. t .lt. duration + delay">
+                <StateAssignment variable="i" value="amplitude"/>
+            </OnCondition>
+
+            <OnCondition test="t .geq. duration + delay">
+                <StateAssignment variable="i" value="0"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+ <ComponentType name="spikeGenerator">
+        <Parameter name="period" dimension="DIM_ms"/>
+        <EventPort name="a" direction="out"/>
+        <Exposure name="tsince" dimension="DIM_ms"/>
+        <Dynamics>
+            <StateVariable name="tsince" exposure="tsince" dimension="DIM_ms"/>
+            <TimeDerivative variable="tsince" value="1"/>
+            <OnCondition test="tsince .gt. period">
+                <StateAssignment variable="tsince" value="0"/>
+                <EventOut port="a"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+
+</Lems>

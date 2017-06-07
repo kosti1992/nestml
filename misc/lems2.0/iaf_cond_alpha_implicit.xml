@@ -1,0 +1,105 @@
+<Lems>
+    <!-- Generated on Jun 7, 2017 11:28:44 AM from NESTML-model "iaf_cond_alpha_implicit".-->
+    <Dimension i="2" l="-2" m="-1" name="DIM_1_per_GOhm" t="3"/>
+    <Dimension i="-1" l="2" m="1" name="DIM_mV" t="-3"/>
+    <Dimension i="1" name="DIM_pA"/>
+    <Dimension i="2" l="-2" m="-1" name="DIM_1_per_MH" t="2"/>
+    <Dimension name="DIM_ms" t="1"/>
+    <Dimension i="2" l="-2" m="-1" name="DIM_pF" t="4"/>
+    <Unit dimension="DIM_pA" power="-12" symbol="pA"/>
+    <Unit dimension="DIM_ms" power="-3" symbol="ms"/>
+    <Unit dimension="DIM_pF" power="-12" symbol="pF"/>
+    <Unit dimension="DIM_1_per_MH" power="-6" symbol="1_per_MH"/>
+    <Unit dimension="DIM_mV" power="-3" symbol="mV"/>
+    <Unit dimension="DIM_1_per_GOhm" power="-9" symbol="1_per_GOhm"/>
+    <ComponentType name="iaf_cond_alpha_implicit">
+        <Constant dimension="DIM_1_per_GOhm" name="nS" value="1 1_per_GOhm"/>
+        <Constant dimension="DIM_pA" name="pA" value="1 pA"/>
+        <Constant dimension="DIM_mV" name="mV" value="1 mV"/>
+        <Constant dimension="DIM_ms" name="ms" value="1 ms"/>
+        <Constant dimension="DIM_pF" name="pF" value="1 pF"/>
+        <DerivedParameter dimension="DIM_mV" name="V_th" value="(-55*mV)"/>
+        <DerivedParameter dimension="DIM_mV" name="V_reset" value="(-60*mV)"/>
+        <DerivedParameter dimension="DIM_ms" name="t_ref" value="2*ms"/>
+        <DerivedParameter dimension="DIM_1_per_GOhm" name="g_L" value="16.6667*nS"/>
+        <DerivedParameter dimension="DIM_pF" name="C_m" value="250*pF"/>
+        <DerivedParameter dimension="DIM_mV" name="E_ex" value="0*mV"/>
+        <DerivedParameter dimension="DIM_mV" name="E_in" value="(-85*mV)"/>
+        <DerivedParameter dimension="DIM_mV" name="E_L" value="(-70*mV)"/>
+        <DerivedParameter dimension="DIM_ms" name="tau_syn_ex" value="0.2*ms"/>
+        <DerivedParameter dimension="DIM_ms" name="tau_syn_in" value="2*ms"/>
+        <DerivedParameter dimension="DIM_pA" name="I_e" value="0*pA"/>
+        <DerivedParameter dimension="none" name="PSConInit_E" value="ms*exp(1)/tau_syn_ex"/>
+        <DerivedParameter dimension="none" name="PSConInit_I" value="ms*exp(1)/tau_syn_in"/>
+        <DerivedParameter dimension="none" name="RefractoryCounts" value="(t_ref)/(1*ms)"/>
+        <EventPort direction="out" name="spike"/>
+        <Attachments name="spikeInh" type="baseSynapseDL"/>
+        <Attachments name="spikeExc" type="baseSynapseDL"/>
+        <Attachments name="currents" type="baseSynapse"/>
+        <Dynamics>
+            <StateVariable dimension="DIM_mV" name="V_m"/>
+            <StateVariable dimension="DIM_1_per_GOhm" name="g_in"/>
+            <StateVariable dimension="DIM_1_per_GOhm" name="g_ex"/>
+            <StateVariable dimension="DIM_pA" name="I_stim"/>
+            <StateVariable dimension="DIM_1_per_MH" name="__D_g_in"/>
+            <StateVariable dimension="DIM_1_per_MH" name="__D_g_ex"/>
+            <StateVariable dimension="none" name="r"/>
+            <DerivedVariable dimension="DIM_pA" name="I_syn_exc" value="g_ex*(V_m-E_ex)"/>
+            <DerivedVariable dimension="DIM_pA" name="I_syn_inh" value="g_in*(V_m-E_in)"/>
+            <DerivedVariable dimension="DIM_pA" name="I_leak" value="g_L*(V_m-E_L)"/>
+            <DerivedVariable dimension="none" name="spikeInh" reduce="add" select="spikeInh[*]/i"/>
+            <DerivedVariable dimension="none" name="spikeExc" reduce="add" select="spikeExc[*]/i"/>
+            <DerivedVariable dimension="DIM_pA" name="currents" reduce="add" select="currents[*]/i"/>
+            <OnStart>
+                <StateAssignment value="E_L" variable="V_m"/>
+                <StateAssignment value="0*nS" variable="g_in"/>
+                <StateAssignment value="0*nS" variable="g_ex"/>
+                <StateAssignment value="0*pA" variable="I_stim"/>
+                <StateAssignment value="0*__D_g_in" variable="__D_g_in"/>
+                <StateAssignment value="0*__D_g_ex" variable="__D_g_ex"/>
+                <StateAssignment value="0" variable="r"/>
+            </OnStart>
+            <TimeDerivative value="(-__D_g_ex)/tau_syn_ex" variable="__D_g_ex"/>
+            <TimeDerivative value="__D_g_ex-g_ex/tau_syn_ex" variable="g_ex"/>
+            <TimeDerivative value="(-__D_g_in)/tau_syn_in" variable="__D_g_in"/>
+            <TimeDerivative value="((-I_leak)-I_syn_exc-I_syn_inh+I_stim+I_e)/C_m" variable="V_m"/>
+            <TimeDerivative value="__D_g_in-g_in/tau_syn_in" variable="g_in"/>
+            <!--Generated from source lines iaf_cond_alpha.tmp:<98,44> to <100,20>.-->
+            <!--if r!=0: # neuron is absolute refractory-->
+            <!--  r = r-1-->
+            <!--  V_m = V_reset-->
+            <OnCondition test="(r.neq.0)">
+                <StateAssignment value="r-1" variable="r"/>
+                <StateAssignment value="V_reset" variable="V_m"/>
+            </OnCondition>
+            <!--Generated from source lines iaf_cond_alpha.tmp:<101,55> to <104,19>.-->
+            <!--elif V_m>=V_th: # neuron is not absolute refractory-->
+            <!--  r = RefractoryCounts-->
+            <!--  V_m = V_reset-->
+            <!--  emit_spike()-->
+            <OnCondition test="((r.eq.0).and.(V_m.geq.V_th))">
+                <StateAssignment value="RefractoryCounts" variable="r"/>
+                <StateAssignment value="V_reset" variable="V_m"/>
+                <EventOut port="spike"/>
+            </OnCondition>
+            <!--Generated from source lines iaf_cond_alpha.tmp:<107,2> to <107,37>.-->
+            <!--# add incoming spikes-->
+            <!--g_ex' += spikeExc*PSConInit_E*nS/ms-->
+            <OnCondition test="1.eq.1">
+                <StateAssignment value="__D_g_ex+spikeExc*PSConInit_E*nS/ms" variable="__D_g_ex"/>
+            </OnCondition>
+            <!--Generated from source lines iaf_cond_alpha.tmp:<108,2> to <108,37>.-->
+            <!--g_in' += spikeInh*PSConInit_I*nS/ms-->
+            <OnCondition test="1.eq.1">
+                <StateAssignment value="__D_g_in+spikeInh*PSConInit_I*nS/ms" variable="__D_g_in"/>
+            </OnCondition>
+            <!--Generated from source lines iaf_cond_alpha.tmp:<110,2> to <110,19>.-->
+            <!--# set new input current-->
+            <!--I_stim = currents-->
+            <OnCondition test="1.eq.1">
+                <StateAssignment value="currents" variable="I_stim"/>
+            </OnCondition>
+        </Dynamics>
+    </ComponentType>
+</Lems>
+
