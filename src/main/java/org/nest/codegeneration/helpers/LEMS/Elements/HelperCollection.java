@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.DynamicRoutine;
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.FunctionCall;
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.Instruction;
 import org.nest.codegeneration.helpers.LEMS.Expressions.*;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.commons._ast.ASTExpr;
@@ -18,8 +21,6 @@ import org.nest.symboltable.symbols.VariableSymbol;
 import org.nest.units._ast.ASTDatatype;
 import org.nest.units._ast.ASTUnitType;
 import org.nest.units.unitrepresentation.UnitRepresentation;
-
-import javax.swing.text.html.Option;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
@@ -41,6 +42,7 @@ public class HelperCollection {
     public static final String PREFIX_DIMENSION = "DIM_";
     public static final String PREFIX_CONSTANT = "CON_";
     public static final String PREFIX_ACT = "ACT_";
+    public static final String PREFIX_TEMP = "T_";
 
     public static final String CURRENT_BUFFER_INPUT_VAR = "i";
     public static final String SPIKE_BUFFER_INPUT_VAR = "i";
@@ -398,10 +400,10 @@ public class HelperCollection {
      * @param list     the list which holds instruction
      * @return true if function call is present
      */
-    public static boolean containsNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
-        for (DynamicRoutine.Instruction instr : list) {
-            if (instr.getClass() == DynamicRoutine.FunctionCall.class &&
-                    ((DynamicRoutine.FunctionCall) instr).printName().equals(funcName)) {
+    public static boolean containsNamedFunction(String funcName, List<Instruction> list) {
+        for (Instruction instr : list) {
+            if (instr.getClass() == FunctionCall.class &&
+                    ((FunctionCall) instr).printName().equals(funcName)) {
                 return true;
             }
         }
@@ -415,11 +417,11 @@ public class HelperCollection {
      * @param list     the list of instructions which will be searched through
      * @return a list of function calls with the given name,
      */
-    public static List<DynamicRoutine.FunctionCall> getNamedFunction(String funcName, List<DynamicRoutine.Instruction> list) {
+    public static List<FunctionCall> getNamedFunction(String funcName, List<Instruction> list) {
         return list.stream()
-                .filter(call -> call.getClass().equals(DynamicRoutine.FunctionCall.class) &&
-                        ((DynamicRoutine.FunctionCall) call).printName().equals(funcName))
-                .map(call -> (DynamicRoutine.FunctionCall) call).collect(Collectors.toList());
+                .filter(call -> call.getClass().equals(FunctionCall.class) &&
+                        ((FunctionCall) call).printName().equals(funcName))
+                .map(call -> (FunctionCall) call).collect(Collectors.toList());
     }
 
     /**

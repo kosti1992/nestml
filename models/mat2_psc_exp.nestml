@@ -90,7 +90,7 @@ neuron mat2_psc_exp_neuron:
     tau_2        ms =   200ms  # Long time constant of adaptive threshold in ms
     alpha_1      mV =  37.0mV  # Amplitude of short time threshold adaption in mV [3]
     alpha_2      mV =   2.0mV  # Amplitude of long time threshold adaption in mV [3]
-    omega        mV =  19.0mV  # Resting spike threshold in mV (absolute mValue, not relative to E_L)
+    omega        mV =  19.0mV  # Resting spike threshold in mV (absolute value, not relative to E_L)
   end
 
   internals:

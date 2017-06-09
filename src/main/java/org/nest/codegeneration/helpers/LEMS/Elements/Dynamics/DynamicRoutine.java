@@ -1,10 +1,11 @@
-package org.nest.codegeneration.helpers.LEMS.Elements;
+package org.nest.codegeneration.helpers.LEMS.Elements.Dynamics;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
 
 import de.monticore.emf._ast.ASTECNode;
+import org.nest.codegeneration.helpers.LEMS.Elements.*;
 import org.nest.codegeneration.helpers.LEMS.Expressions.*;
 import org.nest.codegeneration.helpers.LEMS.Expressions.NumericLiteral;
 import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
@@ -27,15 +28,20 @@ public class DynamicRoutine {
     private List<ConditionalBlock> mBlocks;//A List of all states of the automaton.
     private LEMSCollector mContainer;//required in order to use the same pretty printer as in other parts of transformation
 
-    public DynamicRoutine(List<ASTDynamics> input, LEMSCollector container) {
+    public DynamicRoutine(LEMSCollector container) {
         this.mBlocks = new ArrayList<>();
         this.mContainer = container;
+
+    }
+
+    public void handleDynamics(List<ASTDynamics> input){
         //currently, only one dynamics block can be present, however, NESTML deals with it by means of a List
         for (ASTDynamics dyn : input) {//for all dynamic mBlocks in the model
             //for all outer statements in the model
             dyn.getBlock().getStmts().forEach(this::handleStatement);
         }
     }
+
 
     /**
      * Handles a given statement by evoking an adequate subroutine.
@@ -397,7 +403,7 @@ public class DynamicRoutine {
         tempExpression = HelperCollection.replacementRoutine(container, tempExpression);
         Instruction tempInstruction;
         for (String var : declaration.getVars()) {
-            container.addStateVariable(new StateVariable(var, dimension, tempExpression, unit));
+            container.addStateVariable(new StateVariable(var, dimension, Optional.of(tempExpression), unit));
             tempInstruction = new Assignment(var, tempExpression);
             ret.add(tempInstruction);
         }
@@ -754,6 +760,28 @@ public class DynamicRoutine {
     }
 
     /**
+     * Generates a block which is always evaluated, i.e. with the condition 1.eq.1
+     * @param instructionArrayList a list  of instructions
+     */
+    public void addTrueBlock(ArrayList<Instruction> instructionArrayList){
+        ConditionalBlock block = new ConditionalBlock(instructionArrayList, Expression.generateTrue(), null);
+        this.mBlocks.add(block);
+    }
+
+    /**
+     * Generates a block which is always evaluated, i.e. with the condition 1.eq.1
+     * @param instruction a list  of instructions
+     */
+    public void addTrueBlock(Instruction instruction){
+        ArrayList<Instruction> instructionArrayList = new ArrayList<>();
+        instructionArrayList.add(instruction);
+        String comment = "This is an artificial state assignment.";
+        ConditionalBlock block = new ConditionalBlock(instructionArrayList, Expression.generateTrue(), comment);
+        this.mBlocks.add(block);
+    }
+
+
+    /**
      * Returns a list of all instructions in all mBlocks.
      *
      * @return a list of instruction objects
@@ -761,7 +789,7 @@ public class DynamicRoutine {
     public List<Instruction> getAllInstructions() {
         ArrayList<Instruction> ret = new ArrayList<>();
         for (ConditionalBlock block : this.mBlocks) {
-            ret.addAll(block.getInstructions());
+             ret.addAll(block.getInstructions());
         }
         return ret;
     }
@@ -788,102 +816,4 @@ public class DynamicRoutine {
         return (FunctionCall) _instruction;
     }
 
-    /**
-     * An instruction superclass used required in order to store all types of instructions in a single list.
-     */
-    public abstract class Instruction {
-        private String mClassIdentifier;//each instruction has to provide an identifier for the backend
-
-        public abstract String getClassIdentifier();
-
-    }
-
-    /**
-     * This class stores a concrete instructions, namely an assignments.
-     */
-    public class Assignment extends Instruction {
-        private final String mClassIdentifier = "Assignment";//required by the backend
-        private String mAssignedVariable = null;
-        private Expression mAssignedValue = null;
-
-        public Assignment(String assignedVariable, Expression assignedValue) {
-            checkNotNull(assignedValue);
-            checkNotNull(assignedVariable);
-            this.mAssignedVariable = assignedVariable;
-            this.mAssignedValue = assignedValue;
-        }
-
-        @SuppressWarnings("unused")//used in the template
-        public String printAssignedVariable() {
-            return this.mAssignedVariable;
-        }
-
-        @SuppressWarnings("unused")//used in the template
-        public Expression getAssignedValue() {
-            return this.mAssignedValue;
-        }
-
-        @SuppressWarnings("unused")//used in the template
-        public String printAssignedValue() {
-            if (this.mAssignedValue != null) {
-                return this.mAssignedValue.print(new LEMSSyntaxContainer());
-            }
-            return "";
-        }
-
-        public void replaceConstantsWithReferences(LEMSCollector container) {
-            this.mAssignedValue = HelperCollection.replaceConstantsWithReferences(container, this.mAssignedValue);
-        }
-
-        public void replaceResolutionByConstantReference(LEMSCollector container) {
-            this.mAssignedValue = HelperCollection.replaceResolutionByConstantReference(container, this.mAssignedValue);
-        }
-
-        public String getClassIdentifier() {
-            return mClassIdentifier;
-        }
-    }
-
-    /**
-     * This class is used to store concrete instructions, namely function calls.
-     */
-    public class FunctionCall extends Instruction {
-        private final String mClassIdentifier = "FunctionCall";//required by the backend
-        private Function mFunctionCallExpr;
-
-        public FunctionCall(ASTFunctionCall _astFunctionCall) {
-            checkNotNull(_astFunctionCall);
-            this.mFunctionCallExpr = new Function(_astFunctionCall);
-        }
-
-        public FunctionCall(String _functionName, List<Expression> _arguments) {
-            checkNotNull(_functionName);
-            checkNotNull(_arguments);
-            this.mFunctionCallExpr = new Function(_functionName, _arguments);
-        }
-
-        @SuppressWarnings("unused")//used in the template
-        public String printName() {
-            return this.mFunctionCallExpr.getFunctionName();
-        }
-
-        @SuppressWarnings("unused")//used in the template
-        public String printArgs() {
-            StringBuilder newBuilder = new StringBuilder();
-            for (Expression expr : this.mFunctionCallExpr.getArguments()) {
-                newBuilder.append(expr.print(new LEMSSyntaxContainer()));
-                newBuilder.append(",");
-            }
-            newBuilder.deleteCharAt(newBuilder.length() - 1);//delete the last "," before the end of the string
-            return newBuilder.toString();
-        }
-
-        public String getClassIdentifier() {
-            return mClassIdentifier;
-        }
-
-        public List<Expression> getArgs() {
-            return mFunctionCallExpr.getArguments();
-        }
-    }
 }

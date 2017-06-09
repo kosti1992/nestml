@@ -3,6 +3,8 @@ package org.nest.codegeneration.helpers.LEMS.Elements;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.DynamicRoutine;
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.Instruction;
 import org.nest.codegeneration.helpers.LEMS.Expressions.Expression;
 import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
 
@@ -14,7 +16,7 @@ import org.nest.codegeneration.helpers.LEMS.Expressions.LEMSSyntaxContainer;
  */
 public class ConditionalBlock extends LEMSElement {
 	//a conditional block consists of mInstructions
-	private List<DynamicRoutine.Instruction> mInstructions;
+	private List<Instruction> mInstructions;
 	private Expression mCondition;
 
 	/**
@@ -23,7 +25,7 @@ public class ConditionalBlock extends LEMSElement {
 	 * @param _condition the condition of the block
 	 * @param _comment a comment or the raw source code printed next to the block
 	 */
-	public ConditionalBlock(List<DynamicRoutine.Instruction> _instructions, Expression _condition, String _comment) {
+	public ConditionalBlock(List<Instruction> _instructions, Expression _condition, String _comment) {
 		this.mInstructions = _instructions;
 		this.mCondition = _condition;
 		super.setComment(_comment);
@@ -34,7 +36,7 @@ public class ConditionalBlock extends LEMSElement {
      * @param _condition the condition of the block
      * @param _comment a comment or the raw source code printed next to the block
      */
-	public ConditionalBlock(DynamicRoutine.Instruction _instruction,Expression _condition, String _comment){
+	public ConditionalBlock(Instruction _instruction,Expression _condition, String _comment){
 		this.mInstructions = new ArrayList<>();
 		this.mInstructions.add(_instruction);
 		this.mCondition = _condition;
@@ -52,12 +54,12 @@ public class ConditionalBlock extends LEMSElement {
 	}
 
 	@SuppressWarnings("unused")//used in the template
-	public List<DynamicRoutine.Instruction> getInstructions() {
+	public List<Instruction> getInstructions() {
 		return this.mInstructions;
 	}
 
 	@SuppressWarnings("unused")//used in the template
-	public String getInstructionType(DynamicRoutine.Instruction _instruction) {
+	public String getInstructionType(Instruction _instruction) {
 		return _instruction.getClassIdentifier();
 	}
 

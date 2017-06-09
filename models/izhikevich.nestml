@@ -15,8 +15,8 @@ Implementation of the simple spiking neuron model introduced by Izhikevich
 
 As published in [1], the numerics differs from the standard forward Euler
 technique in two ways:
-1) the new mValue of u is calculated based on the new mValue of v, rather than
-the previous mValue
+1) the new value of u is calculated based on the new value of v, rather than
+the previous value
 2) the variable v is updated using a time step half the size of that used to
 update variable u.
 
@@ -55,10 +55,10 @@ neuron izhikevich_neuron:
   parameters:
     a real = 0.02   # describes time scale of recovery variable
     b real = 0.2    # sensitivity of recovery variable
-    c mV = -65 mV     # after-spike reset mValue of V_m
-    d real = 8.0    # after-spike reset mValue of U_m
+    c mV = -65 mV     # after-spike reset value of V_m
+    d real = 8.0    # after-spike reset value of U_m
     I_e pA = 0 pA   # Constant input current in pA. (R=1)
-    V_min mV = -inf * mV # Absolute lower mValue for the membrane potential.
+    V_min mV = -inf * mV # Absolute lower value for the membrane potential.
   end
 
   input:

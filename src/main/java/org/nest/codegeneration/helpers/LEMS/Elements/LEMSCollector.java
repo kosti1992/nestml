@@ -3,8 +3,9 @@ package org.nest.codegeneration.helpers.LEMS.Elements;
 import java.util.*;
 
 import org.nest.codegeneration.helpers.LEMS.Collector;
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.Assignment;
+import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.DynamicRoutine;
 import org.nest.codegeneration.helpers.LEMS.Expressions.*;
-import org.nest.codegeneration.helpers.LEMS.helpers.EitherTuple;
 import org.nest.codegeneration.helpers.Names;
 import org.nest.codegeneration.sympy.OdeTransformer;
 import org.nest.commons._ast.ASTExpr;
@@ -82,6 +83,7 @@ public class LEMSCollector extends Collector {
         this.config = _simulationConfiguration;
         this.booleanElements = new ArrayList<>();
         this.guards = new HashMap<>();
+        this.routine = new DynamicRoutine(this);
         this.handleNeuron(_neuron);
     }
 
@@ -333,7 +335,7 @@ public class LEMSCollector extends Collector {
                     //now generate the corresponding activator
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, Optional.of(new NumericLiteral(1)), Optional.empty()));
                     }
                     this.localTimeDerivative.add(new Variable(tLhs));
                 } else {
@@ -347,7 +349,7 @@ public class LEMSCollector extends Collector {
                     expr = HelperCollection.replacementRoutine(this, expr);
                     if (SimulationConfiguration.mWithActivator) {
                         this.addStateVariable(new StateVariable(HelperCollection.PREFIX_ACT + tLhs,
-                                HelperCollection.DIMENSION_NONE, new NumericLiteral(1), Optional.empty()));
+                                HelperCollection.DIMENSION_NONE, Optional.of(new NumericLiteral(1)), Optional.empty()));
                     }
                     equation.put(new Variable(tLhs), expr);
 
@@ -394,11 +396,20 @@ public class LEMSCollector extends Collector {
                     tempUnit = new Unit(HelperCollection.formatComplexUnit(tempExr.print()), dec[7], tempDimension);
                 }
                 if (tempFunction.getExpr().conditionIsPresent()) {
+                    //if a condition is present, wee have to do some workarounds
+                    //first create a state variable which will be used as reference
+                    StateVariable tStateVar = new StateVariable(tempFunction.getVariableName(),
+                            tempDimension.getName(),Optional.empty(),Optional.empty());
+                    this.addStateVariable(tStateVar);
+
                     tempDerivedVar = new DerivedElement(
-                            tempFunction.getVariableName(),
+                            HelperCollection.PREFIX_TEMP+tempFunction.getVariableName(),
                             tempDimension.getName(),
                             tempFunction.getExpr(),
                             this, false);
+                    Assignment tAssignment = new Assignment(tStateVar.getName(),new Variable(tempDerivedVar.getName()));
+                    this.getAutomaton().addTrueBlock(tAssignment);
+
                 } else {
                     Expression tempExpression = new Expression(tempFunction.getExpr());
                     tempExpression = HelperCollection.replaceResolutionByConstantReference(this, tempExpression);
@@ -461,10 +472,10 @@ public class LEMSCollector extends Collector {
                                 var.getDeclaringExpression().get(),
                                 this, false);
                         if (var.getType().getType() == TypeSymbol.Type.UNIT) {
-                            tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
+                            tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), Optional.of(new Variable(tempDerivedElement.getName())),
                                     Optional.of(var.getType().prettyPrint()));
                         } else {
-                            tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), new Variable(tempDerivedElement.getName()),
+                            tempStateVariable = new StateVariable(var.getName(), tempDerivedElement.getDimension(), Optional.of(new Variable(tempDerivedElement.getName())),
                                     Optional.empty());//no unit,therefore "" as 4th arg
                         }
                     } else if (var.getDeclaringExpression().get().exprIsPresent()) {
@@ -514,7 +525,7 @@ public class LEMSCollector extends Collector {
         if (!neuronBody.getParameterInvariants().isEmpty()) {
             //we need a variable for an assignment which results in a crash. in order to make such variables more obvious, we name named them specially
             StateVariable tempVar = new StateVariable(HelperCollection.GUARD_NAME, HelperCollection.DIMENSION_NONE,
-                    new NumericLiteral(0), Optional.empty());
+                    Optional.of(new NumericLiteral(0)), Optional.empty());
             this.addStateVariable(tempVar);
             //finally process each guard
             Expression tempExpression;
@@ -662,10 +673,10 @@ public class LEMSCollector extends Collector {
                             if (var.getType().getType() == TypeSymbol.Type.UNIT) {
                                 Unit tempUnit = new Unit(var.getType());
                                 this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
-                                        new Variable(tempElem.getName()), Optional.of(tempUnit.getSymbol())));
+                                        Optional.of(new Variable(tempElem.getName())), Optional.of(tempUnit.getSymbol())));
                             } else {
                                 this.addStateVariable(new StateVariable(var.getName(), HelperCollection.typeToDimensionConverter(var.getType()),
-                                        new Variable(tempElem.getName()), Optional.empty()));
+                                        Optional.of(new Variable(tempElem.getName())), Optional.empty()));
                             }
                             // handle boolean literal or numLiteral, e.g. 1mV
                         } else if (var.getDeclaringExpression().get().booleanLiteralIsPresent() ||
@@ -781,7 +792,7 @@ public class LEMSCollector extends Collector {
     private void handleDynamicsBlock(ASTBody _neuronBody) {
         checkNotNull(_neuronBody);
         if (_neuronBody.getDynamicsBlock().isPresent()) {
-            routine = new DynamicRoutine(_neuronBody.getDynamics(), this);
+            getAutomaton().handleDynamics(_neuronBody.getDynamics());
         }
     }
 

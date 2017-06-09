@@ -117,11 +117,11 @@ public class StateVariable extends LEMSElement {
      * @param _defaultValue the default value as a string
      * @param _unit         the mUnit as a string
      */
-    public StateVariable(String _name, String _dimension, Expression _defaultValue,
+    public StateVariable(String _name, String _dimension, Optional<Expression> _defaultValue,
                          Optional<String> _unit) {
         this.mName = _name;
         this.mDimension = HelperCollection.dimensionFormatter(_dimension);
-        this.mDefaultValue = Optional.of(_defaultValue);
+        this.mDefaultValue = _defaultValue;
         this.mUnit = _unit;
 
     }
