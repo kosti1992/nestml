@@ -110,17 +110,16 @@ public class DynamicRoutine {
                 tempCondition.replaceLhs(condition);
                 tempCondition.replaceRhs(tempRhs);
                 tempCondition.replaceOp(tempOp);
-                tempCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, tempCondition);
+                //tempCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, tempCondition);
                 tempCondition = Expression.encapsulateInBrackets(tempCondition);
             } else {
                 tempCondition = new Expression(input.getIF_Stmt().get().getIF_Clause().getExpr());
-                tempCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, tempCondition);
+                //tempCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, tempCondition);
                 tempCondition = Expression.encapsulateInBrackets(tempCondition);
             }
             tempPrettyPrinter.print(input.getIF_Stmt().get().getIF_Clause());
             //store a new conditional block
-            tempCondition = HelperCollection.replaceConstantsWithReferences(mContainer, tempCondition);
-            tempCondition = HelperCollection.replaceResolutionByConstantReference(mContainer, tempCondition);
+            tempCondition = HelperCollection.replacementRoutine(mContainer, tempCondition);
             tempCondition = HelperCollection.replaceNotByLogicalEquivalent(mContainer, tempCondition);
             tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
             handleASTBlock(input.getIF_Stmt().get().getIF_Clause().getBlock(), tempCondition, tempPrettyPrinter.result());
@@ -150,8 +149,7 @@ public class DynamicRoutine {
                 tempExpr.replaceOp(newOp);
                 tempCondition = tempExpr;
             }
-            tempCondition = HelperCollection.replaceConstantsWithReferences(mContainer, tempCondition);
-            tempCondition = HelperCollection.replaceResolutionByConstantReference(mContainer, tempCondition);
+            tempCondition = HelperCollection.replacementRoutine(mContainer, tempCondition);
             tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
             tempCondition = Expression.encapsulateInBrackets(tempCondition);//finally encapsulate everything in brackets
             handleASTBlock(clause.getBlock(), tempCondition, tempPrettyPrinter.result());
@@ -170,18 +168,18 @@ public class DynamicRoutine {
                 tempExpr.replaceRhs(tempCondition);
                 Operator newOp = new Operator();
                 newOp.setLogicalAnd(true);
+                tempExpr.replaceOp(newOp);
                 tempCondition = tempExpr;
             }
             //create the corresponding block
-            tempCondition = HelperCollection.replaceConstantsWithReferences(mContainer, tempCondition);
-            tempCondition = HelperCollection.replaceResolutionByConstantReference(mContainer, tempCondition);
+            tempCondition = HelperCollection.replacementRoutine(mContainer,tempCondition);
             tempCondition = HelperCollection.encapsulateExpressionInConditions(tempCondition);
             tempCondition = Expression.encapsulateInBrackets(tempCondition);
             handleASTBlock(input.getIF_Stmt().get().getELSE_Clause().get().getBlock(),
                     tempCondition, tempPrettyPrinter.result());
         }
 
-        //TODO: are these mBlocks really not supported?
+        //TODO: are these blocks really not supported?
         else if (input.getWHILE_Stmt().isPresent()) {//the block is a while block-> not supported yet
             System.err.println(
                     "LEMS Error (Line: "
@@ -455,7 +453,7 @@ public class DynamicRoutine {
             firstCondition.replaceLhs(condition.deepClone());
             firstCondition.replaceOp(opFirst);
             firstCondition.replaceRhs(firstSubCondition);
-            firstCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, firstCondition);
+            //firstCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, firstCondition);
         } else {
             firstCondition = firstSubCondition;
         }
@@ -471,7 +469,7 @@ public class DynamicRoutine {
 
         //now create the second part which applies if the condition is not true
         Expression secondSubCondition = firstSubCondition.deepClone();
-        secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, secondSubCondition);
+        //secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, secondSubCondition);
         secondSubCondition.negateLogic();
         Operator opSecond = new Operator();
         opSecond.setLogicalAnd(true);
@@ -542,7 +540,7 @@ public class DynamicRoutine {
             firstCondition.replaceLhs(_condition.deepClone());
             firstCondition.replaceOp(opFirst);
             firstCondition.replaceRhs(firstSubCondition);
-            firstCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, firstCondition);
+            //firstCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, firstCondition);
         } else {
             firstCondition = firstSubCondition;
         }
@@ -561,7 +559,7 @@ public class DynamicRoutine {
 
         //now create the second part which applies if the condition is not true
         Expression secondSubCondition = firstSubCondition.deepClone();
-        secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, secondSubCondition);
+        //secondSubCondition = HelperCollection.replaceBooleanAtomByExpression(mContainer, secondSubCondition);
         secondSubCondition.negateLogic();
         Operator opSecond = new Operator();
         opSecond.setLogicalAnd(true);

@@ -355,8 +355,8 @@ public class HelperCollection {
      * @return an expression with replaced bool parts.
      */
     public static Expression replaceBooleanAtomByExpression(LEMSCollector container, Expression expr) {
-
-        if (expr instanceof Variable && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
+        if (expr instanceof Variable
+                && container.getBooleanElements().contains(((Variable) expr).getVariable())) {
             NumericLiteral lit1 = new NumericLiteral(1);
             Operator op1 = new Operator();
             op1.setEq(true);
@@ -364,8 +364,10 @@ public class HelperCollection {
             ex1.replaceLhs(lit1);
             ex1.replaceOp(op1);
             ex1.replaceRhs(expr);
+            System.out.println(expr.print());
             return ex1;
         }
+
         if (expr.lhsIsPresent()) {
             //if it is a variable, then check if it is a boolean var
             expr.replaceLhs(replaceBooleanAtomByExpression(container, expr.getLhs().get()));
@@ -793,10 +795,11 @@ public class HelperCollection {
      * @return an expression with replaced elements
      */
     public static Expression replacementRoutine(LEMSCollector container, Expression expr) {
-        Expression tempExpression = replaceConstantsWithReferences(container, expr);
-        tempExpression = replaceFunctionCallByReference(container, tempExpression);
+        //Expression tempExpression = replaceConstantsWithReferences(container, expr);
+        Expression tempExpression = replaceFunctionCallByReference(container, expr);
         tempExpression = replaceDifferentialVariable(tempExpression);
         tempExpression = replaceEulerByExponentialFunction(tempExpression);
+        //tempExpression = replaceBooleanAtomByExpression(container,tempExpression);
         createConstantsFromPredefinedUnits(container,tempExpression);
         return replaceResolutionByConstantReference(container, tempExpression);
     }

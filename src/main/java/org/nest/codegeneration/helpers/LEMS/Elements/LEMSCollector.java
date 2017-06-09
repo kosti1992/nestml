@@ -2,6 +2,7 @@ package org.nest.codegeneration.helpers.LEMS.Elements;
 
 import java.util.*;
 
+import de.monticore.symboltable.Scope;
 import org.nest.codegeneration.helpers.LEMS.Collector;
 import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.Assignment;
 import org.nest.codegeneration.helpers.LEMS.Elements.Dynamics.DynamicRoutine;
@@ -61,9 +62,11 @@ public class LEMSCollector extends Collector {
 
     private SimulationConfiguration config = null;// the configuration of the simulation
 
-    private List<Variable> booleanElements = null;
+    private List<String> booleanElements = null;
 
     private Map<Expression, Variable> guards = null;
+
+    private Scope scope = null;
 
 
     public LEMSCollector(ASTNeuron _neuron, SimulationConfiguration _simulationConfiguration) {
@@ -84,6 +87,7 @@ public class LEMSCollector extends Collector {
         this.booleanElements = new ArrayList<>();
         this.guards = new HashMap<>();
         this.routine = new DynamicRoutine(this);
+        this.scope = _neuron.getEnclosingScope().get();
         this.handleNeuron(_neuron);
     }
 
@@ -854,38 +858,38 @@ public class LEMSCollector extends Collector {
     private void collectBooleanElements(ASTBody _neuronBody) {
         for (VariableSymbol var : _neuronBody.getStateAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
         for (VariableSymbol var : _neuronBody.getStateNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
         for (VariableSymbol var : _neuronBody.getParameterAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
         for (VariableSymbol var : _neuronBody.getParameterNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
         for (VariableSymbol var : _neuronBody.getInternalAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
         for (VariableSymbol var : _neuronBody.getInternalNonAliasSymbols()) {
             if (var.getType().getName().equals("boolean")) {
-                booleanElements.add(new Variable(var.getName()));
+                booleanElements.add(var.getName());
             }
         }
 
     }
 
-    public List<Variable> getBooleanElements() {
+    public List<String> getBooleanElements() {
         return this.booleanElements;
     }
 
@@ -1129,7 +1133,7 @@ public class LEMSCollector extends Collector {
         }
     }
 
-    public void addBooleanElement(Variable element) {
+    public void addBooleanElement(String element) {
         checkNotNull(element);
         this.booleanElements.add(element);
     }
@@ -1170,4 +1174,7 @@ public class LEMSCollector extends Collector {
     }
 
 
+    public Scope getScope() {
+        return scope;
+    }
 }
