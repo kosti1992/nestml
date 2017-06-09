@@ -84,9 +84,9 @@ public class Expression {
 			if (_expr.leftIsPresent()) {//check if the left hand side is a single boolean atom, e.g.: true and 1<2
 				if (_expr.getLeft().get().booleanLiteralIsPresent()) {
 					if (_expr.getLeft().get().getBooleanLiteral().get().getValue()) {
-						this.mLhs = Optional.of(Expression.generateTrue());
+						this.mLhs = Optional.of(new NumericLiteral(1));
 					} else {
-						this.mLhs = Optional.of(Expression.generateFalse());
+						this.mLhs = Optional.of(new NumericLiteral(0));
 					}
 				} else {
 					this.mLhs = Optional.of(new Expression(_expr.getLeft().get()));
@@ -97,9 +97,9 @@ public class Expression {
 				if (_expr.getRight().get().booleanLiteralIsPresent()) {
 					//if it is a boolean atom, generate true, respectively false according to the model
 					if (_expr.getRight().get().getBooleanLiteral().get().getValue()) {
-						this.mRhs = Optional.of(Expression.generateTrue());
+						this.mRhs = Optional.of(new NumericLiteral(1));
 					} else {
-						this.mRhs = Optional.of(Expression.generateFalse());
+						this.mRhs = Optional.of(new NumericLiteral(0));
 					}
 				} else {
 					this.mRhs = Optional.of(new Expression(_expr.getRight().get()));

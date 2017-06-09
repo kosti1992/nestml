@@ -30,6 +30,7 @@ neuron iaf_chxk_2008_implicit:
     g_in nS        # inputs from the inh conductance
     g_ex nS        # inputs from the exc conductance
     G_ahp nS       # AHP conductance
+    I_stim pA = 0pA
   end
 
   equations:
@@ -67,7 +68,7 @@ neuron iaf_chxk_2008_implicit:
     # Input current injected by CurrentEvent.
     # This variable is used to transport the current applied into the
     # _dynamics function computing the derivative of the state vector.
-    I_stim pA = 0pA
+
   end
 
   internals:
@@ -100,7 +101,7 @@ neuron iaf_chxk_2008_implicit:
       # Find precise spike time using linear interpolation
       sigma real = ( V_m - V_th ) * resolution() / ( V_m - vm_prev ) / ms
 
-      alpha real = exp( -sigma / tau_ahp )
+      alpha real = exp( -sigma*1ms / tau_ahp )
 
       delta_g_ahp real = PSConInit_AHP * sigma * alpha
       delta_dg_ahp real = PSConInit_AHP * alpha

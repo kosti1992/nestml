@@ -569,21 +569,38 @@ public class HelperCollection {
      * @return the modified expression
      */
     public static Expression replaceResolutionByConstantReference(LEMSCollector container, Expression expr) {
-        return expr;
-        /*
         if (expr.containsNamedFunction("resolution", new ArrayList<>())) {
-            ASTUnitType tempType = new ASTUnitType();
-            tempType.setUnit(container.getConfig().getSimulationStepsUnit().getSymbol());
             Function tempFunction = new Function("resolution", new ArrayList<>());
-            NumericLiteral literal;// = new NumericLiteral(container.getConfig().getSimulationStepsLength(),
-                   // tempType);TODO
-            Constant tempConstant = new Constant(HelperCollection.PREFIX_CONSTANT + container.getConfig().getSimulationStepsLengthAsString() +
-                    tempType.getUnit().get().toString(), HelperCollection.PREFIX_DIMENSION + tempType.getUnit().get().toString(), literal, false);
-            container.addConstant(tempConstant);
-            expr.replaceElement(tempFunction, new Variable(tempConstant.getName()));
+
+            //now create a numerical literal and a unit representing the duration of a step
+            NumericLiteral tLength = new NumericLiteral(container.getConfig().getSimulationStepsLength());
+            //additionally a variable stating the the unit
+            Variable tVar = new Variable(container.getConfig().getSimulationStepsUnit().getSymbol());
+            //now combine them to a single, encapsulated expression, e.g. 10*ms
+            Expression tDivisor = new Expression();
+            Operator tTimesOp = new Operator();
+            tTimesOp.setTimesOp(true);
+            tDivisor.replaceOp(tTimesOp);
+            tDivisor.replaceLhs(tLength);
+            tDivisor.replaceRhs(tVar);
+            //we also need a constant as reference for the unit stated as variable
+            Expression tConstantValue = new Expression();
+            NumericLiteral tOne = new NumericLiteral(1);
+            Operator tNonOp = new Operator();
+            tNonOp.setNon(true);
+            Variable tUnitVar = new Variable(container.getConfig().getSimulationStepsUnit().getSymbol());
+            tConstantValue.replaceLhs(tOne);
+            tConstantValue.replaceOp(tNonOp);
+            tConstantValue.replaceRhs(tUnitVar);
+            Constant tConstant = new Constant(container.getConfig().getSimulationStepsUnit().getSymbol(),
+                    container.getConfig().getSimulationStepsUnit().getDimensionName(),tConstantValue,false);
+            container.addConstant(tConstant);
+
+            //and replace it
+            expr.replaceElement(tempFunction,tDivisor);
             return expr;
-        }*/
-        //return new Expression();//expr;//TODO
+        }
+        return expr;
     }
 
     /**
