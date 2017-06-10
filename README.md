@@ -78,15 +78,15 @@ A predefined simulation environment and a set of common components, e.g. current
 `misc\sampleSimEnvironment` 
 
 Currently, the following models (contained in the lemsmodels folder) are supported:
--iaf\_cond\_alpha
--iaf\_cond\_exp
--aeif\_cond\_alpha
--aeif_cond_exp
--iaf\_chxk\_2008 
--iaf\_cond\_beta
--iaf\_cond\_exp\_sfa\_rr
--izhikevich\_neuron
--izhikevich\_psc\_alpha
+- iaf\_cond\_alpha
+- iaf\_cond\_exp
+- aeif\_cond\_alpha
+- aeif_cond_exp
+- iaf\_chxk\_2008 
+- iaf\_cond\_beta
+- iaf\_cond\_exp\_sfa\_rr
+- izhikevich\_neuron
+- izhikevich\_psc\_alpha
 
 
 
