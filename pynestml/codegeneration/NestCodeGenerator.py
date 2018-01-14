@@ -1,5 +1,5 @@
 #
-# NestGenerator.py
+# NestCodeGenerator.py
 #
 # This file is part of NEST.
 #
@@ -55,7 +55,7 @@ class NestCodeGenerator(object):
         Standard constructor to init the generator.
         """
         # setup the environment
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templatesNEST')))
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'resourcesNEST')))
         # setup the cmake template
         self.__templateCMakeLists = env.get_template('CMakeLists.jinja2')
         # setup the module class template
