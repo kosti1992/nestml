@@ -17,8 +17,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from jinja2 import Environment,FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 import os
+
 
 class SpiNNackerCodeGenerator(object):
     """
@@ -30,23 +31,27 @@ class SpiNNackerCodeGenerator(object):
     __templateNeuronImplementation = None
     __templateIntegrationFile = None
 
-
     def __init__(self):
         """
         Standard constructor to initiate the generator.
         """
         # setup the environment
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'resourcesNEST')))
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'resourcesSpiNNacker')))
         # setup the neuron header template
-        self.__templateNeuronHeader = 1
+        self.__templateNeuronHeader = env.get_template('NeuronHeader.jinja2')
         # setup the header implementation template
-        self.__templateNeuronImplementation = 1
+        self.__templateNeuronImplementation = env.get_template('NeuronImplementation.jinja2')
         # setup the neuron integration template
-        self.__templateIntegrationFile = 1
+        self.__templateIntegrationFile = env.get_template('NeuronIntegration.jinja2')
 
+    def generateModel(self, _neuron=None):
+        """
+        Generates the code for the handed over neuron model.
+        :param _neuron:
+        :return:
+        """
+        pass
 
-
-
-
+    
 
 
