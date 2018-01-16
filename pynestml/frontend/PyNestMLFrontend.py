@@ -74,7 +74,7 @@ def main(args):
             nestGenerator.generateNESTModuleCode(neurons)
         if BackendTargets.SpiNNacker in FrontendConfiguration.getTargets():
             spinnackerGenerator = SpiNNackerCodeGenerator()
-            spinnackerGenerator.analyseAndGenerateNeuron(neurons)
+            spinnackerGenerator.analyseAndGenerateNeurons(neurons)
     else:
         code, message = Messages.getDryRun()
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)

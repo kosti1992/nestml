@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
 from jinja2 import Environment, FileSystemLoader
 import os
@@ -48,12 +49,16 @@ class SpiNNackerCodeGenerator(object):
     def analyseAndGenerateNeuron(self, _neuron=None):
         """
         Generates the code for the handed over neuron model.
-        :param _neuron:
-        :return:
+        :param _neuron: a single neuron instance
+        :type _neuron: ASTNeuron
         """
         # first create a sub-dir for SpiNNacker, in order to avoid overwritten NEST models
         if not os.path.isdir(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker')):
             os.makedirs(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker'))
+        self.generateModelHeader(_neuron)
+        self.generateModelImplementation(_neuron)
+        self.generateModelIntegration(_neuron)
+        return
 
     def analyseAndGenerateNeurons(self, _neurons=None):
         """
@@ -64,3 +69,57 @@ class SpiNNackerCodeGenerator(object):
         for neuron in _neurons:
             self.analyseAndGenerateNeuron(neuron)
         return
+
+    def generateModelHeader(self, _neuron=None):
+        """
+        For a handed over neuron, this method generates the corresponding header file.
+        :param _neuron: a single neuron object.
+        :type _neuron:  ASTNeuron
+        """
+        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
+            '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
+        inputNeuronHeader = self.setupStandardNamespace(_neuron)
+        outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
+        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.h', 'w+') as f:
+            f.write(str(outputNeuronHeader))
+        return
+
+    def generateModelImplementation(self, _neuron=None):
+        """
+        For a handed over neuron, this method generates the corresponding implementation file.
+        :param _neuron: a single neuron object.
+        :type _neuron: ASTNeuron
+        """
+        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
+            '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
+        inputNeuronImplementation = self.setupStandardNamespace(_neuron)
+        outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
+        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.cpp', 'w+') as f:
+            f.write(str(outputNeuronImplementation))
+        return
+
+    def generateModelIntegration(self, _neuron=None):
+        """
+        For a handed over neuron, this method generates the corresponding simulation integration file.
+        :param _neuron: a single neuron instance
+        :type _neuron: ASTNeuron
+        """
+        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
+            '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
+        inputNeuronIntegration = self.setupStandardNamespace(_neuron)
+        outputNeuronIntegration = self.__templateIntegrationFile.render(inputNeuronIntegration)
+        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.py', 'w+') as f:
+            f.write(str(outputNeuronIntegration))
+        return
+
+    def setupStandardNamespace(self, _neuron=None):
+        """
+        Returns a standard namespace with often required functionality.
+        :param _neuron: a single neuron instance
+        :type _neuron: ASTNeuron
+        :return: a map from name to functionality.
+        :rtype: dict
+        """
+        namespace = {'neuronName': _neuron.getName(), 'neuron': _neuron,
+                     'moduleName': FrontendConfiguration.getModuleName()}
+        return namespace
