@@ -45,12 +45,22 @@ class SpiNNackerCodeGenerator(object):
         # setup the neuron integration template
         self.__templateIntegrationFile = env.get_template('NeuronIntegration.jinja2')
 
-    def generateModel(self, _neuron=None):
+    def analyseAndGenerateNeuron(self, _neuron=None):
         """
         Generates the code for the handed over neuron model.
         :param _neuron:
         :return:
         """
         # first create a sub-dir for SpiNNacker, in order to avoid overwritten NEST models
-        if not os.path.isdir(os.path.join(FrontendConfiguration.getTargetPath(), 'spin')):
-            os.makedirs(os.path.join(FrontendConfiguration.getTargetPath(), 'spin'))
+        if not os.path.isdir(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker')):
+            os.makedirs(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker'))
+
+    def analyseAndGenerateNeurons(self, _neurons=None):
+        """
+        Generates a set of neuron implementations from a handed over list.
+        :param _neurons: a list of neuron models
+        :return: list(ASTNeuron)
+        """
+        for neuron in _neurons:
+            self.analyseAndGenerateNeuron(neuron)
+        return

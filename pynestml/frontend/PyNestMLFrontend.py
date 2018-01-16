@@ -20,6 +20,7 @@
 
 import sys, os
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
+from pynestml.frontend.BackendTargets import BackendTargets
 from pynestml.modelprocessor.ModelParser import ModelParser
 from pynestml.modelprocessor.ModelParserExceptions import InvalidPathException
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
@@ -28,6 +29,7 @@ from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.CoCosManager import CoCosManager
 from pynestml.codegeneration.NestCodeGenerator import NestCodeGenerator
+from pynestml.codegeneration.SpiNNackerCodeGenerator import SpiNNackerCodeGenerator
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
 from pynestml.utils.Messages import Messages
 
@@ -66,9 +68,13 @@ def main(args):
                 neurons.remove(neuron)
 
     if not FrontendConfiguration.isDryRun():
-        nestGenerator = NestCodeGenerator()
-        nestGenerator.analyseAndGenerateNeurons(neurons)
-        nestGenerator.generateNESTModuleCode(neurons)
+        if BackendTargets.NEST in FrontendConfiguration.getTargets():
+            nestGenerator = NestCodeGenerator()
+            nestGenerator.analyseAndGenerateNeurons(neurons)
+            nestGenerator.generateNESTModuleCode(neurons)
+        if BackendTargets.SpiNNacker in FrontendConfiguration.getTargets():
+            spinnackerGenerator = SpiNNackerCodeGenerator()
+            spinnackerGenerator.analyseAndGenerateNeuron(neurons)
     else:
         code, message = Messages.getDryRun()
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)

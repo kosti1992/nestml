@@ -21,11 +21,7 @@ import argparse  # used for parsing of input arguments
 import os
 from pynestml.modelprocessor.ModelParserExceptions import InvalidPathException
 from pynestml.utils.Logger import Logger
-
-
-class BackendTargets(enumerate):
-    NEST = 0
-    SpiNNacker = 1
+from pynestml.frontend.BackendTargets import BackendTargets
 
 
 class FrontendConfiguration(object):
@@ -41,7 +37,7 @@ class FrontendConfiguration(object):
     __moduleName = None
     __storeLog = False
     __isDebug = False
-    __codeGenerationTarget = BackendTargets.NEST
+    __codeGenerationTarget = list()
 
     @classmethod
     def config(cls, _args=None):
@@ -57,45 +53,46 @@ class FrontendConfiguration(object):
                         ' procedural language. The equations are analyzed by NESTML to compute an exact solution'
                         ' if possible or use an appropriate numeric solver otherwise.'
                         ' Version 0.0.6, beta.')
-        cls.__argumentParser.add_argument('-path', type=str, nargs='+',
+        cls.__argumentParser.add_argument('-sp', '--sourcepath', type=str, nargs='+',
                                           help='Path to a single file or a directory containing the source models.')
-        cls.__argumentParser.add_argument('-target', metavar='Target', type=str, nargs='?',
+        cls.__argumentParser.add_argument('-tp', '--targetpath', metavar='Target', type=str, nargs='?',
                                           help='Path to a target directory where models should be generated to. '
                                                'Standard is "target".')
-        cls.__argumentParser.add_argument('-dry', action='store_true',
+        cls.__argumentParser.add_argument('-dr', '--dry', action='store_true',
                                           help='Indicates that a dry run shall be performed, i.e.,'
                                                ' without generating a target model.')
-        cls.__argumentParser.add_argument('-logging_level', type=str, nargs='+',
+        cls.__argumentParser.add_argument('-ll', '--logging_level', type=str, nargs='+',
                                           help='Indicates which messages shall be logged and printed to the'
-                                               'screen. Available ={INFO,WARNING/S,ERROR/S,NO}, Standard is ERRORS.')
-        cls.__argumentParser.add_argument('-module_name', type=str, nargs='+',
+                                               'screen. Available = {INFO,WARNING/S,ERROR/S,NO}, Standard is ERRORS.')
+        cls.__argumentParser.add_argument('-m', '--module_name', type=str, nargs='+',
                                           help='Indicates the name of the module. Optional. If not indicated,'
                                                'the name of the directory containing the models is used!')
-        cls.__argumentParser.add_argument('-store_log', action='store_true',
+        cls.__argumentParser.add_argument('-s', '--store_log', action='store_true',
                                           help='Indicates whether a log file containing all messages shall'
                                                'be stored. Standard is NO.')
-        cls.__argumentParser.add_argument('-dev', action='store_true',
+        cls.__argumentParser.add_argument('-dv', '--dev', action='store_true',
                                           help='Indicates whether the dev mode should be active, i.e., the whole '
                                                'toolchain executed even though errors in models are present.'
                                                'This option is designed for debug purpose only!')
-        cls.__argumentParser.add_argument('-spinnacker', action='store_true',
-                                          help='Indicates that SpiNNacker code (instead of NEST) should be generated!')
+        cls.__argumentParser.add_argument('-tt', '--targets', nargs='*', required=False,
+                                          help='Indicates for which target platforms code shall be generated. '
+                                               'Available = {NEST,SpiNNacker}, Standard is NEST.')
         parsed_args = cls.__argumentParser.parse_args(_args)
-        cls.__providedPath = parsed_args.path
+        cls.__providedPath = parsed_args.sourcepath
         if cls.__providedPath is None:
             # check if the mandatory path arg has been handed over, just terminate
             raise InvalidPathException()
         cls.__pathsToCompilationUnits = list()
-        if parsed_args.path is None:
+        if parsed_args.sourcepath is None:
             raise InvalidPathException()
-        elif os.path.isfile(parsed_args.path[0]):
-            cls.__pathsToCompilationUnits.append(parsed_args.path[0])
-        elif os.path.isdir(parsed_args.path[0]):
-            for filename in os.listdir(parsed_args.path[0]):
+        elif os.path.isfile(parsed_args.sourcepath[0]):
+            cls.__pathsToCompilationUnits.append(parsed_args.sourcepath[0])
+        elif os.path.isdir(parsed_args.sourcepath[0]):
+            for filename in os.listdir(parsed_args.sourcepath[0]):
                 if filename.endswith(".nestml"):
-                    cls.__pathsToCompilationUnits.append(os.path.join(parsed_args.path[0], filename))
+                    cls.__pathsToCompilationUnits.append(os.path.join(parsed_args.sourcepath[0], filename))
         else:
-            cls.__pathsToCompilationUnits = parsed_args.path[0]
+            cls.__pathsToCompilationUnits = parsed_args.sourcepath[0]
             raise InvalidPathException()
         # initialize the logger
 
@@ -108,8 +105,8 @@ class FrontendConfiguration(object):
         # check if a dry run shall be preformed, i.e. without generating a target model
         cls.__dryRun = parsed_args.dry
         # check if a target has been selected, otherwise set the buildNest as target
-        if parsed_args.target is not None:
-            cls.__targetPath = str(os.path.realpath(os.path.join('..', parsed_args.target)))
+        if parsed_args.targetpath is not None:
+            cls.__targetPath = str(os.path.realpath(os.path.join('..', parsed_args.targetpath)))
         else:
             if not os.path.isdir(os.path.realpath(os.path.join('..', 'target'))):
                 os.makedirs(os.path.realpath(os.path.join('..', 'target')))
@@ -117,17 +114,24 @@ class FrontendConfiguration(object):
         # now adjust the name of the module, if it is a single file, then it is called just module
         if parsed_args.module_name is not None:
             cls.__moduleName = parsed_args.module_name[0]
-        elif os.path.isfile(parsed_args.path[0]):
+        elif os.path.isfile(parsed_args.sourcepath[0]):
             cls.__moduleName = 'module'
-        elif os.path.isdir(parsed_args.path[0]):
-            cls.__moduleName = os.path.basename(os.path.normpath(parsed_args.path[0]))
+        elif os.path.isdir(parsed_args.sourcepath[0]):
+            cls.__moduleName = os.path.basename(os.path.normpath(parsed_args.sourcepath[0]))
         else:
             cls.__moduleName = 'module'
         cls.__storeLog = parsed_args.store_log
         cls.__isDebug = parsed_args.dev
         # now check which target for code generation has been selected
-        if parsed_args.spinnacker is not None:
-            cls.__codeGenerationTarget = BackendTargets.SpiNNacker
+        if parsed_args.targets is not None:
+            # parse the targets and add them
+            for target in parsed_args.targets:
+                possibleTarget = BackendTargets.parseTarget(target)
+                if possibleTarget is not None:
+                    cls.__codeGenerationTarget.append(possibleTarget)
+        else:
+            # otherwise only NEST is generated
+            cls.__codeGenerationTarget.append(BackendTargets.NEST)
         return
 
     @classmethod
@@ -205,7 +209,7 @@ class FrontendConfiguration(object):
     @classmethod
     def getTargets(cls):
         """
-        TODO
-        :return:
+        Returns the currently set target for code generation.
+        :return: BackendTargets
         """
         return cls.__codeGenerationTarget

@@ -18,9 +18,34 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+import os
+from pynestml.frontend.PyNestMLFrontend import main
+
 
 class SpiNNakerCodeGenerationTest(unittest.TestCase):
     """
-    TODO
+    Tests if the frontend works as intended and is able to process handed over arguments.
+    Here, the SpiNNacker code generation is tested
     """
-    pass
+
+    def test(self):
+        path = str(os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.join('..', 'models',
+                                                                                         'aeif_cond_alpha.nestml'))))
+        params = list()
+        params.append('--sourcepath')
+        params.append(path)
+        # params.append('-dry')
+        params.append('--logging_level')
+        params.append('NO')
+        params.append('--targetpath')
+        params.append('target/models')
+        params.append('--store_log')
+        params.append('--dev')
+        params.append('-tt')
+        params.append('NEST')
+        params.append('SpiNNacker')
+        main(params)
+
+
+if __name__ == '__main__':
+    unittest.main()
