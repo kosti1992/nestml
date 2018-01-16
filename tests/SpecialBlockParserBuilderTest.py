@@ -27,7 +27,6 @@ from pynestml.generated.PyNESTMLParser import PyNESTMLParser
 from pynestml.modelprocessor.ASTBuilderVisitor import ASTBuilderVisitor
 from pynestml.modelprocessor.ASTNESTMLCompilationUnit import ASTNESTMLCompilationUnit
 from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
-from pynestml.modelprocessor.CoCosManager import CoCosManager
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits

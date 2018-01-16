@@ -23,6 +23,11 @@ from pynestml.modelprocessor.ModelParserExceptions import InvalidPathException
 from pynestml.utils.Logger import Logger
 
 
+class BackendTargets(enumerate):
+    NEST = 0
+    SpiNNacker = 1
+
+
 class FrontendConfiguration(object):
     """
     This class encapsulates all settings as handed over to the frontend at start of the toolchain.
@@ -36,6 +41,7 @@ class FrontendConfiguration(object):
     __moduleName = None
     __storeLog = False
     __isDebug = False
+    __codeGenerationTarget = BackendTargets.NEST
 
     @classmethod
     def config(cls, _args=None):
@@ -72,6 +78,8 @@ class FrontendConfiguration(object):
                                           help='Indicates whether the dev mode should be active, i.e., the whole '
                                                'toolchain executed even though errors in models are present.'
                                                'This option is designed for debug purpose only!')
+        cls.__argumentParser.add_argument('-spinnacker', action='store_true',
+                                          help='Indicates that SpiNNacker code (instead of NEST) should be generated!')
         parsed_args = cls.__argumentParser.parse_args(_args)
         cls.__providedPath = parsed_args.path
         if cls.__providedPath is None:
@@ -117,6 +125,9 @@ class FrontendConfiguration(object):
             cls.__moduleName = 'module'
         cls.__storeLog = parsed_args.store_log
         cls.__isDebug = parsed_args.dev
+        # now check which target for code generation has been selected
+        if parsed_args.spinnacker is not None:
+            cls.__codeGenerationTarget = BackendTargets.SpiNNacker
         return
 
     @classmethod
@@ -190,3 +201,11 @@ class FrontendConfiguration(object):
         :rtype: bool
         """
         return cls.__isDebug
+
+    @classmethod
+    def getTargets(cls):
+        """
+        TODO
+        :return:
+        """
+        return cls.__codeGenerationTarget

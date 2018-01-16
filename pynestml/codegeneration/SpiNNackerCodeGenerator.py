@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -50,8 +51,6 @@ class SpiNNackerCodeGenerator(object):
         :param _neuron:
         :return:
         """
-        pass
-
-    
-
-
+        # first create a sub-dir for SpiNNacker, in order to avoid overwritten NEST models
+        if not os.path.isdir(os.path.join(FrontendConfiguration.getTargetPath(), 'spin')):
+            os.makedirs(os.path.join(FrontendConfiguration.getTargetPath(), 'spin'))
