@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
+from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConvert
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -32,6 +33,7 @@ class SpiNNackerCodeGenerator(object):
     __templateNeuronHeader = None
     __templateNeuronImplementation = None
     __templateIntegrationFile = None
+    __subdirName = 'SpiNNacker'
 
     def __init__(self):
         """
@@ -80,7 +82,8 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronHeader = self.setupStandardNamespace(_neuron)
         outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.h', 'w+') as f:
+        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName, _neuron.getName())) + '.h',
+                  'w+') as f:
             f.write(str(outputNeuronHeader))
         return
 
@@ -94,7 +97,8 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronImplementation = self.setupStandardNamespace(_neuron)
         outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName,
+                                   _neuron.getName())) + '.cpp', 'w+') as f:
             f.write(str(outputNeuronImplementation))
         return
 
@@ -108,7 +112,9 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronIntegration = self.setupStandardNamespace(_neuron)
         outputNeuronIntegration = self.__templateIntegrationFile.render(inputNeuronIntegration)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.py', 'w+') as f:
+        with open(
+                str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName, _neuron.getName())) + '.py',
+                'w+') as f:
             f.write(str(outputNeuronIntegration))
         return
 
@@ -122,4 +128,5 @@ class SpiNNackerCodeGenerator(object):
         """
         namespace = {'neuronName': _neuron.getName(), 'neuron': _neuron,
                      'moduleName': FrontendConfiguration.getModuleName()}
+        namespace['names'] = SpiNNackerNamesConvert()
         return namespace

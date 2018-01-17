@@ -10,7 +10,7 @@ from data_specification.enums import DataType
 from enum import Enum
 
 
-class _IZH_TYPES(Enum):
+class _{{neuronName.upper()}}_TYPES(Enum):
     A = (1, DataType.S1615)
     B = (2, DataType.S1615)
     C = (3, DataType.S1615)
@@ -31,7 +31,7 @@ class _IZH_TYPES(Enum):
         return self._data_type
 
 
-class _IZH_GLOBAL_TYPES(Enum):
+class _{{neuronName.upper()}}_GLOBAL_TYPES(Enum):
     TIMESTEP = (1, DataType.S1615)
 
     def __new__(cls, value, data_type):
@@ -45,89 +45,34 @@ class _IZH_GLOBAL_TYPES(Enum):
         return self._data_type
 
 
-class NeuronModelIzh(AbstractNeuronModel, AbstractContainsUnits):
+class NeuronModel{{neuronName}}(AbstractNeuronModel, AbstractContainsUnits):
 
-    def __init__(self, n_neurons, a, b, c, d, v_init, u_init, i_offset):
+    def __init__(self, n_neurons, {%for parameter in neuron.getParameterSymbols()%}{{names.convertToCPPName(parameter.getSymbolName())}}{% if parameter != (neuron.getParameterSymbols()|last) %}, {% endif %}{% endfor %}):
         AbstractNeuronModel.__init__(self)
         AbstractContainsUnits.__init__(self)
 
         self._units = {
-            'a': "ms",
-            'b': "ms",
-            'c': "mV",
-            'd': "mV/ms",
-            'v_init': "mV",
-            'u_init': "mV/ms",
-            'i_offset': "nA"}
+         {% for parameter in neuron.getParameterSymbols() -%}
+            '{{names.convertToCPPName(parameter.getSymbolName())}}': "{{parameter.getTypeSymbol().printSymbol()}}"{%- if parameter != (neuron.getParameterSymbols()|last) %},{% endif %}
+         {% endfor -%}
+        }
 
         self._n_neurons = n_neurons
-        self._a = utility_calls.convert_param_to_numpy(a, n_neurons)
-        self._b = utility_calls.convert_param_to_numpy(b, n_neurons)
-        self._c = utility_calls.convert_param_to_numpy(c, n_neurons)
-        self._d = utility_calls.convert_param_to_numpy(d, n_neurons)
-        self._v_init = utility_calls.convert_param_to_numpy(v_init, n_neurons)
-        self._u_init = utility_calls.convert_param_to_numpy(u_init, n_neurons)
-        self._i_offset = utility_calls.convert_param_to_numpy(
-            i_offset, n_neurons)
+        {% for parameter in neuron.getParameterSymbols() -%}
+            self._{{names.convertToCPPName(parameter.getSymbolName())}} = utility_calls.convert_param_to_numpy({{names.convertToCPPName(parameter.getSymbolName())}}, n_neurons)
+        {% endfor -%}
 
+
+    {% for parameter in neuron.getParameterSymbols() %}
     @property
-    def a(self):
-        return self._a
+    def {{names.convertToCPPName(parameter.getSymbolName())}}(self):
+        return self._{{names.convertToCPPName(parameter.getSymbolName())}}
+    @{{names.convertToCPPName(parameter.getSymbolName())}}.setter
+    def {{names.convertToCPPName(parameter.getSymbolName())}}(self, {{names.convertToCPPName(parameter.getSymbolName())}}):
+        self._{{names.convertToCPPName(parameter.getSymbolName())}} = utility_calls.convert_param_to_numpy({{names.convertToCPPName(parameter.getSymbolName())}}, self._n_neurons)
+    {% endfor %}
 
-    @a.setter
-    def a(self, a):
-        self._a = utility_calls.convert_param_to_numpy(a, self._n_neurons)
-
-    @property
-    def b(self):
-        return self._b
-
-    @b.setter
-    def b(self, b):
-        self._b = utility_calls.convert_param_to_numpy(b, self._n_neurons)
-
-    @property
-    def c(self):
-        return self._c
-
-    @c.setter
-    def c(self, c):
-        self._c = utility_calls.convert_param_to_numpy(c, self._n_neurons)
-
-    @property
-    def d(self):
-        return self._d
-
-    @d.setter
-    def d(self, d):
-        self._d = utility_calls.convert_param_to_numpy(d, self._n_neurons)
-
-    @property
-    def i_offset(self):
-        return self._i_offset
-
-    @i_offset.setter
-    def i_offset(self, i_offset):
-        self._i_offset = utility_calls.convert_param_to_numpy(
-            i_offset, self._n_neurons)
-
-    @property
-    def v_init(self):
-        return self._v_init
-
-    @v_init.setter
-    def v_init(self, v_init):
-        self._v_init = utility_calls.convert_param_to_numpy(
-            v_init, self._n_neurons)
-
-    @property
-    def u_init(self):
-        return self._u_init
-
-    @u_init.setter
-    def u_init(self, u_init):
-        self._u_init = utility_calls.convert_param_to_numpy(
-            u_init, self._n_neurons)
+    # TODO...
 
     def initialize_v(self, v_init):
         self._v_init = utility_calls.convert_param_to_numpy(
