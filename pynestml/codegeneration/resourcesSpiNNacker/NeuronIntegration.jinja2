@@ -11,14 +11,10 @@ from enum import Enum
 
 
 class _{{neuronName.upper()}}_TYPES(Enum):
-    A = (1, DataType.S1615)
-    B = (2, DataType.S1615)
-    C = (3, DataType.S1615)
-    D = (4, DataType.S1615)
-    V_INIT = (5, DataType.S1615)
-    U_INIT = (6, DataType.S1615)
-    I_OFFSET = (7, DataType.S1615)
-    THIS_H = (8, DataType.S1615)
+    # TODO: Here all parameters
+    {% for parameter in neuron.getParameterSymbols() -%}
+    {{names.convertToCPPName(parameter.getSymbolName()).upper()}} = ({{loop.index}}, DataType.S1615)
+    {% endfor %}
 
     def __new__(cls, value, data_type):
         obj = object.__new__(cls)
@@ -45,7 +41,7 @@ class _{{neuronName.upper()}}_GLOBAL_TYPES(Enum):
         return self._data_type
 
 
-class NeuronModel{{neuronName}}(AbstractNeuronModel, AbstractContainsUnits):
+class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUnits):
 
     def __init__(self, n_neurons, {%for parameter in neuron.getParameterSymbols()%}{{names.convertToCPPName(parameter.getSymbolName())}}{% if parameter != (neuron.getParameterSymbols()|last) %}, {% endif %}{% endfor %}):
         AbstractNeuronModel.__init__(self)
@@ -67,12 +63,14 @@ class NeuronModel{{neuronName}}(AbstractNeuronModel, AbstractContainsUnits):
     @property
     def {{names.convertToCPPName(parameter.getSymbolName())}}(self):
         return self._{{names.convertToCPPName(parameter.getSymbolName())}}
+
     @{{names.convertToCPPName(parameter.getSymbolName())}}.setter
     def {{names.convertToCPPName(parameter.getSymbolName())}}(self, {{names.convertToCPPName(parameter.getSymbolName())}}):
         self._{{names.convertToCPPName(parameter.getSymbolName())}} = utility_calls.convert_param_to_numpy({{names.convertToCPPName(parameter.getSymbolName())}}, self._n_neurons)
     {% endfor %}
 
-    # TODO...
+    # TODO Here we have to iniz all state / init values ?
+    # Here we have to initialize all state variables and all initial values variables.
 
     def initialize_v(self, v_init):
         self._v_init = utility_calls.convert_param_to_numpy(
@@ -82,65 +80,60 @@ class NeuronModel{{neuronName}}(AbstractNeuronModel, AbstractContainsUnits):
         self._u_init = utility_calls.convert_param_to_numpy(
             u_init, self._n_neurons)
 
+    {% for init in neuron.getInitialValuesSymbols() %}
+    # INIT INITIAL VALUES
+    def initialize_{{names.convertToCPPName(init.getSymbolName())}}(self, _{{names.convertToCPPName(init.getSymbolName())}}):
+        self._{{names.convertToCPPName(init.getSymbolName())}} = utility_calls.convert_param_to_numpy(init_{{names.convertToCPPName(init.getSymbolName())}}, self._n_neurons)
+    {% endfor %}
+    # TODO end
+
     @overrides(AbstractNeuronModel.get_n_neural_parameters)
     def get_n_neural_parameters(self):
-        return 8
+        return {{neuron.getParameterSymbols()|length}}
 
     @inject_items({"machine_time_step": "MachineTimeStep"})
     @overrides(AbstractNeuronModel.get_neural_parameters,
                additional_arguments={'machine_time_step'})
     def get_neural_parameters(self, machine_time_step):
+        # TODO: update to match the parameters and state variables
+        # Note: this must match the order of the parameters in the neuron_t
+        # data structure in the C code
         return [
-
-            # REAL A
-            NeuronParameter(self._a, _IZH_TYPES.A.data_type),
-
-            # REAL B
-            NeuronParameter(self._b, _IZH_TYPES.B.data_type),
-
-            # REAL C
-            NeuronParameter(self._c, _IZH_TYPES.C.data_type),
-
-            # REAL D
-            NeuronParameter(self._d, _IZH_TYPES.D.data_type),
-
-            # REAL V
-            NeuronParameter(self._v_init, _IZH_TYPES.V_INIT.data_type),
-
-            # REAL U
-            NeuronParameter(self._u_init, _IZH_TYPES.U_INIT.data_type),
-
-            # offset current [nA]
-            # REAL I_offset;
-            NeuronParameter(self._i_offset, _IZH_TYPES.I_OFFSET.data_type),
-
-            # current timestep - simple correction for threshold
-            # REAL this_h;
-            NeuronParameter(
-                machine_time_step / 1000.0, _IZH_TYPES.THIS_H.data_type)
+            {% for parameter in neuron.getParameterSymbols() -%}
+            # REAL {{names.convertToCPPName(parameter.getSymbolName())}}
+            NeuronParameter(self._{{names.convertToCPPName(parameter.getSymbolName())}}, _{{neuronName.upper()}}_TYPES.{{names.convertToCPPName(parameter.getSymbolName())}}.data_type){% if parameter != (neuron.getParameterSymbols()|last) %}, {% endif %}
+            {% endfor -%}
         ]
 
     @overrides(AbstractNeuronModel.get_neural_parameter_types)
     def get_neural_parameter_types(self):
-        return [item.data_type for item in _IZH_TYPES]
+        # TODO: update to match the parameter types
+        return [item.data_type for item in _{{neuronName.upper()}}_TYPES]
 
     @overrides(AbstractNeuronModel.get_n_global_parameters)
     def get_n_global_parameters(self):
+        # TODO: update to match the number of global parameters
+        # Note: This must match the number of parameters in the global_neuron_t
+        # data structure in the C code
+        # TODO: this is currently hard coded
         return 1
 
     @inject_items({"machine_time_step": "MachineTimeStep"})
     @overrides(AbstractNeuronModel.get_global_parameters,
                additional_arguments={'machine_time_step'})
     def get_global_parameters(self, machine_time_step):
+        # TODO: update to match the global parameters
+        # Note: This must match the order of the parameters in the
+        # global_neuron_t data structure in the C code
         return [
             NeuronParameter(
                 machine_time_step / 1000.0,
-                _IZH_GLOBAL_TYPES.TIMESTEP.data_type)
+                _{{neuronName.upper()}}_GLOBAL_TYPES.TIMESTEP.data_type)
         ]
 
     @overrides(AbstractNeuronModel.get_global_parameter_types)
     def get_global_parameter_types(self):
-        return [item.data_type for item in _IZH_GLOBAL_TYPES]
+        return [item.data_type for item in _{{neuronName.upper()}}_GLOBAL_TYPES]
 
     @overrides(AbstractNeuronModel.set_neural_parameters)
     def set_neural_parameters(self, neural_parameters, vertex_slice):
@@ -148,8 +141,10 @@ class NeuronModel{{neuronName}}(AbstractNeuronModel, AbstractContainsUnits):
         self._u_init[vertex_slice.as_slice] = neural_parameters[5]
 
     def get_n_cpu_cycles_per_neuron(self):
-
-        # A bit of a guess
+        # TODO: update with the number of CPU cycles taken by the
+        # neuron_model_state_update, neuron_model_get_membrane_voltage
+        # and neuron_model_has_spiked functions in the C code
+        # Note: This can be a guess
         return 150
 
     @overrides(AbstractContainsUnits.get_units)
