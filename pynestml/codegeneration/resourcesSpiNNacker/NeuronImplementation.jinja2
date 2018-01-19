@@ -4,10 +4,7 @@
 
 static global_neuron_params_pointer_t global_params;
 
-void neuron_model_set_global_neuron_params(
-        global_neuron_params_pointer_t params) {
-
-    // TODO: Store parameters as required
+void neuron_model_set_global_neuron_params(global_neuron_params_pointer_t params){
     global_params = params;
 }
 
@@ -46,13 +43,16 @@ void neuron_model_has_spiked(neuron_pointer_t neuron) {
 }
 
 void neuron_model_print_state_variables(restrict neuron_pointer_t neuron) {
-
-    // TODO: Print all state variables
-    log_debug("V = %11.4k mv", neuron->V);
+    {% for state in neuron.getStateSymbols() -%}
+    log_debug("{{state.getSymbolName()}} = %11.4k mv", neuron->{{names.convertToCPPName(state.getSymbolName())}});
+    {% endfor %}
+    {% for init in neuron.getInitialValuesSymbols() -%}
+    log_debug("{{init.getSymbolName()}} = %11.4k mv", neuron->{{names.convertToCPPName(init.getSymbolName())}});
+    {% endfor %}
 }
 
 void neuron_model_print_parameters(restrict neuron_pointer_t neuron) {
-
-    // TODO: Print all neuron parameters
-    log_debug("my parameter = %11.4k mv", neuron->my_parameter);
+    {% for parameter in neuron.getParameterSymbols() -%}
+    log_debug("{{parameter.getSymbolName()}} = %11.4k mv", neuron->{{names.convertToCPPName(parameter.getSymbolName())}});
+    {% endfor %}
 }
