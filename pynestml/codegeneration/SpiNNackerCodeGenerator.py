@@ -19,7 +19,9 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
-from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConvert
+from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConverter
+from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Messages import Messages
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -33,7 +35,7 @@ class SpiNNackerCodeGenerator(object):
     __templateNeuronHeader = None
     __templateNeuronImplementation = None
     __templateIntegrationFile = None
-    __subdirName = 'SpiNNacker'
+    __path = None
 
     def __init__(self):
         """
@@ -47,6 +49,10 @@ class SpiNNackerCodeGenerator(object):
         self.__templateNeuronImplementation = env.get_template('NeuronImplementation.jinja2')
         # setup the neuron integration template
         self.__templateIntegrationFile = env.get_template('NeuronIntegration.jinja2')
+        # setup the path
+        self.__path = os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker')
+
+        return
 
     def analyseAndGenerateNeuron(self, _neuron=None):
         """
@@ -55,11 +61,14 @@ class SpiNNackerCodeGenerator(object):
         :type _neuron: ASTNeuron
         """
         # first create a sub-dir for SpiNNacker, in order to avoid overwritten NEST models
-        if not os.path.isdir(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker')):
-            os.makedirs(os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker'))
+        if not os.path.isdir(self.__path):
+            os.makedirs(self.__path)
         self.generateModelHeader(_neuron)
         self.generateModelImplementation(_neuron)
         self.generateModelIntegration(_neuron)
+        code, message = Messages.getSpiNNackerCodeGenerated(_neuron.getName(), self.__path)
+        Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
+                          _logLevel=LOGGING_LEVEL.INFO)
         return
 
     def analyseAndGenerateNeurons(self, _neurons=None):
@@ -82,7 +91,7 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronHeader = self.setupStandardNamespace(_neuron)
         outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName, _neuron.getName())) + '.h',
+        with open(str(os.path.join(self.__path, _neuron.getName())) + '.h',
                   'w+') as f:
             f.write(str(outputNeuronHeader))
         return
@@ -97,8 +106,7 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronImplementation = self.setupStandardNamespace(_neuron)
         outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName,
-                                   _neuron.getName())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(self.__path, _neuron.getName())) + '.cpp', 'w+') as f:
             f.write(str(outputNeuronImplementation))
         return
 
@@ -113,7 +121,7 @@ class SpiNNackerCodeGenerator(object):
         inputNeuronIntegration = self.setupStandardNamespace(_neuron)
         outputNeuronIntegration = self.__templateIntegrationFile.render(inputNeuronIntegration)
         with open(
-                str(os.path.join(FrontendConfiguration.getTargetPath(), self.__subdirName, _neuron.getName())) + '.py',
+                str(os.path.join(self.__path, _neuron.getName())) + '.py',
                 'w+') as f:
             f.write(str(outputNeuronIntegration))
         return
@@ -127,6 +135,5 @@ class SpiNNackerCodeGenerator(object):
         :rtype: dict
         """
         namespace = {'neuronName': _neuron.getName(), 'neuron': _neuron,
-                     'moduleName': FrontendConfiguration.getModuleName()}
-        namespace['names'] = SpiNNackerNamesConvert()
+                     'moduleName': FrontendConfiguration.getModuleName(), 'names': SpiNNackerNamesConverter()}
         return namespace

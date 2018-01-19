@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ['NestAssignmentsHelper', 'NestCodeGenerator', 'NestDeclarationsHelper',
-           'NestExpressionPrettyPrinter', 'NestFunctions', 'NESTML2NESTTypeConverter',
-           'NestNamesConverter', 'NestPrinter']
+__all__ = ['ExpressionsPrettyPrinter', 'GSLNamesConverter', 'GSLReferenceConverter', 'IdempotentReferenceConverter.py',
+           'IReferenceConverter', 'LegacyExpressionPrinter', 'NestAssignmentsHelper', 'NestCodeGenerator',
+           'NestDeclarationsHelper', 'NestNamesConverter', 'NestPrinter', 'NestReferenceConverter',
+           'PyNestMl2NESTTypeConverter', 'SpiNNackerCodeGenerator', 'SpiNNackerNamesConverter', 'UnitConverter']

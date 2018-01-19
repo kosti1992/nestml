@@ -28,7 +28,7 @@ class PyNestMLFrontendTest(unittest.TestCase):
     """
 
     def test(self):
-        path = str(os.path.realpath(os.path.join(os.path.dirname(__file__),os.path.join('..', 'models'))))
+        path = str(os.path.realpath(os.path.join(os.path.dirname(__file__),os.path.join('..', 'models','izhikevich.nestml'))))
         params = list()
         params.append('--sourcepath')
         params.append(path)

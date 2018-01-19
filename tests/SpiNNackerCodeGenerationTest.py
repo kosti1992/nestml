@@ -30,13 +30,13 @@ class SpiNNakerCodeGenerationTest(unittest.TestCase):
 
     def test(self):
         path = str(os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.join('..', 'models',
-                                                                                         'aeif_cond_alpha.nestml'))))
+                                                                                         'izhikevich.nestml'))))
         params = list()
         params.append('--sourcepath')
         params.append(path)
         # params.append('-dry')
         params.append('--logging_level')
-        params.append('NO')
+        params.append('INFO')
         params.append('--targetpath')
         params.append('target/models')
         params.append('--store_log')

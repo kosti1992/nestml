@@ -255,9 +255,10 @@ class Messages(object):
         return MessageCode.START_PROCESSING_NEURON, message
 
     @classmethod
-    def getCodeGenerated(cls, _neuronName=None, _path=None):
+    def getNestCodeGenerated(cls, _neuronName=None, _path=None):
         """
-        Returns a message indicating that code has been successfully generated for a neuron in a certain path.
+        Returns a message indicating that code has been successfully generated for a neuron in a certain path with
+        Nest as the target.
         :param _neuronName: the name of the neuron.
         :type _neuronName: str
         :param _path: the path to the file
@@ -273,9 +274,9 @@ class Messages(object):
         return MessageCode.CODE_SUCCESSFULLY_GENERATED, message
 
     @classmethod
-    def getModuleGenerated(cls, _path):
+    def getNESTModuleGenerated(cls, _path):
         """
-        Returns a message indicating that a module has been successfully generated.
+        Returns a message indicating that a module has been successfully generated in Nest.
         :param _path: the path to the generated file
         :type _path: str
         :return: a message
@@ -285,6 +286,25 @@ class Messages(object):
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_path)
         message = 'Successfully generated NEST module code in \'' + _path + '\''
         return MessageCode.MODULE_SUCCESSFULLY_GENERATED, message
+
+    @classmethod
+    def getSpiNNackerCodeGenerated(cls, _neuronName=None, _path=None):
+        """
+        Returns a message indicating that code has been successfully generated for a neuron in a certain path with
+        SpiNNacker as the target.
+        :param _neuronName: the name of the neuron.
+        :type _neuronName: str
+        :param _path: the path to the file
+        :type _path: str
+        :return: a message
+        :rtype: (MessageCode,str)
+        """
+        assert (_neuronName is not None and isinstance(_neuronName, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_neuronName)
+        assert (_path is not None and isinstance(_path, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_path)
+        message = 'Successfully generated SpiNNacker code for the neuron: \'' + _neuronName + '\' in: \'' + _path + '\''
+        return MessageCode.CODE_SUCCESSFULLY_GENERATED, message
 
     @classmethod
     def getDryRun(cls):

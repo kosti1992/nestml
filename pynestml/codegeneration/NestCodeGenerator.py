@@ -49,6 +49,7 @@ class NestCodeGenerator(object):
     __templateSLIInit = None
     __templateNeuronHeader = None
     __templateNeuronImplementation = None
+    __path = None
 
     def __init__(self):
         """
@@ -68,6 +69,8 @@ class NestCodeGenerator(object):
         self.__templateNeuronHeader = env.get_template('NeuronHeader.jinja2')
         # setup the neuron implementation template
         self.__templateNeuronImplementation = env.get_template('NeuronClass.jinja2')
+        # set up the path to the target directory
+        self.__path = os.path.join(FrontendConfiguration.getTargetPath(),'NEST')
         return
 
     def generateNESTModuleCode(self, _neurons=None):
@@ -77,21 +80,21 @@ class NestCodeGenerator(object):
         :type _neurons: list(ASTNeuron)
         """
         namespace = {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
+        with open(str(os.path.join(self.__path,
                                    FrontendConfiguration.getModuleName())) + '.h', 'w+') as f:
             f.write(str(self.__templateModuleHeader.render(namespace)))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
+        with open(str(os.path.join(self.__path,
                                    FrontendConfiguration.getModuleName())) + '.cpp', 'w+') as f:
             f.write(str(self.__templateModuleClass.render(namespace)))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
+        with open(str(os.path.join(self.__path,
                                    'CMakeLists')) + '.txt', 'w+') as f:
             f.write(str(self.__templateCMakeLists.render(namespace)))
-        if not os.path.isdir(os.path.realpath(os.path.join(FrontendConfiguration.getTargetPath(), 'sli'))):
-            os.makedirs(os.path.realpath(os.path.join(FrontendConfiguration.getTargetPath(), 'sli')))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), 'sli',
-                                   FrontendConfiguration.getModuleName() + "-init")) + '.sli', 'w+') as f:
+        if not os.path.isdir(os.path.realpath(os.path.join(self.__path, 'sli'))):
+            os.makedirs(os.path.realpath(os.path.join(self.__path, 'sli')))
+        with open(str(os.path.join(self.__path, 'sli',FrontendConfiguration.getModuleName() + "-init")) + '.sli', 'w+')\
+                as f:
             f.write(str(self.__templateSLIInit.render(namespace)))
-        code, message = Messages.getModuleGenerated(FrontendConfiguration.getTargetPath())
+        code, message = Messages.getNESTModuleGenerated(self.__path)
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         return
 
@@ -112,7 +115,7 @@ class NestCodeGenerator(object):
         # update the symbol table
         ASTSymbolTableVisitor.updateSymbolTable(workingVersion)
         self.generateNestCode(workingVersion)
-        code, message = Messages.getCodeGenerated(_neuron.getName(), FrontendConfiguration.getTargetPath())
+        code, message = Messages.getNestCodeGenerated(_neuron.getName(), self.__path)
         Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
                           _logLevel=LOGGING_LEVEL.INFO)
         return
@@ -137,7 +140,7 @@ class NestCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronHeader = self.setupStandardNamespace(_neuron)
         outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.h', 'w+') as f:
+        with open(str(os.path.join(self.__path, _neuron.getName())) + '.h', 'w+') as f:
             f.write(str(outputNeuronHeader))
         return
 
@@ -151,7 +154,7 @@ class NestCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronImplementation = self.setupStandardNamespace(_neuron)
         outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(self.__path, _neuron.getName())) + '.cpp', 'w+') as f:
             f.write(str(outputNeuronImplementation))
         return
 
@@ -161,8 +164,8 @@ class NestCodeGenerator(object):
         :param _neuron: a single neuron object.
         :type _neuron: ASTNeuron
         """
-        if not os.path.isdir(FrontendConfiguration.getTargetPath()):
-            os.makedirs(FrontendConfiguration.getTargetPath())
+        if not os.path.isdir(self.__path):
+            os.makedirs(self.__path)
         self.generateModelHeader(_neuron)
         self.generateModelImplementation(_neuron)
         return
