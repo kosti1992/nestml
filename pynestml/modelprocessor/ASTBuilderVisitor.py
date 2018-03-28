@@ -46,7 +46,7 @@ class ASTBuilderVisitor(ParseTreeVisitor):
                                                                  _endColumn=ctx.stop.column)
         for child in ctx.neuron():
             neurons.append(self.visit(child))
-        from pynestml.modelprocessor.ASTNESTMLCompilationUnit import ASTNESTMLCompilationUnit
+        from pynestml.modelprocessor.ASTNestMLCompilationUnit import ASTNESTMLCompilationUnit
         # extract the name of the artifact from the context
         artifactName = ntpath.basename(ctx.start.source[1].fileName)
         compilationUnit = ASTNESTMLCompilationUnit. \

@@ -106,7 +106,7 @@ neuron aeif_cond_alpha_neuron:
 
   update:
     integrate_odes()
-
+    t = 10ms
     if r > 0: # refractory
       r = r - 1 # decrement refractory ticks count
       V_m = V_reset
