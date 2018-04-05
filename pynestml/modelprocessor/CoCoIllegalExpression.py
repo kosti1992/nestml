@@ -18,10 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
 from pynestml.modelprocessor.ASTVisitor import ASTVisitor
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-
+from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.utils.ASTUtils import ASTUtils
 from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
@@ -53,6 +54,10 @@ class CorrectExpressionVisitor(ASTVisitor):
         :param node: a single declaration.
         :type node: ASTDeclaration
         """
+        # we do not check types if we deal with added variables, since the ode toolbox disregards them
+        if node.get_source_position().equals(ASTSourceLocation.get_added_source_position()):
+            return
+
         if node.has_expression():
             lhs_type = node.get_data_type().get_type_symbol()
             rhs_type = node.get_expression().get_type_either()
@@ -85,8 +90,10 @@ class CorrectExpressionVisitor(ASTVisitor):
         :param node: a single node.
         :type node: ASTAssignment
         """
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        from pynestml.utils.ASTUtils import ASTUtils
+        # we do not check types if we deal with added variables, since the ode toolbox disregards them
+        if node.get_source_position().equals(ASTSourceLocation.get_added_source_position()):
+            return
+
         if node.is_direct_assignment:  # case a = b is simple
             lhs_symbol_type = node.get_scope().resolve_to_symbol(node.get_variable().get_complete_name(),
                                                                  SymbolKind.VARIABLE)

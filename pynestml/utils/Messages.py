@@ -251,7 +251,7 @@ class Messages(object):
         """
         assert (_neuronName is not None and isinstance(_neuronName, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_neuronName)
-        message = 'Starts processing of the neuron \'' + _neuronName + '\''
+        message = 'Start processing of the neuron \'' + _neuronName + '\''
         return MessageCode.START_PROCESSING_NEURON, message
 
     @classmethod
