@@ -101,7 +101,7 @@ class CorrectExpressionVisitor(ASTVisitor):
                 if ASTUtils.differs_in_magnitude(rhs_symbol_type.get_value(), lhs_symbol_type.get_type_symbol()):
                     return
                 elif ASTUtils.is_castable_to(rhs_symbol_type.get_value(), lhs_symbol_type.get_type_symbol()):
-                    code, message = Messages.getImplicitCastRhsToLhs(node.getExpr(),
+                    code, message = Messages.getImplicitCastRhsToLhs(node.get_expression(),
                                                                      node.get_variable(),
                                                                      rhs_symbol_type.get_value(),
                                                                      lhs_symbol_type.get_type_symbol())
