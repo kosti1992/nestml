@@ -25,13 +25,9 @@ from antlr4 import *
 from pynestml.generated.PyNestMLLexer import PyNestMLLexer
 from pynestml.generated.PyNestMLParser import PyNestMLParser
 from pynestml.modelprocessor.ASTBuilderVisitor import ASTBuilderVisitor
-<<<<<<< HEAD
-from pynestml.modelprocessor.ASTNESTMLCompilationUnit import ASTNESTMLCompilationUnit
-from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
-=======
+
 from pynestml.modelprocessor.ASTNestMLCompilationUnit import ASTNestMLCompilationUnit
 from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
->>>>>>> PyNestML
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
