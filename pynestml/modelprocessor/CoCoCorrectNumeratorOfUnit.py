@@ -17,10 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -35,31 +35,27 @@ class CoCoCorrectNumeratorOfUnit(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.CorrectNumerator) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(NumericNumeratorVisitor())
-        return
+        node.accept(NumericNumeratorVisitor())
 
 
-class NumericNumeratorVisitor(NESTMLVisitor):
+class NumericNumeratorVisitor(ASTVisitor):
     """
     Visits a numeric numerator and checks if the value is 1.
     """
 
-    def visitUnitType(self, _unitType=None):
+    def visit_unit_type(self, node):
         """
         Check if the coco applies,
-        :param _unitType: a single unit type object.
-        :type _unitType: ASTUnitType
+        :param node: a single unit type object.
+        :type node: ASTUnitType
         """
-        if _unitType.isDiv() and isinstance(_unitType.getLhs(), int) and _unitType.getLhs() != 1:
-            code, message = Messages.getWrongNumerator(str(_unitType))
-            Logger.logMessage(_code=code, _message=message, _errorPosition=_unitType.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
-        return
+        if node.is_div and isinstance(node.lhs, int) and node.lhs != 1:
+            code, message = Messages.getWrongNumerator(str(node))
+            Logger.log_message(code=code, message=message, error_position=node.get_source_position(),
+                               log_level=LoggingLevel.ERROR)

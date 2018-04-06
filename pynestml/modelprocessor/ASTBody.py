@@ -19,10 +19,10 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 
 
-class ASTBody(ASTElement):
+class ASTBody(ASTNode):
     """
     This class is used to store the body of a neuron, an object containing all the definitions.
     ASTBody The body of the neuron, e.g. internal, state, parameter...
@@ -31,58 +31,28 @@ class ASTBody(ASTElement):
                (NEWLINE | blockWithVariables | updateBlock | equationsBlock | inputBlock | outputBlock | function)*
                BLOCK_CLOSE;        
     """
-    __bodyElements = None
+    bodyElements = None
 
-    def __init__(self, _bodyElements=list(), _sourcePosition=None):
+    def __init__(self, body_elements, source_position):
         """
         Standard constructor.
-        :param _bodyElements: a list of elements, e.g. variable blocks.
-        :type _bodyElements: list()
-        :param _sourcePosition: the position of the element in the source model
-        :rtype _sourcePosition: ASTSourcePosition
+        :param body_elements: a list of elements, e.g. variable blocks.
+        :type body_elements: list()
+        :param source_position: the position of the element in the source model
+        :rtype source_location: ASTSourceLocation
         """
-        from pynestml.modelprocessor.ASTBlockWithVariables import ASTBlockWithVariables
-        from pynestml.modelprocessor.ASTUpdateBlock import ASTUpdateBlock
-        from pynestml.modelprocessor.ASTInputBlock import ASTInputBlock
-        from pynestml.modelprocessor.ASTOutputBlock import ASTOutputBlock
-        from pynestml.modelprocessor.ASTFunction import ASTFunction
-        from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
-        assert (_bodyElements is not None and isinstance(_bodyElements, list)), \
-            '(PyNestML.AST.Body) No or wrong type of body elements provided (%s)' % type(_bodyElements)
-        for elem in _bodyElements:
-            assert (elem is not None and (isinstance(elem, ASTBlockWithVariables) or
-                                          isinstance(elem, ASTUpdateBlock) or
-                                          isinstance(elem, ASTInputBlock) or
-                                          isinstance(elem, ASTOutputBlock) or
-                                          isinstance(elem, ASTFunction) or
-                                          isinstance(elem, ASTEquationsBlock))), \
-                '(PyNestML.AST.Body) No or wrong type of body element provided (%s)!' % type(elem)
-        super(ASTBody, self).__init__(_sourcePosition)
-        self.__bodyElements = _bodyElements
-        return
+        super(ASTBody, self).__init__(source_position)
+        self.bodyElements = body_elements
 
-    @classmethod
-    def makeASTBody(cls, _bodyElements=list(), _sourcePosition=None):
-        """
-        Factory method of the ASTBody class.
-        :param _bodyElements: a list of elements, e.g. variable blocks.
-        :type _bodyElements: list()
-        :param _sourcePosition: the position of the element in the source model
-        :rtype _sourcePosition: ASTSourcePosition
-        :return: a new body object.
-        :rtype: ASTBody
-        """
-        return cls(_bodyElements, _sourcePosition)
-
-    def getBodyElements(self):
+    def get_body_elements(self):
         """
         Returns the list of body elements.
         :return: a list of body elements.
         :rtype: list()
         """
-        return self.__bodyElements
+        return self.bodyElements
 
-    def getFunctions(self):
+    def get_functions(self):
         """
         Returns a list of all function block declarations in this body.
         :return: a list of function declarations.
@@ -90,12 +60,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTFunction import ASTFunction
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTFunction):
                 ret.append(elem)
         return ret
 
-    def getUpdateBlocks(self):
+    def get_update_blocks(self):
         """
         Returns a list of all update blocks defined in this body.
         :return: a list of update-block elements.
@@ -103,12 +73,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTUpdateBlock import ASTUpdateBlock
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTUpdateBlock):
                 ret.append(elem)
         return ret
 
-    def getStateBlocks(self):
+    def get_state_blocks(self):
         """
         Returns a list of all state blocks defined in this body.
         :return: a list of state-blocks.
@@ -116,12 +86,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTBlockWithVariables import ASTBlockWithVariables
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.isState():
                 ret.append(elem)
         return ret
 
-    def getParameterBlocks(self):
+    def get_parameter_blocks(self):
         """
         Returns a list of all parameter blocks defined in this body.
         :return: a list of parameters-blocks.
@@ -129,12 +99,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTBlockWithVariables import ASTBlockWithVariables
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.isParameters():
                 ret.append(elem)
         return ret
 
-    def getInternalsBlocks(self):
+    def get_internals_blocks(self):
         """
         Returns a list of all internals blocks defined in this body.
         :return: a list of internals-blocks.
@@ -142,12 +112,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTBlockWithVariables import ASTBlockWithVariables
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.isInternals():
                 ret.append(elem)
         return ret
 
-    def getEquationsBlocks(self):
+    def get_equations_blocks(self):
         """
         Returns a list of all equations blocks defined in this body.
         :return: a list of equations-blocks.
@@ -155,12 +125,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTEquationsBlock):
                 ret.append(elem)
         return ret
 
-    def getInputBlocks(self):
+    def get_input_blocks(self):
         """
         Returns a list of all input-blocks defined.
         :return: a list of defined input-blocks.
@@ -168,12 +138,12 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTInputBlock import ASTInputBlock
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTInputBlock):
                 ret.append(elem)
         return ret
 
-    def getOutputBlocks(self):
+    def get_output_blocks(self):
         """
         Returns a list of all output-blocks defined.
         :return: a list of defined output-blocks.
@@ -181,38 +151,38 @@ class ASTBody(ASTElement):
         """
         ret = list()
         from pynestml.modelprocessor.ASTOutputBlock import ASTOutputBlock
-        for elem in self.getBodyElements():
+        for elem in self.get_body_elements():
             if isinstance(elem, ASTOutputBlock):
                 ret.append(elem)
         return ret
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
-        for stmt in self.getBodyElements():
-            if stmt is _ast:
+        for stmt in self.get_body_elements():
+            if stmt is ast:
                 return self
-            if stmt.getParent(_ast) is not None:
-                return stmt.getParent(_ast)
+            if stmt.get_parent(ast) is not None:
+                return stmt.get_parent(ast)
         return None
 
-    def getSpikeBuffers(self):
+    def get_spike_buffers(self):
         """
         Returns a list of all spike input buffers defined in the model.
         :return: a list of all spike input buffers
         :rtype: list(ASTInputLine)
         """
         ret = list()
-        blocks = self.getInputBlocks()
+        blocks = self.get_input_blocks()
         if isinstance(blocks, list):
             for block in blocks:
                 for line in block.getInputLines():
-                    if line.isSpike():
+                    if line.is_spike():
                         ret.append(line)
             return ret
         else:
@@ -225,26 +195,26 @@ class ASTBody(ASTElement):
         :rtype: str
         """
         ret = ''
-        for elem in self.__bodyElements:
+        for elem in self.bodyElements:
             ret += str(elem)
             ret += '\n'
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTBody):
+        if not isinstance(other, ASTBody):
             return False
-        if len(self.getBodyElements()) != len(_other.getBodyElements()):
+        if len(self.get_body_elements()) != len(other.get_body_elements()):
             return False
-        myBodyElements = self.getBodyElements()
-        yourBodyElements = _other.getBodyElements()
-        for i in range(0, len(myBodyElements)):
-            if not myBodyElements[i].equals(yourBodyElements[i]):
+        my_body_elements = self.get_body_elements()
+        your_body_elements = other.get_body_elements()
+        for i in range(0, len(my_body_elements)):
+            if not my_body_elements[i].equals(your_body_elements[i]):
                 return False
         return True

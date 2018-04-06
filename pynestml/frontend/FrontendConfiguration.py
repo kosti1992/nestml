@@ -19,9 +19,9 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import argparse  # used for parsing of input arguments
 import os
-from pynestml.modelprocessor.ModelParserExceptions import InvalidPathException
-from pynestml.utils.Logger import Logger
+
 from pynestml.frontend.BackendTargets import BackendTargets
+from pynestml.utils.Logger import Logger
 
 
 class FrontendConfiguration(object):
@@ -81,10 +81,10 @@ class FrontendConfiguration(object):
         cls.__providedPath = parsed_args.sourcepath
         if cls.__providedPath is None:
             # check if the mandatory path arg has been handed over, just terminate
-            raise InvalidPathException()
+            raise RuntimeError('Invalid Path')
         cls.__pathsToCompilationUnits = list()
         if parsed_args.sourcepath is None:
-            raise InvalidPathException()
+            raise RuntimeError('Invalid Path')
         elif os.path.isfile(parsed_args.sourcepath[0]):
             cls.__pathsToCompilationUnits.append(parsed_args.sourcepath[0])
         elif os.path.isdir(parsed_args.sourcepath[0]):
@@ -93,15 +93,15 @@ class FrontendConfiguration(object):
                     cls.__pathsToCompilationUnits.append(os.path.join(parsed_args.sourcepath[0], filename))
         else:
             cls.__pathsToCompilationUnits = parsed_args.sourcepath[0]
-            raise InvalidPathException()
+            raise RuntimeError('Invalid Path')
         # initialize the logger
 
         if parsed_args.logging_level is not None:
             cls.__loggingLevel = parsed_args.logging_level
-            Logger.initLogger(Logger.stringToLevel(parsed_args.logging_level[0]))
+            Logger.init_logger(Logger.string_to_level(parsed_args.logging_level[0]))
         else:
             cls.__loggingLevel = "ERROR"
-            Logger.initLogger(Logger.stringToLevel("ERROR"))
+            Logger.init_logger(Logger.string_to_level("ERROR"))
         # check if a dry run shall be preformed, i.e. without generating a target model
         cls.__dryRun = parsed_args.dry
         # check if a target has been selected, otherwise set the buildNest as target
@@ -135,7 +135,7 @@ class FrontendConfiguration(object):
         return
 
     @classmethod
-    def getPath(cls):
+    def get_path(cls):
         """
         Returns the path to the handed over directory or file.
         :return: a single path
@@ -144,7 +144,7 @@ class FrontendConfiguration(object):
         return cls.__providedPath
 
     @classmethod
-    def getFiles(cls):
+    def get_files(cls):
         """
         Returns a list of all files to process.
         :return: a list of paths to files as str.
@@ -153,7 +153,7 @@ class FrontendConfiguration(object):
         return cls.__pathsToCompilationUnits
 
     @classmethod
-    def isDryRun(cls):
+    def is_dry_run(cls):
         """
         Indicates whether it is a dry run, i.e., no modell shall be generated
         :return: True if dry run, otherwise false.
@@ -162,7 +162,7 @@ class FrontendConfiguration(object):
         return cls.__dryRun
 
     @classmethod
-    def getLoggingLevel(cls):
+    def get_logging_level(cls):
         """
         Returns the set logging level.
         :return: the logging level
@@ -171,7 +171,7 @@ class FrontendConfiguration(object):
         return cls.__loggingLevel
 
     @classmethod
-    def getTargetPath(cls):
+    def get_target_path(cls):
         """
         Returns the path to which models shall be generated to.
         :return: the target path.
@@ -180,7 +180,7 @@ class FrontendConfiguration(object):
         return cls.__targetPath
 
     @classmethod
-    def getModuleName(cls):
+    def get_module_name(cls):
         """
         Returns the name of the module.
         :return: the name of the module.
@@ -189,7 +189,7 @@ class FrontendConfiguration(object):
         return cls.__moduleName
 
     @classmethod
-    def storeLog(cls):
+    def store_log(cls):
         """
         Returns whether the log shall be stored.
         :return: True if shall be stored, otherwise False.
@@ -198,7 +198,7 @@ class FrontendConfiguration(object):
         return cls.__storeLog
 
     @classmethod
-    def isDev(cls):
+    def is_dev(cls):
         """
         Returns whether the dev mode have benn set as active.
         :return: True if dev mode is active, otherwise False.
@@ -207,7 +207,7 @@ class FrontendConfiguration(object):
         return cls.__isDebug
 
     @classmethod
-    def getTargets(cls):
+    def get_targets(cls):
         """
         Returns the currently set target for code generation.
         :return: BackendTargets

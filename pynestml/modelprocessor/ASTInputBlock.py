@@ -18,11 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTInputLine import ASTInputLine
 
 
-class ASTInputBlock(ASTElement):
+class ASTInputBlock(ASTNode):
     """
     This class is used to store blocks of input definitions.
     ASTInputBlock represents the input block:
@@ -40,35 +40,22 @@ class ASTInputBlock(ASTElement):
     """
     __inputDefinitions = None
 
-    def __init__(self, _inputDefinitions=list(), _sourcePosition=None):
+    def __init__(self, _inputDefinitions=list(), source_position=None):
         """
         Standard constructor.
         :param _inputDefinitions: 
         :type _inputDefinitions: list(ASTInputLine)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param source_position: the position of this element in the source file.
+        :type _sourcePosition: ASTSourceLocation.
         """
         assert (_inputDefinitions is not None and isinstance(_inputDefinitions, list)), \
             '(PyNestML.AST.Input) No or wrong type of input definitions provided (%s)!' % type(_inputDefinitions)
         for definition in _inputDefinitions:
             assert (definition is not None and isinstance(definition, ASTInputLine)), \
                 '(PyNestML.AST.Input) No or wrong type of input definition provided (%s)!' % type(definition)
-        super(ASTInputBlock, self).__init__(_sourcePosition)
+        super(ASTInputBlock, self).__init__(source_position)
         self.__inputDefinitions = _inputDefinitions
         return
-
-    @classmethod
-    def makeASTInputBlock(cls, _inputDefinitions=list(), _sourcePosition=None):
-        """
-        Factory method of the ASTInputBlock class.
-        :param _inputDefinitions: a list of input definitions.
-        :type _inputDefinitions: list(ASTInputLine)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTInputBlock object
-        :rtype: ASTInputBlock
-        """
-        return cls(_inputDefinitions, _sourcePosition)
 
     def getInputLines(self):
         """
@@ -78,19 +65,19 @@ class ASTInputBlock(ASTElement):
         """
         return self.__inputDefinitions
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
         for line in self.getInputLines():
-            if line is _ast:
+            if line is ast:
                 return self
-            elif line.getParent(_ast) is not None:
-                return line.getParent(_ast)
+            elif line.get_parent(ast) is not None:
+                return line.get_parent(ast)
         return None
 
     def __str__(self):
@@ -106,20 +93,20 @@ class ASTInputBlock(ASTElement):
         ret += 'end\n'
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other:  object
+        :param other: a different object.
+        :type other:  object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTInputBlock):
+        if not isinstance(other, ASTInputBlock):
             return False
-        if len(self.getInputLines()) != len(_other.getInputLines()):
+        if len(self.getInputLines()) != len(other.getInputLines()):
             return False
         myInputLines = self.getInputLines()
-        yourInputLines = _other.getInputLines()
+        yourInputLines = other.getInputLines()
         for i in range(0, len(myInputLines)):
             if not myInputLines[i].equals(yourInputLines[i]):
                 return False

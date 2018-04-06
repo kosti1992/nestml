@@ -19,9 +19,9 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
 
 
@@ -34,45 +34,41 @@ class CoCoVectorVariableInNonVectorDeclaration(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node=None):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(VectorInDeclarationVisitor())
+        assert (node is not None and isinstance(node, ASTNeuron)), \
+            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(node)
+        node.accept(VectorInDeclarationVisitor())
         return
 
 
-class VectorInDeclarationVisitor(NESTMLVisitor):
+class VectorInDeclarationVisitor(ASTVisitor):
     """
     This visitor checks if somewhere in a declaration of a non-vector value, a vector is used.
     """
 
-    def visitDeclaration(self, _declaration=None):
+    def visit_declaration(self, node):
         """
         Checks the coco.
-        :param _declaration: a single declaration.
-        :type _declaration: ASTDeclaration
+        :param node: a single declaration.
+        :type node: ASTDeclaration
         """
-        from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
-        assert (_declaration is not None and isinstance(_declaration, ASTDeclaration)), \
-            '(PyNestML.CoCo.VectorInNonVectorDeclaration) No or wrong type of declaration provided (%s)!' % type(
-                _declaration)
-        if _declaration.hasExpression():
-            variables = _declaration.getExpression().getVariables()
+        if node.has_expression():
+            variables = node.get_expression().get_variables()
             for variable in variables:
                 if variable is not None:
-                    symbol = _declaration.getScope().resolveToSymbol(variable.getCompleteName(), SymbolKind.VARIABLE)
-                    if symbol is not None and symbol.hasVectorParameter() and not _declaration.hasSizeParameter():
-                        code, message = Messages.getVectorInNonVector(_vector=symbol.getSymbolName(),
-                                                                      _nonVector=list(var.getCompleteName() for
+                    symbol = node.get_scope().resolve_to_symbol(variable.get_complete_name(), SymbolKind.VARIABLE)
+                    if symbol is not None and symbol.has_vector_parameter() and not node.has_size_parameter():
+                        code, message = Messages.getVectorInNonVector(_vector=symbol.get_symbol_name(),
+                                                                      _nonVector=list(var.get_complete_name() for
                                                                                       var in
-                                                                                      _declaration.getVariables()))
+                                                                                      node.get_variables()))
 
-                        Logger.logMessage(_errorPosition=_declaration.getSourcePosition(),
-                                          _code=code, _message=message,
-                                          _logLevel=LOGGING_LEVEL.ERROR)
+                        Logger.log_message(error_position=node.get_source_position(),
+                                           code=code, message=message,
+                                           log_level=LoggingLevel.ERROR)
         return

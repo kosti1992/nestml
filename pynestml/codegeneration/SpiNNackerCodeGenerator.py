@@ -17,13 +17,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
-from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConverter
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
-from pynestml.utils.Messages import Messages
-from jinja2 import Environment, FileSystemLoader
 import os
+
+from jinja2 import Environment, FileSystemLoader
+
+from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConverter
+from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
+from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.utils.Logger import Logger, LoggingLevel
+from pynestml.utils.Messages import Messages
 
 
 class SpiNNackerCodeGenerator(object):
@@ -50,11 +52,11 @@ class SpiNNackerCodeGenerator(object):
         # setup the neuron integration template
         self.__templateIntegrationFile = env.get_template('NeuronIntegration.jinja2')
         # setup the path
-        self.__path = os.path.join(FrontendConfiguration.getTargetPath(), 'SpiNNacker')
+        self.__path = os.path.join(FrontendConfiguration.get_target_path(), 'SpiNNacker')
 
         return
 
-    def analyseAndGenerateNeuron(self, _neuron=None):
+    def analyse_and_generate_neuron(self, _neuron=None):
         """
         Generates the code for the handed over neuron model.
         :param _neuron: a single neuron instance
@@ -63,25 +65,25 @@ class SpiNNackerCodeGenerator(object):
         # first create a sub-dir for SpiNNacker, in order to avoid overwritten NEST models
         if not os.path.isdir(self.__path):
             os.makedirs(self.__path)
-        self.generateModelHeader(_neuron)
-        self.generateModelImplementation(_neuron)
-        self.generateModelIntegration(_neuron)
-        code, message = Messages.getSpiNNackerCodeGenerated(_neuron.getName(), self.__path)
-        Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
-                          _logLevel=LOGGING_LEVEL.INFO)
+        self.generate_model_header(_neuron)
+        self.generate_model_implementation(_neuron)
+        self.generate_model_integration(_neuron)
+        code, message = Messages.getSpiNNackerCodeGenerated(_neuron.get_name(), self.__path)
+        Logger.log_message(neuron=_neuron, error_position=_neuron.get_source_position(), code=code, message=message,
+                           log_level=LoggingLevel.INFO)
         return
 
-    def analyseAndGenerateNeurons(self, _neurons=None):
+    def analyse_and_generate_neurons(self, _neurons=None):
         """
         Generates a set of neuron implementations from a handed over list.
         :param _neurons: a list of neuron models
         :return: list(ASTNeuron)
         """
         for neuron in _neurons:
-            self.analyseAndGenerateNeuron(neuron)
+            self.analyse_and_generate_neuron(neuron)
         return
 
-    def generateModelHeader(self, _neuron=None):
+    def generate_model_header(self, _neuron=None):
         """
         For a handed over neuron, this method generates the corresponding header file.
         :param _neuron: a single neuron object.
@@ -89,14 +91,14 @@ class SpiNNackerCodeGenerator(object):
         """
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        inputNeuronHeader = self.setupStandardNamespace(_neuron)
-        outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
-        with open(str(os.path.join(self.__path, _neuron.getName())) + '.h',
+        input_neuron_header = self.setup_standard_namespace(_neuron)
+        output_neuron_header = self.__templateNeuronHeader.render(input_neuron_header)
+        with open(str(os.path.join(self.__path, _neuron.get_name())) + '.h',
                   'w+') as f:
-            f.write(str(outputNeuronHeader))
+            f.write(str(output_neuron_header))
         return
 
-    def generateModelImplementation(self, _neuron=None):
+    def generate_model_implementation(self, _neuron=None):
         """
         For a handed over neuron, this method generates the corresponding implementation file.
         :param _neuron: a single neuron object.
@@ -104,13 +106,13 @@ class SpiNNackerCodeGenerator(object):
         """
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        inputNeuronImplementation = self.setupStandardNamespace(_neuron)
-        outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
-        with open(str(os.path.join(self.__path, _neuron.getName())) + '.cpp', 'w+') as f:
-            f.write(str(outputNeuronImplementation))
+        input_neuron_implementation = self.setup_standard_namespace(_neuron)
+        output_neuron_implementation = self.__templateNeuronImplementation.render(input_neuron_implementation)
+        with open(str(os.path.join(self.__path, _neuron.get_name())) + '.cpp', 'w+') as f:
+            f.write(str(output_neuron_implementation))
         return
 
-    def generateModelIntegration(self, _neuron=None):
+    def generate_model_integration(self, _neuron=None):
         """
         For a handed over neuron, this method generates the corresponding simulation integration file.
         :param _neuron: a single neuron instance
@@ -118,15 +120,15 @@ class SpiNNackerCodeGenerator(object):
         """
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        inputNeuronIntegration = self.setupStandardNamespace(_neuron)
-        outputNeuronIntegration = self.__templateIntegrationFile.render(inputNeuronIntegration)
+        input_neuron_integration = self.setup_standard_namespace(_neuron)
+        output_neuron_integration = self.__templateIntegrationFile.render(input_neuron_integration)
         with open(
-                str(os.path.join(self.__path, _neuron.getName())) + '.py',
+                str(os.path.join(self.__path, _neuron.get_name())) + '.py',
                 'w+') as f:
-            f.write(str(outputNeuronIntegration))
+            f.write(str(output_neuron_integration))
         return
 
-    def setupStandardNamespace(self, _neuron=None):
+    def setup_standard_namespace(self, _neuron=None):
         """
         Returns a standard namespace with often required functionality.
         :param _neuron: a single neuron instance
@@ -134,6 +136,6 @@ class SpiNNackerCodeGenerator(object):
         :return: a map from name to functionality.
         :rtype: dict
         """
-        namespace = {'neuronName': _neuron.getName(), 'neuron': _neuron,
-                     'moduleName': FrontendConfiguration.getModuleName(), 'names': SpiNNackerNamesConverter()}
+        namespace = {'neuronName': _neuron.get_name(), 'neuron': _neuron,
+                     'moduleName': FrontendConfiguration.get_module_name(), 'names': SpiNNackerNamesConverter()}
         return namespace

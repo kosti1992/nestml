@@ -19,8 +19,8 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -34,48 +34,42 @@ class CoCoTypeOfBufferUnique(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        cls.neuronName = _neuron.getName()
-        _neuron.accept(TypeOfBufferUniqueVisitor())
-        return
+        cls.neuronName = node.get_name()
+        node.accept(TypeOfBufferUniqueVisitor())
 
 
-class TypeOfBufferUniqueVisitor(NESTMLVisitor):
+class TypeOfBufferUniqueVisitor(ASTVisitor):
     """
     This visitor ensures that all buffers are specified uniquely by keywords.
     """
 
-    def visitInputLine(self, _line=None):
+    def visit_input_line(self, node):
         """
         Checks the coco on the current node.
-        :param _line: a single input line.
-        :type _line: ASTInputLine
+        :param node: a single input line.
+        :type node: ASTInputLine
         """
-        from pynestml.modelprocessor.ASTInputLine import ASTInputLine
-        assert (_line is not None and isinstance(_line, ASTInputLine)), \
-            '(PyNestML.CoCo.TypeOfBufferUnique) No or wrong type of input line provided (%s)!' % type(_line)
-        if _line.isSpike():
-            if _line.hasInputTypes() and len(_line.getInputTypes()) > 1:
+        if node.is_spike():
+            if node.has_input_types() and len(node.get_input_types()) > 1:
                 inh = 0
                 ext = 0
-                for typ in _line.getInputTypes():
-                    if typ.isExcitatory():
+                for typ in node.get_input_types():
+                    if typ.is_excitatory:
                         ext += 1
-                    if typ.isInhibitory():
+                    if typ.is_inhibitory:
                         inh += 1
                 if inh > 1:
                     code, message = Messages.getMultipleKeywords('inhibitory')
-                    Logger.logMessage(_errorPosition=_line.getSourcePosition(), _code=code, _message=message,
-                                      _logLevel=LOGGING_LEVEL.ERROR)
+                    Logger.log_message(error_position=node.get_source_position(), code=code, message=message,
+                                       log_level=LoggingLevel.ERROR)
                 if ext > 1:
                     code, message = Messages.getMultipleKeywords('excitatory')
-                    Logger.logMessage(_errorPosition=_line.getSourcePosition(), _code=code, _message=message,
-                                      _logLevel=LOGGING_LEVEL.ERROR)
+                    Logger.log_message(error_position=node.get_source_position(), code=code, message=message,
+                                       log_level=LoggingLevel.ERROR)
         return

@@ -1,8 +1,8 @@
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/kperun/nestml.svg?branch=PyNestML)](https://travis-ci.org/kperun/nestml)
 
-# PyNESTML - The NEST Modelling Language @Python
+# PyNestTML - The NEST Modelling Language @Python
 
-NESTML is a domain specific language that supports the specification of neuron models
+NestML is a domain specific language that supports the specification of neuron models
 in a precise and concise syntax, based on the syntax of Python. Model equations
 can either be given as a simple string of mathematical notation or as an algorithm written
 in the built-in procedural language. The equations are analyzed by NESTML to compute
@@ -21,19 +21,19 @@ an exact solution if possible or use an appropriate numeric solver otherwise.
 In order to execute the language tool-chain, Python in version 2 or 3 is required. A setup file is provided and can be installed by 
 
 ```
-python2 setup.py install
+python2 setup.py install --user
 ```
 
 For Python in version 3, respectively:
 
 ```
-python3 setup.py install
+python3 setup.py install --user
 ```
 
 Correct installation can be tested by 
 
 ```
-python setup.py test
+python2 setup.py test
 \# respectively python3 setup.py test 
 ```
 

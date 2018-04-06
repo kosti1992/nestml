@@ -17,11 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTNode import ASTElement
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTNode import ASTNode
+from pynestml.utils.Logger import LoggingLevel, Logger
 
 
-class ASTComparisonOperator(ASTElement):
+class ASTComparisonOperator(ASTNode):
     """
     This class is used to store a single comparison operator.
     Grammar:
@@ -36,7 +36,7 @@ class ASTComparisonOperator(ASTElement):
     __isGt = False
 
     def __init__(self, _isLt=False, _isLe=False, _isEq=False, _isNe=False, _isNe2=False,
-                 _isGe=False, _isGt=False, _sourcePosition=None):
+                 _isGe=False, _isGt=False, source_position=None):
         """
         Standard constructor.
         :param _isLt: is less than operator.
@@ -54,7 +54,7 @@ class ASTComparisonOperator(ASTElement):
         :param _isGt: is greater than operator.
         :type _isGt: bool
         :param _sourcePosition: the position of the element in the source
-        :type _sourcePosition: ASTSourcePosition
+        :type source_position: ASTSourceLocation
         """
         assert (_isLt is not None and isinstance(_isLt, bool)), \
             '(PyNestML.AST.ComparisonOperator) No or wrong type of is-less-than operator provided (%s)!' % type(_isLt)
@@ -74,7 +74,7 @@ class ASTComparisonOperator(ASTElement):
                 _isGt)
         assert ((_isLt + _isLe + _isEq + _isNe + _isNe2 + _isGe + _isGt) == 1), \
             '(PyNestML.AST.ComparisonOperator) Comparison operator not correctly specified!'
-        super(ASTComparisonOperator, self).__init__(_sourcePosition)
+        super(ASTComparisonOperator, self).__init__(source_position)
         self.__isGt = _isGt
         self.__isGe = _isGe
         self.__isNe2 = _isNe2
@@ -83,32 +83,6 @@ class ASTComparisonOperator(ASTElement):
         self.__isLe = _isLe
         self.__isLt = _isLt
         return
-
-    @classmethod
-    def makeASTComparisonOperator(cls, _isLt=False, _isLe=False, _isEq=False, _isNe=False, _isNe2=False,
-                                  _isGe=False, _isGt=False, _sourcePosition=None):
-        """
-        The factory method of the ASTComparisonOperator class.
-        :param _isLt: is less than operator.
-        :type _isLt: bool
-        :param _isLe: is less equal operator.
-        :type _isLe: bool
-        :param _isEq: is equality operator.
-        :type _isEq: bool
-        :param _isNe: is not equal operator.
-        :type _isNe: bool
-        :param _isNe2: is not equal operator (alternative syntax).
-        :type _isNe2: bool
-        :param _isGe: is greater equal operator.
-        :type _isGe: bool
-        :param _isGt: is greater than operator.
-        :type _isGt: bool
-        :param _sourcePosition: the position of the element in the source
-        :type _sourcePosition: ASTSourcePosition
-        :return: a new ASTComparisonOperator object.
-        :rtype: ASTComparisonOperator
-        """
-        return cls(_isLt, _isLe, _isEq, _isNe, _isNe2, _isGe, _isGt, _sourcePosition)
 
     def isLt(self):
         """
@@ -166,11 +140,11 @@ class ASTComparisonOperator(ASTElement):
         """
         return isinstance(self.__isGt, bool) and self.__isGt
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
@@ -197,18 +171,18 @@ class ASTComparisonOperator(ASTElement):
         elif self.__isGt:
             return ' > '
         else:
-            Logger.logMessage('Type of comparison operator not specified!', LOGGING_LEVEL.WARNING)
+            Logger.log_message('Type of comparison operator not specified!', LoggingLevel.WARNING)
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTComparisonOperator):
+        if not isinstance(other, ASTComparisonOperator):
             return False
-        return self.isLt() == _other.isLt() and self.isLe() == _other.isLe() and \
-               self.isEq() == _other.isEq() and self.isNe() == _other.isNe() and \
-               self.isNe2() == _other.isNe2() and self.isGe() == _other.isGe() and self.isGt() == _other.isGt()
+        return self.isLt() == other.isLt() and self.isLe() == other.isLe() and \
+               self.isEq() == other.isEq() and self.isNe() == other.isNe() and \
+               self.isNe2() == other.isNe2() and self.isGe() == other.isGe() and self.isGt() == other.isGt()

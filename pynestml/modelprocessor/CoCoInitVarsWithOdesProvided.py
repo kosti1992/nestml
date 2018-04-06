@@ -18,11 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
 
 
@@ -49,43 +49,44 @@ class CoCoInitVarsWithOdesProvided(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Checks this coco on the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.VariablesDefined) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(InitVarsVisitor())
+        assert (node is not None and isinstance(node, ASTNeuron)), \
+            '(PyNestML.CoCo.VariablesDefined) No or wrong type of neuron provided (%s)!' % type(node)
+        node.accept(InitVarsVisitor())
         return
 
 
-class InitVarsVisitor(NESTMLVisitor):
+class InitVarsVisitor(ASTVisitor):
     """
     This visitor checks that all variables as provided in the init block have been provided with an ode.
     """
 
-    def visitDeclaration(self, _declaration=None):
+    def visit_declaration(self, node):
         """
         Checks the coco on the current node.
-        :param _declaration: a single declaration.
-        :type _declaration: ASTDeclaration
+        :param node: a single declaration.
+        :type node: ASTDeclaration
         """
-        for var in _declaration.getVariables():
-            symbol = _declaration.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
+        for var in node.get_variables():
+            symbol = node.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
             # first check that all initial value variables have a lhs
-            if symbol is not None and symbol.isInitValues() and not _declaration.hasExpression():
-                code, message = Messages.getNoRhs(symbol.getSymbolName())
-                Logger.logMessage(_errorPosition=var.getSourcePosition(), _code=code,
-                                  _message=message, _logLevel=LOGGING_LEVEL.ERROR)
+            if symbol is not None and symbol.is_init_values() and not node.has_expression():
+                code, message = Messages.getNoRhs(symbol.get_symbol_name())
+                Logger.log_message(error_position=var.get_source_position(), code=code,
+                                   message=message, log_level=LoggingLevel.ERROR)
             # now check that they have been provided with an ODE
-            if symbol is not None and symbol.isInitValues() and not symbol.isOdeDefined() and not symbol.isFunction():
-                code, message = Messages.getNoOde(symbol.getSymbolName())
-                Logger.logMessage(_errorPosition=var.getSourcePosition(), _code=code,
-                                  _message=message, _logLevel=LOGGING_LEVEL.ERROR)
-            if symbol is not None and symbol.isInitValues() and not symbol.hasInitialValue():
-                code, message = Messages.getNoInitValue(symbol.getSymbolName())
-                Logger.logMessage(_errorPosition=var.getSourcePosition(), _code=code,
-                                  _message=message, _logLevel=LOGGING_LEVEL.ERROR)
+            if symbol is not None and symbol.is_init_values() \
+                    and not symbol.is_ode_defined() and not symbol.is_function():
+                code, message = Messages.getNoOde(symbol.get_symbol_name())
+                Logger.log_message(error_position=var.get_source_position(), code=code,
+                                   message=message, log_level=LoggingLevel.ERROR)
+            if symbol is not None and symbol.is_init_values() and not symbol.has_initial_value():
+                code, message = Messages.getNoInitValue(symbol.get_symbol_name())
+                Logger.log_message(error_position=var.get_source_position(), code=code,
+                                   message=message, log_level=LoggingLevel.ERROR)
         return

@@ -21,8 +21,8 @@
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -33,39 +33,36 @@ class CoCoInvariantIsBoolean(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, neuron):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param neuron: a single neuron instance.
+        :type neuron: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(_neuron)
         visitor = InvariantTypeVisitor()
-        _neuron.accept(visitor)
-        return
+        neuron.accept(visitor)
+        
 
-
-class InvariantTypeVisitor(NESTMLVisitor):
+class InvariantTypeVisitor(ASTVisitor):
     """
     Checks if for each invariant, the type is boolean.
     """
 
-    def visitDeclaration(self, _declaration=None):
+    def visit_declaration(self, node):
         """
         Checks the coco for a declaration.
-        :param _declaration: a single declaration.
-        :type _declaration: ASTDeclaration
+        :param node: a single declaration.
+        :type node: ASTDeclaration
         """
-        if _declaration.hasInvariant():
-            invariantType = _declaration.getInvariant().getTypeEither()
-            if invariantType is None or invariantType.isError():
-                code, message = Messages.getTypeCouldNotBeDerived(str(_declaration.getInvariant()))
-                Logger.logMessage(_errorPosition=_declaration.getInvariant().getSourcePosition(), _code=code,
-                                  _message=message, _logLevel=LOGGING_LEVEL.ERROR)
-            elif not invariantType.getValue().equals(PredefinedTypes.getBooleanType()):
-                code, message = Messages.getTypeDifferentFromExpected(PredefinedTypes.getBooleanType(),
-                                                                      invariantType.getValue())
-                Logger.logMessage(_errorPosition=_declaration.getInvariant().getSourcePosition(), _code=code,
-                                  _message=message, _logLevel=LOGGING_LEVEL.ERROR)
+        if node.has_invariant():
+            invariant_type = node.get_invariant().get_type_either()
+            if invariant_type is None or invariant_type.is_error():
+                code, message = Messages.getTypeCouldNotBeDerived(str(node.get_invariant()))
+                Logger.log_message(error_position=node.get_invariant().get_source_position(), code=code,
+                                   message=message, log_level=LoggingLevel.ERROR)
+            elif not invariant_type.get_value().equals(PredefinedTypes.get_boolean_type()):
+                code, message = Messages.getTypeDifferentFromExpected(PredefinedTypes.get_boolean_type(),
+                                                                      invariant_type.get_value())
+                Logger.log_message(error_position=node.get_invariant().get_source_position(), code=code,
+                                   message=message, log_level=LoggingLevel.ERROR)
         return

@@ -19,7 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -29,55 +29,45 @@ class CoCoVariableOncePerScope(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Checks if each variable is defined at most once per scope. Obviously, this test does not check if a declaration
         is shadowed by an embedded scope.
-        :param _neuron: a single neuron
-        :type _neuron: ASTNeuron
+        :param node: a single neuron
+        :type node: ASTNeuron
         """
-        from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.VariableOncePerScope) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        cls.__checkScope(_neuron, _neuron.getScope())
-        return
+        cls.__check_scope(node, node.get_scope())
 
     @classmethod
-    def __checkScope(cls, _neuron=None, _scope=None):
+    def __check_scope(cls, neuron, scope):
         """
         Checks a single scope and proceeds recursively.
-        :param _neuron: a single neuron object, required for correct printing of messages.
-        :type _neuron: ASTNeuron
-        :param _scope: a single scope to check.
-        :type _scope: Scope
+        :param neuron: a single neuron object, required for correct printing of messages.
+        :type neuron: ASTNeuron
+        :param scope: a single scope to check.
+        :type scope: Scope
         """
-        from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-        from pynestml.modelprocessor.Scope import Scope
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.VariableOncePerScope) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        assert (_scope is not None and isinstance(_scope, Scope)), \
-            '(PyNestML.CoCo.VariableOncePerScope) No or wrong type of scope provided (%s)!' % type(_scope)
         checked = list()
-        for sym1 in _scope.getSymbolsInThisScope():
-            for sym2 in _scope.getSymbolsInThisScope():
-                if sym1 is not sym2 and sym1.getSymbolName() == sym2.getSymbolName() and \
-                                sym1.getSymbolKind() == sym2.getSymbolKind() and \
-                                sym1.getSymbolKind() == SymbolKind.VARIABLE and \
-                                sym2 not in checked:
-                    if sym1.isPredefined():
-                        code, message = Messages.getVariableRedeclared(sym1.getSymbolName(), True)
-                        Logger.logMessage(_errorPosition=sym2.getReferencedObject().getSourcePosition(),
-                                          _neuron=_neuron, _logLevel=LOGGING_LEVEL.ERROR, _code=code, _message=message)
-                    elif sym2.isPredefined():
-                        code, message = Messages.getVariableRedeclared(sym1.getSymbolName(), True)
-                        Logger.logMessage(_errorPosition=sym1.getReferencedObject().getSourcePosition(),
-                                          _neuron=_neuron, _logLevel=LOGGING_LEVEL.ERROR, _code=code, _message=message)
-                    elif sym1.getReferencedObject().getSourcePosition().before(
-                            sym2.getReferencedObject().getSourcePosition()):
-                        code, message = Messages.getVariableRedeclared(sym1.getSymbolName(), False)
-                        Logger.logMessage(_errorPosition=sym2.getReferencedObject().getSourcePosition(),
-                                          _neuron=_neuron, _logLevel=LOGGING_LEVEL.ERROR, _code=code, _message=message)
+        for sym1 in scope.get_symbols_in_this_scope():
+            for sym2 in scope.get_symbols_in_this_scope():
+                if (sym1 is not sym2 and sym1.get_symbol_name() == sym2.get_symbol_name() and
+                        sym1.get_symbol_kind() == sym2.get_symbol_kind() and
+                        sym1.get_symbol_kind() == SymbolKind.VARIABLE and
+                        sym2 not in checked):
+                    if sym1.is_predefined():
+                        code, message = Messages.getVariableRedeclared(sym1.get_symbol_name(), True)
+                        Logger.log_message(error_position=sym2.get_referenced_object().get_source_position(),
+                                           neuron=neuron, log_level=LoggingLevel.ERROR, code=code, message=message)
+                    elif sym2.is_predefined():
+                        code, message = Messages.getVariableRedeclared(sym1.get_symbol_name(), True)
+                        Logger.log_message(error_position=sym1.get_referenced_object().get_source_position(),
+                                           neuron=neuron, log_level=LoggingLevel.ERROR, code=code, message=message)
+                    elif sym1.get_referenced_object().get_source_position().before(
+                            sym2.get_referenced_object().get_source_position()):
+                        code, message = Messages.getVariableRedeclared(sym1.get_symbol_name(), False)
+                        Logger.log_message(error_position=sym2.get_referenced_object().get_source_position(),
+                                           neuron=neuron, log_level=LoggingLevel.ERROR, code=code, message=message)
             checked.append(sym1)
-        for scope in _scope.getScopes():
-            cls.__checkScope(_neuron, scope)
+        for scope in scope.get_scopes():
+            cls.__check_scope(neuron, scope)
         return

@@ -19,7 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 from pynestml.codegeneration.PyNestMl2NESTTypeConverter import NESTML2NESTTypeConverter
 
@@ -37,27 +37,27 @@ class NestDeclarationsHelper(object):
         self.nestml2NESTTypeConverter = NESTML2NESTTypeConverter()
         return
 
-    def getVariables(self, _astDeclaration=None):
+    def get_variables(self, ast_declaration=None):
         """
         For a given ast declaration it returns a list of all corresponding variable symbols.
-        :param _astDeclaration: a single ast declaration.
-        :type _astDeclaration: ASTDeclaration
+        :param ast_declaration: a single ast declaration.
+        :type ast_declaration: ASTDeclaration
         :return: a list of all corresponding variable symbols.
         :rtype: list(VariableSymbol)
         """
 
-        assert (_astDeclaration is not None and isinstance(_astDeclaration, ASTDeclaration)), \
+        assert (ast_declaration is not None and isinstance(ast_declaration, ASTDeclaration)), \
             '(PyNestML.CodeGeneration.DeclarationsHelper) No or wrong type of declaration provided (%s)!' % type(
-                _astDeclaration)
+                ast_declaration)
         ret = list()
-        for var in _astDeclaration.getVariables():
-            symbol = _astDeclaration.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
+        for var in ast_declaration.get_variables():
+            symbol = ast_declaration.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
             if symbol is not None:
                 ret.append(symbol)
             else:
-                code, message = Messages.getCouldNotResolve(var.getCompleteName())
-                Logger.logMessage(_code=code, _message=message,
-                                  _errorPosition=_astDeclaration.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
+                code, message = Messages.getCouldNotResolve(var.get_complete_name())
+                Logger.log_message(code=code, message=message,
+                                   error_position=ast_declaration.get_source_position(), log_level=LoggingLevel.ERROR)
             return ret
 
     def printVariableType(self, _variableSymbol=None):
@@ -68,10 +68,10 @@ class NestDeclarationsHelper(object):
         :return: a string presentation of the variable symbol's type
         :rtype: str
         """
-        if _variableSymbol.hasVectorParameter():
-            return 'std::vector< ' + self.nestml2NESTTypeConverter.convert(_variableSymbol.getTypeSymbol()) + ' > '
+        if _variableSymbol.has_vector_parameter():
+            return 'std::vector< ' + self.nestml2NESTTypeConverter.convert(_variableSymbol.get_type_symbol()) + ' > '
         else:
-            return self.nestml2NESTTypeConverter.convert(_variableSymbol.getTypeSymbol())
+            return self.nestml2NESTTypeConverter.convert(_variableSymbol.get_type_symbol())
 
     def printSizeParameter(self, _astDeclaration=None):
         """
@@ -81,7 +81,7 @@ class NestDeclarationsHelper(object):
         :return: a string representation of the size parameter.
         :rtype: str
         """
-        return _astDeclaration.getSizeParameter()
+        return _astDeclaration.get_size_parameter()
 
     def getDomainFromType(self, _typeSymbol=None):
         """

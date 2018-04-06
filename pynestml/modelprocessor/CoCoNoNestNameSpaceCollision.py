@@ -19,7 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -44,18 +44,16 @@ class CoCoNoNestNameSpaceCollision(CoCo):
                        'set_status', 'init_state_', 'init_buffers_']
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.CorrectNumerator) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        for func in _neuron.getFunctions():
-            if func.getName() in cls.__nestNameSpace:
-                code, message = Messages.getNestCollision(func.getName())
-                Logger.logMessage(_errorPosition=func.getSourcePosition(),
-                                  _code=code, _message=message,
-                                  _logLevel=LOGGING_LEVEL.ERROR)
+        for func in node.get_functions():
+            if func.get_name() in cls.__nestNameSpace:
+                code, message = Messages.getNestCollision(func.get_name())
+                Logger.log_message(error_position=func.get_source_position(),
+                                   code=code, message=message,
+                                   log_level=LoggingLevel.ERROR)
         return

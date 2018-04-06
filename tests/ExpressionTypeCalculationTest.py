@@ -23,69 +23,69 @@ import os
 from pynestml.codegeneration.UnitConverter import UnitConverter
 from pynestml.modelprocessor.ModelParser import ModelParser
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.SymbolTable import SymbolTable
-from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
-from pynestml.modelprocessor.CoCosManager import CoCosManager
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
+from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import MessageCode
 
 # minor setup steps required
-SymbolTable.initializeSymbolTable(ASTSourcePosition(_startLine=0, _startColumn=0, _endLine=0, _endColumn=0))
-PredefinedUnits.registerUnits()
-PredefinedTypes.registerTypes()
-PredefinedVariables.registerPredefinedVariables()
-PredefinedFunctions.registerPredefinedFunctions()
+SymbolTable.initialize_symbol_table(ASTSourceLocation(start_line=0, start_column=0, end_line=0, end_column=0))
+PredefinedUnits.register_units()
+PredefinedTypes.register_types()
+PredefinedVariables.register_predefined_variables()
+PredefinedFunctions.register_predefined_functions()
 
 
-class expressionTestVisitor(NESTMLVisitor):
-    def endvisitAssignment(self, _assignment=None):
-        scope = _assignment.getScope()
-        varName = _assignment.getVariable().getName()
+class expressionTestVisitor(ASTVisitor):
+    def endvisit_assignment(self, node=None):
+        scope = node.get_scope()
+        var_name = node.lhs.get_name()
 
-        _expr = _assignment.getExpression()
+        _expr = node.get_expression()
 
-        varSymbol = scope.resolveToSymbol(varName, SymbolKind.VARIABLE)
+        var_symbol = scope.resolve_to_symbol(var_name, SymbolKind.VARIABLE)
 
-        _equals = varSymbol.getTypeSymbol().equals(_expr.getTypeEither().getValue())
+        _equals = var_symbol.get_type_symbol().equals(_expr.get_type_either().get_value())
 
-        message = 'line ' + str(_expr.getSourcePosition()) + ' : LHS = ' + \
-                  varSymbol.getTypeSymbol().getSymbolName() + \
-                  ' RHS = ' + _expr.getTypeEither().getValue().getSymbolName() + \
+        message = 'line ' + str(_expr.get_source_position()) + ' : LHS = ' + \
+                  var_symbol.get_type_symbol().get_symbol_name() + \
+                  ' RHS = ' + _expr.get_type_either().get_value().get_symbol_name() + \
                   ' Equal ? ' + str(_equals)
 
-        if _expr.getTypeEither().getValue().isUnit():
-            message += " Neuroscience Factor: " + \
-            str(UnitConverter().getFactor(_expr.getTypeEither().getValue().getUnit().getUnit()))
+        if _expr.get_type_either().get_value().is_unit():
+            message += (" Neuroscience Factor: " +
+                        str(UnitConverter().getFactor(_expr.get_type_either().get_value().get_unit().get_unit())))
 
-        Logger.logMessage(_errorPosition=_assignment.getSourcePosition(), _code=MessageCode.TYPE_MISMATCH,
-                          _message=message, _logLevel=LOGGING_LEVEL.INFO)
+        Logger.log_message(error_position=node.get_source_position(), code=MessageCode.TYPE_MISMATCH,
+                           message=message, log_level=LoggingLevel.INFO)
 
         if _equals is False:
-            Logger.logMessage(_message="Type mismatch in test!",
-                              _code=MessageCode.TYPE_MISMATCH,
-                              _errorPosition=_assignment.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
+            Logger.log_message(message="Type mismatch in test!",
+                               code=MessageCode.TYPE_MISMATCH,
+                               error_position=node.get_source_position(),
+                               log_level=LoggingLevel.ERROR)
         return
 
 
 class ExpressionTypeCalculationTest(unittest.TestCase):
     """
-    A simple test that prints all top-level expression types in a file.
+    A simple test that prints all top-level rhs types in a file.
     """
+
     def test(self):
-        Logger.initLogger(LOGGING_LEVEL.NO)
-        model = ModelParser.parseModel(
+        Logger.init_logger(LoggingLevel.NO)
+        model = ModelParser.parse_model(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                        'resources', 'ExpressionTypeTest.nestml'))))
-        Logger.setCurrentNeuron(model.getNeuronList()[0])
+        Logger.set_current_neuron(model.get_neuron_list()[0])
         expressionTestVisitor().handle(model)
-        Logger.setCurrentNeuron(None)
-        assert (len(Logger.getAllMessagesOfLevelAndOrNeuron(model.getNeuronList()[0], LOGGING_LEVEL.ERROR)) == 2)
+        Logger.set_current_neuron(None)
+        assert (len(Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)) == 2)
 
 
 if __name__ == '__main__':

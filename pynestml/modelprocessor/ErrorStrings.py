@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
+from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
 
 
 class ErrorStrings(object):
@@ -37,35 +37,35 @@ class ErrorStrings(object):
         :rtype: str
         """
         assert _origin is not None
-        from pynestml.modelprocessor.UnaryVisitor import UnaryVisitor
-        if isinstance(_origin, UnaryVisitor):
+        from pynestml.modelprocessor.ASTUnaryVisitor import ASTUnaryVisitor
+        if isinstance(_origin, ASTUnaryVisitor):
             return "SPL_UNARY_VISITOR"
-        from pynestml.modelprocessor.PowVisitor import PowVisitor
-        if isinstance(_origin, PowVisitor):
+        from pynestml.modelprocessor.ASTPowerVisitor import ASTPowerVisitor
+        if isinstance(_origin, ASTPowerVisitor):
             return "SPL_POW_VISITOR"
-        from pynestml.modelprocessor.LogicalNotVisitor import LogicalNotVisitor
-        if isinstance(_origin, LogicalNotVisitor):
+        from pynestml.modelprocessor.ASTLogicalNotVisitor import ASTLogicalNotVisitor
+        if isinstance(_origin, ASTLogicalNotVisitor):
             return "SPL_LOGICAL_NOT_VISITOR"
-        from pynestml.modelprocessor.DotOperatorVisitor import DotOperatorVisitor
-        if isinstance(_origin, DotOperatorVisitor):
+        from pynestml.modelprocessor.ASTDotOperatorVisitor import ASTDotOperatorVisitor
+        if isinstance(_origin, ASTDotOperatorVisitor):
             return "SPL_DOT_OPERATOR_VISITOR"
-        from pynestml.modelprocessor.LineOperationVisitor import LineOperatorVisitor
-        if isinstance(_origin, LineOperatorVisitor):
+        from pynestml.modelprocessor.ASTLineOperationVisitor import ASTLineOperatorVisitor
+        if isinstance(_origin, ASTLineOperatorVisitor):
             return "SPL_LINE_OPERATOR_VISITOR"
-        from pynestml.modelprocessor.NoSemantics import NoSemantics
-        if isinstance(_origin, NoSemantics):
+        from pynestml.modelprocessor.ASTNoSemantics import ASTNoSemantics
+        if isinstance(_origin, ASTNoSemantics):
             return "SPL_NO_SEMANTICS"
-        from pynestml.modelprocessor.ComparisonOperatorVisitor import ComparisonOperatorVisitor
-        if isinstance(_origin, ComparisonOperatorVisitor):
+        from pynestml.modelprocessor.ASTComparisonOperatorVisitor import ASTComparisonOperatorVisitor
+        if isinstance(_origin, ASTComparisonOperatorVisitor):
             return "SPL_COMPARISON_OPERATOR_VISITOR"
-        from pynestml.modelprocessor.BinaryLogicVisitor import BinaryLogicVisitor
-        if isinstance(_origin, BinaryLogicVisitor):
+        from pynestml.modelprocessor.ASTBinaryLogicVisitor import ASTBinaryLogicVisitor
+        if isinstance(_origin, ASTBinaryLogicVisitor):
             return "SPL_BINARY_LOGIC_VISITOR"
-        from pynestml.modelprocessor.ConditionVisitor import ConditionVisitor
-        if isinstance(_origin, ConditionVisitor):
+        from pynestml.modelprocessor.ASTConditionVisitor import ASTConditionVisitor
+        if isinstance(_origin, ASTConditionVisitor):
             return "SPL_CONDITION_VISITOR"
-        from pynestml.modelprocessor.FunctionCallVisitor import FunctionCallVisitor
-        if isinstance(_origin, FunctionCallVisitor):
+        from pynestml.modelprocessor.ASTFunctionCallVisitor import ASTFunctionCallVisitor
+        if isinstance(_origin, ASTFunctionCallVisitor):
             return "SPL_FUNCTION_CALL_VISITOR"
         return ""
 
@@ -77,32 +77,32 @@ class ErrorStrings(object):
         :param _typeName: plain text representation of the wrong type that was encountered
         :type _typeName: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition 
+        :type _sourcePosition: ASTSourceLocation 
         :return: the error message
         :rtype: str 
         """
         assert _origin is not None
         assert _typeName is not None and isinstance(_typeName, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Cannot perform an arithmetic operation on a non-numeric type: " + _typeName
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
     @classmethod
     def messageTypeError(cls, _origin=None, _expressionText=None, _sourcePosition=None):
         """
-        construct an error message indicating a generic error in expression type calculation
+        construct an error message indicating a generic error in rhs type calculation
         :param _origin: the class reporting the error
-        :param _expressionText: plain text representation of the offending expression
+        :param _expressionText: plain text representation of the offending rhs
         :type _expressionText: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
         assert _expressionText is not None and isinstance(_expressionText, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "Cannot determine the type of the expression: " + _expressionText
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        ERROR_MSG_FORMAT = "Cannot determine the type of the rhs: " + _expressionText
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
     @classmethod
@@ -111,12 +111,12 @@ class ErrorStrings(object):
         construct an error message indicating that a non-int type was given as exponent to a unit type
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "With a Unit base, the exponent must be an integer."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -126,12 +126,12 @@ class ErrorStrings(object):
         construct an error message indicating that the exponent given to a unit base is not a constant value
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Cannot calculate value of exponent. Must be a constant value!"
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -141,12 +141,12 @@ class ErrorStrings(object):
         construct an error message indicating that an expected bool value was not found
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Expected a bool"
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -156,12 +156,12 @@ class ErrorStrings(object):
         construct an error message indicating that an expected int value was not found
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Expected an int"
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -173,13 +173,13 @@ class ErrorStrings(object):
         :param _mismatchText: the operation with mismatched types printed in plain text
         :type _mismatchText: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
         assert _mismatchText is not None and isinstance(_mismatchText, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Operation not defined: " + _mismatchText
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -197,7 +197,7 @@ class ErrorStrings(object):
         :param _resultTypeText: plain text of resulting type (implicit cast)
         :type _resultTypeText: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
@@ -208,7 +208,7 @@ class ErrorStrings(object):
             '(PyNestML.Utils.ErrorStrings) No or wrong type of rhs-type text provided (%s)!' % type(_rhsTypeText)
         assert (_resultTypeText is not None and isinstance(_resultTypeText, str)), \
             '(PyNestML.Utils.ErrorStrings) No or wrong type of rhs-type text provided (%s)!' % type(_resultTypeText)
-        assert (_sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)), \
+        assert (_sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)), \
             '(PyNestML.Utils.ErrorStrings) No or wrong type of source position provided (%s)!' % type(_sourcePosition)
         ERROR_MSG_FORMAT = "Addition/substraction of " + _lhsTypeText + " and " + _rhsTypeText + \
                            ". Assuming: " + _resultTypeText + "."
@@ -217,19 +217,19 @@ class ErrorStrings(object):
     @classmethod
     def messageNoSemantics(cls, _origin=None, _exprText=None, _sourcePosition=None):
         """
-        construct an error message indicating that an expression is not implemented
+        construct an error message indicating that an rhs is not implemented
         :param _origin: the class reporting the error
-        :param _exprText: plain text of the unimplemented expression
+        :param _exprText: plain text of the unimplemented rhs
         :type _exprText: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
         assert _exprText is not None and isinstance(_exprText, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "This expression is not implemented: " + _exprText
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        ERROR_MSG_FORMAT = "This rhs is not implemented: " + _exprText
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
     @classmethod
@@ -238,13 +238,13 @@ class ErrorStrings(object):
         construct an error message indicating that an a comparison operation has incompatible operands
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "Operands of a logical expression not compatible."
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        ERROR_MSG_FORMAT = "Operands of a logical rhs not compatible."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
     @classmethod
@@ -253,13 +253,13 @@ class ErrorStrings(object):
         construct an error message indicating that an a comparison operation has incompatible operands
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "Both operands of a logical expression must be boolean."
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        ERROR_MSG_FORMAT = "Both operands of a logical rhs must be boolean."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
     @classmethod
@@ -268,12 +268,12 @@ class ErrorStrings(object):
         construct an error message indicating that an a comparison operation has incompatible operands
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "The ternary operator condition must be boolean."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -287,14 +287,14 @@ class ErrorStrings(object):
         :param _ifNotText: plain text of the negative branch of the ternary operator
         :type _ifNotText: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
         assert _ifTrueText is not None and isinstance(_ifTrueText, str)
         assert _ifNotText is not None and isinstance(_ifNotText, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Mismatched conditional alternatives " + _ifTrueText + " and " + \
                            _ifNotText + "-> Assuming real."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
@@ -307,13 +307,13 @@ class ErrorStrings(object):
         :param _symbolName: the name of the symbol
         :type _symbolName: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
         assert _symbolName is not None and isinstance(_symbolName, str)
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
         ERROR_MSG_FORMAT = "Cannot resolve the symbol: " + _symbolName + "."
         return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
 
@@ -323,14 +323,14 @@ class ErrorStrings(object):
         construct an error message indicating that the type of a convolve() call is ill-defined
         :param _origin: the class reporting the error
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "Cannot calculate return type of convolve()."
-        return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        error_msg_format = "Cannot calculate return type of convolve()."
+        return cls.code(_origin) + cls.SEPARATOR + error_msg_format + "(" + str(_sourcePosition) + ")"
 
     @classmethod
     def messageVoidFunctionOnRhs(cls, _origin=None, _functionName=None, _sourcePosition=None):
@@ -340,11 +340,11 @@ class ErrorStrings(object):
         :param _functionName: the offending function
         :type _functionName: str
         :param _sourcePosition: The location where the error was encountered
-        :type _sourcePosition: ASTSourcePosition
+        :type _sourcePosition: ASTSourceLocation
         :return: the error message
         :rtype: str
         """
         assert _origin is not None
-        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourcePosition)
-        ERROR_MSG_FORMAT = "Function " + _functionName + " with the return-type 'void' cannot be used in expressions."
-        return cls.code(_origin) + cls.SEPARATOR + ERROR_MSG_FORMAT + "(" + str(_sourcePosition) + ")"
+        assert _sourcePosition is not None and isinstance(_sourcePosition, ASTSourceLocation)
+        error_msg_format = "Function " + _functionName + " with the return-type 'void' cannot be used in expressions."
+        return cls.code(_origin) + cls.SEPARATOR + error_msg_format + "(" + str(_sourcePosition) + ")"

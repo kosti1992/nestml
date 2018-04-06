@@ -20,8 +20,8 @@
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
 
 
@@ -46,33 +46,30 @@ class CoCoEquationsOnlyForInitValues(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.CorrectNumerator) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(EquationsOnlyForInitValues())
-        return
+        node.accept(EquationsOnlyForInitValues())
 
 
-class EquationsOnlyForInitValues(NESTMLVisitor):
+class EquationsOnlyForInitValues(ASTVisitor):
     """
     This visitor ensures that for all ode equations exists an initial value.
     """
 
-    def visitOdeEquation(self, _equation=None):
+    def visit_ode_equation(self, node):
         """
         Ensures the coco.
-        :param _equation: a single equation object.
-        :type _equation: ASTOdeEquation
+        :param node: a single equation object.
+        :type node: ASTOdeEquation
         """
-        symbol = _equation.getScope().resolveToSymbol(_equation.getLhs().getNameOfLhs(), SymbolKind.VARIABLE)
-        if symbol is not None and not symbol.isInitValues():
-            code, message = Messages.getEquationVarNotInInitValuesBlock(_equation.getLhs().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message,
-                              _errorPosition=_equation.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
+        symbol = node.get_scope().resolve_to_symbol(node.get_lhs().get_name_of_lhs(), SymbolKind.VARIABLE)
+        if symbol is not None and not symbol.is_init_values():
+            code, message = Messages.getEquationVarNotInInitValuesBlock(node.get_lhs().get_name_of_lhs())
+            Logger.log_message(code=code, message=message,
+                               error_position=node.get_source_position(),
+                               log_level=LoggingLevel.ERROR)
             return

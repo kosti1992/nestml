@@ -17,13 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTOdeEquation import ASTOdeEquation
 from pynestml.modelprocessor.ASTOdeFunction import ASTOdeFunction
 from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
 
 
-class ASTEquationsBlock(ASTElement):
+class ASTEquationsBlock(ASTNode):
     """
     This class is used to store an equations block.
     ASTEquationsBlock a special function definition:
@@ -41,36 +41,23 @@ class ASTEquationsBlock(ASTElement):
     """
     __declarations = None
 
-    def __init__(self, _declarations=None, _sourcePosition=None):
+    def __init__(self, declarations, source_position):
         """
         Standard constructor.
-        :param _declarations: a block of definitions.
-        :type _declarations: ASTBlock
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param declarations: a block of definitions.
+        :type declarations: ASTBlock
+        :param source_position: the position of this element in the source file.
+        :type source_position: ASTSourceLocation.
         """
-        assert (_declarations is not None and isinstance(_declarations, list)), \
-            '(PyNestML.AST.EquationsBlock) No or wrong type of declarations provided (%s)!' % type(_declarations)
-        for decl in _declarations:
+        assert (declarations is not None and isinstance(declarations, list)), \
+            '(PyNestML.AST.EquationsBlock) No or wrong type of declarations provided (%s)!' % type(declarations)
+        for decl in declarations:
             assert (decl is not None and (isinstance(decl, ASTOdeShape) or
                                           isinstance(decl, ASTOdeEquation) or
                                           isinstance(decl, ASTOdeFunction))), \
                 '(PyNestML.AST.EquationsBlock) No or wrong type of ode-element provided (%s)' % type(decl)
-        super(ASTEquationsBlock, self).__init__(_sourcePosition)
-        self.__declarations = _declarations
-
-    @classmethod
-    def makeASTEquationsBlock(cls, _declarations=None, _sourcePosition=None):
-        """
-        Factory method of the ASTEquationsBlock class.
-        :param _declarations: a block of definitions.
-        :type _declarations: ASTBlock
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTEquations object.
-        :rtype: ASTEquationsBlock
-        """
-        return cls(_declarations, _sourcePosition)
+        super(ASTEquationsBlock, self).__init__(source_position)
+        self.__declarations = declarations
 
     def getDeclarations(self):
         """
@@ -80,19 +67,19 @@ class ASTEquationsBlock(ASTElement):
         """
         return self.__declarations
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
         for decl in self.getDeclarations():
-            if decl is _ast:
+            if decl is ast:
                 return self
-            elif decl.getParent(_ast) is not None:
-                return decl.getParent(_ast)
+            elif decl.get_parent(ast) is not None:
+                return decl.get_parent(ast)
         return None
 
     def getOdeEquations(self):
@@ -150,21 +137,21 @@ class ASTEquationsBlock(ASTElement):
             ret += str(decl) + '\n'
         return ret + 'end'
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTEquationsBlock):
+        if not isinstance(other, ASTEquationsBlock):
             return False
-        if len(self.getDeclarations()) != len(_other.getDeclarations()):
+        if len(self.getDeclarations()) != len(other.getDeclarations()):
             return False
-        myDeclarations = self.getDeclarations()
-        yourDeclarations = _other.getDeclarations()
-        for i in range(0, len(myDeclarations)):
-            if not myDeclarations[i].equals(yourDeclarations[i]):
+        my_declarations = self.getDeclarations()
+        your_declarations = other.getDeclarations()
+        for i in range(0, len(my_declarations)):
+            if not my_declarations[i].equals(your_declarations[i]):
                 return False
         return True

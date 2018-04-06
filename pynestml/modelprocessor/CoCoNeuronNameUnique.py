@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -45,23 +45,19 @@ class CoCoNeuronNameUnique(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _compilationUnit=None):
+    def check_co_co(cls, compilation_unit):
         """
         Checks the coco for the handed over compilation unit.
-        :param _compilationUnit: a single compilation unit.
-        :type _compilationUnit: ASTCompilationUnit
+        :param compilation_unit: a single compilation unit.
+        :type compilation_unit: ASTCompilationUnit
         """
-        from pynestml.modelprocessor.ASTNestMLCompilationUnit import ASTNESTMLCompilationUnit
-        assert (_compilationUnit is not None and isinstance(_compilationUnit, ASTNESTMLCompilationUnit)), \
-            '(PyNestML.CoCo.NeuronNameUnique) No or wrong type of compilation unit provided (%s)!' % type(
-                _compilationUnit)
         checked = list()  # a list of already checked elements
-        for neuronA in _compilationUnit.getNeuronList():
-            for neuronB in _compilationUnit.getNeuronList():
-                if neuronA is not neuronB and neuronA.getName() == neuronB.getName() and neuronB not in checked:
-                    code, message = Messages.getNeuronRedeclared(neuronB.getName())
-                    Logger.logMessage(_errorPosition=neuronB.getSourcePosition(),
-                                      _code=code, _message=message,
-                                      _logLevel=LOGGING_LEVEL.ERROR)
+        for neuronA in compilation_unit.get_neuron_list():
+            for neuronB in compilation_unit.get_neuron_list():
+                if neuronA is not neuronB and neuronA.get_name() == neuronB.get_name() and neuronB not in checked:
+                    code, message = Messages.getNeuronRedeclared(neuronB.get_name())
+                    Logger.log_message(error_position=neuronB.get_source_position(),
+                                       code=code, message=message,
+                                       log_level=LoggingLevel.ERROR)
             checked.append(neuronA)
         return

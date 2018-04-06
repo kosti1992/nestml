@@ -19,74 +19,43 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pynestml.modelprocessor.ASTNode import ASTElement
-from pynestml.modelprocessor.ASTDatatype import ASTDatatype
+from pynestml.modelprocessor.ASTNode import ASTNode
+from pynestml.modelprocessor.ASTDataType import ASTDataType
 from pynestml.modelprocessor.ASTExpression import ASTExpression
 from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 
 
-class ASTOdeFunction(ASTElement):
+class ASTOdeFunction(ASTNode):
     """
     Stores a single declaration of a ode function, e.g., 
         function v_init mV = V_m - 50mV.
     Grammar:    
-        odeFunction : (recordable='recordable')? 'function' variableName=NAME datatype '=' expression;    
+        odeFunction : (recordable='recordable')? 'function' variableName=NAME datatype '=' rhs;
     """
-    __isRecordable = False
-    __variableName = None
-    __dataType = None
-    __expression = None
+    is_recordable = False
+    variable_name = None
+    data_type = None
+    expression = None
 
-    def __init__(self, _isRecordable=False, _variableName=None, _dataType=None, _expression=None, _sourcePosition=None):
+    def __init__(self, is_recordable=False, variable_name=None, data_type=None, expression=None, source_position=None):
         """
         Standard constructor.
-        :param _isRecordable: (optional) is this function recordable or not.
-        :type _isRecordable: bool
-        :param _variableName: the name of the variable.
-        :type _variableName: str
-        :param _dataType: the datatype of the function.
-        :type _dataType: ASTDataType
-        :param _expression: the computation expression.
-        :type _expression: ASTExpression
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param is_recordable: (optional) is this function recordable or not.
+        :type is_recordable: bool
+        :param variable_name: the name of the variable.
+        :type variable_name: str
+        :param data_type: the datatype of the function.
+        :type data_type: ASTDataType
+        :param expression: the computation rhs.
+        :type expression: ASTExpression
+        :param source_position: the position of this element in the source file.
+        :type source_position: ASTSourceLocation.
         """
-        assert (_variableName is not None and isinstance(_variableName, str)), \
-            '(PyNestML.AST.OdeFunction) No or wrong type of variable name provided (%s)!' % type(_variableName)
-        assert (_dataType is not None and isinstance(_dataType, ASTDatatype)), \
-            '(PyNestML.AST.OdeFunction) No or wrong type of variable datatype provided (%s)!' % type(_dataType)
-        assert (_expression is not None and (isinstance(_expression, ASTExpression) or
-                                             isinstance(_expression, ASTSimpleExpression))), \
-            '(PyNestML.AST.OdeFunction) No or wrong type of computation expression provided (%s)!' % type(_expression)
-        assert (_isRecordable is None or isinstance(_isRecordable, bool)), \
-            '(PyNestML.AST.OdeFunction) No or wrong type of is-recordable parameter specified (%s)!' % type(
-                _isRecordable)
-        super(ASTOdeFunction, self).__init__(_sourcePosition)
-        self.__isRecordable = _isRecordable
-        self.__variableName = _variableName
-        self.__dataType = _dataType
-        self.__expression = _expression
-
-    @classmethod
-    def makeASTOdeFunction(cls, _isRecordable=False, _variableName=None, _dataType=None, _expression=None,
-                           _sourcePosition=None):
-        """
-        A factory method used to generate new ASTOdeFunction.
-        :param _isRecordable: is this function recordable or not.
-        :type _isRecordable: bool
-        :param _variableName: the name of the variable.
-        :type _variableName: str
-        :param _dataType: the datatype of the function.
-        :type _dataType: ASTDataType
-        :param _expression: the computation expression.
-        :type _expression: ASTExpression
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return a new ASTOdeFunction object
-        :rtype ASTOdeFunction
-        """
-        return cls(_isRecordable=_isRecordable, _variableName=_variableName, _dataType=_dataType,
-                   _expression=_expression, _sourcePosition=_sourcePosition)
+        super(ASTOdeFunction, self).__init__(source_position)
+        self.is_recordable = is_recordable
+        self.variable_name = variable_name
+        self.data_type = data_type
+        self.expression = expression
 
     def isRecordable(self):
         """
@@ -94,48 +63,48 @@ class ASTOdeFunction(ASTElement):
         :return: True if recordable, else False.
         :rtype: bool
         """
-        return self.__isRecordable
+        return self.is_recordable
 
-    def getVariableName(self):
+    def get_variable_name(self):
         """
         Returns the variable name.
         :return: the name of the variable.
         :rtype: str
         """
-        return self.__variableName
+        return self.variable_name
 
-    def getDataType(self):
+    def get_data_type(self):
         """
         Returns the data type as an object of ASTDatatype.
         :return: the type as an object of ASTDatatype.
-        :rtype: ASTDatatype
+        :rtype: ASTDataType
         """
-        return self.__dataType
+        return self.data_type
 
-    def getExpression(self):
+    def get_expression(self):
         """
-        Returns the expression as an object of ASTExpression.
-        :return: the expression as an object of ASTExpression.
+        Returns the rhs as an object of ASTExpression.
+        :return: the rhs as an object of ASTExpression.
         :rtype: ASTExpression
         """
-        return self.__expression
+        return self.expression
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
-        if self.getDataType() is _ast:
+        if self.get_data_type() is ast:
             return self
-        elif self.getDataType().getParent(_ast) is not None:
-            return self.getDataType().getParent(_ast)
-        if self.getExpression() is _ast:
+        elif self.get_data_type().get_parent(ast) is not None:
+            return self.get_data_type().get_parent(ast)
+        if self.get_expression() is ast:
             return self
-        elif self.getExpression().getParent(_ast) is not None:
-            return self.getExpression().getParent(_ast)
+        elif self.get_expression().get_parent(ast) is not None:
+            return self.get_expression().get_parent(ast)
         return None
 
     def __str__(self):
@@ -147,24 +116,24 @@ class ASTOdeFunction(ASTElement):
         ret = ''
         if self.isRecordable():
             ret += 'recordable'
-        ret += 'function ' + str(self.getVariableName()) + ' ' + str(self.getDataType()) + \
-               ' = ' + str(self.getExpression())
+        ret += 'function ' + str(self.get_variable_name()) + ' ' + str(self.get_data_type()) + \
+               ' = ' + str(self.get_expression())
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTOdeFunction):
+        if not isinstance(other, ASTOdeFunction):
             return False
-        if self.isRecordable() != _other.isRecordable():
+        if self.isRecordable() != other.isRecordable():
             return False
-        if self.getVariableName() != _other.getVariableName():
+        if self.get_variable_name() != other.get_variable_name():
             return False
-        if not self.getDataType().equals(_other.getDataType()):
+        if not self.get_data_type().equals(other.get_data_type()):
             return False
-        return self.getExpression().equals(_other.getExpression())
+        return self.get_expression().equals(other.get_expression())

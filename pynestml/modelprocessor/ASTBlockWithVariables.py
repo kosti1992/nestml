@@ -19,10 +19,10 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 
 
-class ASTBlockWithVariables(ASTElement):
+class ASTBlockWithVariables(ASTNode):
     """
     This class is used to store a block of variable declarations.
     ASTBlockWithVariables.py represent a block with variables, e.g.:
@@ -48,7 +48,7 @@ class ASTBlockWithVariables(ASTElement):
     __declarations = None
 
     def __init__(self, _isState=False, _isParameters=False, _isInternals=False, _isInitialValues=False,
-                 _declarations=list(), _sourcePosition=None):
+                 _declarations=list(), source_position=None):
         """
         Standard constructor.
         :param _isState: is a state block.
@@ -61,8 +61,8 @@ class ASTBlockWithVariables(ASTElement):
         :type _isInitialValues: bool
         :param _declarations: a list of declarations.
         :type _declarations: list(ASTDeclaration)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param source_position: the position of this element in the source file.
+        :type source_position: ASTSourceLocation.
         """
         assert (_isInternals or _isParameters or _isState or _isInitialValues), \
             '(PyNESTML.AST.BlockWithVariables) Type of variable block specified!'
@@ -70,36 +70,13 @@ class ASTBlockWithVariables(ASTElement):
             '(PyNestML.AST.BlockWithVariables) Type of block ambiguous!'
         assert (_declarations is None or isinstance(_declarations, list)), \
             '(PyNESTML.AST.BlockWithVariables) Wrong type of declaration provided (%s)!' % type(_declarations)
-        super(ASTBlockWithVariables, self).__init__(_sourcePosition)
+        super(ASTBlockWithVariables, self).__init__(source_position)
         self.__declarations = _declarations
         self.__isInternals = _isInternals
         self.__isParameters = _isParameters
         self.__isInitValues = _isInitialValues
         self.__isState = _isState
         return
-
-    @classmethod
-    def makeASTBlockWithVariables(cls, _isState=False, _isParameters=False, _isInternals=False, _isInitialValues=False,
-                                  _declarations=list(), _sourcePosition=None):
-        """
-        Factory method of the ASTBlockWithVariables class.
-        :param _isState: is a state block.
-        :type _isState: bool
-        :param _isParameters: is a parameter block.
-        :type _isParameters: bool 
-        :param _isInternals: is an internals block.
-        :type _isInternals: bool
-        :param _isInitialValues: is an initial values block.
-        :type _isInitialValues: bool
-        :param _declarations: a list of declarations.
-        :type _declarations: list(ASTDeclaration)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new variable block object.
-        :rtype: ASTBlockWithVariables 
-        """
-        return cls(_isState=_isState, _isParameters=_isParameters, _isInternals=_isInternals,
-                   _isInitialValues=_isInitialValues, _declarations=_declarations, _sourcePosition=_sourcePosition)
 
     def isState(self):
         """
@@ -149,19 +126,19 @@ class ASTBlockWithVariables(ASTElement):
         self.__declarations = list()
         return
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
         for stmt in self.getDeclarations():
-            if stmt is _ast:
+            if stmt is ast:
                 return self
-            if stmt.getParent(_ast) is not None:
-                return stmt.getParent(_ast)
+            if stmt.get_parent(ast) is not None:
+                return stmt.get_parent(ast)
         return None
 
     def __str__(self):
@@ -186,23 +163,23 @@ class ASTBlockWithVariables(ASTElement):
         ret += 'end'
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False
         :rtype: bool
         """
-        if not isinstance(_other, ASTBlockWithVariables):
+        if not isinstance(other, ASTBlockWithVariables):
             return False
-        if not (self.isInitialValues() == _other.isInitialValues() and self.isInternals() == _other.isInternals() and
-                        self.isParameters() == _other.isParameters() and self.isState() == _other.isState()):
+        if not (self.isInitialValues() == other.isInitialValues() and self.isInternals() == other.isInternals() and
+                self.isParameters() == other.isParameters() and self.isState() == other.isState()):
             return False
-        if len(self.getDeclarations()) != len(_other.getDeclarations()):
+        if len(self.getDeclarations()) != len(other.getDeclarations()):
             return False
         myDeclarations = self.getDeclarations()
-        yourDeclarations = _other.getDeclarations()
+        yourDeclarations = other.getDeclarations()
         for i in range(0, len(myDeclarations)):
             if not myDeclarations[i].equals(yourDeclarations[i]):
                 return False

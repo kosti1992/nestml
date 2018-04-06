@@ -17,13 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.modelprocessor.ASTNode import ASTNode
+from pynestml.modelprocessor.ASTSignalType import ASTSignalType
+from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
 
 
-from pynestml.modelprocessor.ASTNode import ASTElement
-from enum import Enum
-
-
-class ASTOutputBlock(ASTElement):
+class ASTOutputBlock(ASTNode):
     """
     This class is used to store output buffer declarations.
     ASTOutput represents the output block of the neuron:
@@ -35,53 +34,39 @@ class ASTOutputBlock(ASTElement):
     """
     __type = None
 
-    def __init__(self, _type=None, _sourcePosition=None):
+    def __init__(self, type, source_position):
+        # type: (ASTSignalType,ASTSourceLocation) -> None
         """
         Standard constructor.
-        :param _type: the type of the output buffer.
-        :type _type: SignalType
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param type: the type of the output buffer.
+        :type type: SignalType
+        :param source_position: the position of this element in the source file.
+        :type source_position: ASTSourceLocation.
         """
-        assert (_type is SignalType.SPIKE or _type is SignalType.CURRENT), \
-            '(PyNestML.AST.OutputBlock) No or wrong type specification buffer provided (%s)!' % type(_type)
-        super(ASTOutputBlock, self).__init__(_sourcePosition)
-        self.__type = _type
+        super(ASTOutputBlock, self).__init__(source_position)
+        self.__type = type
 
-    @classmethod
-    def makeASTOutputBlock(cls, _type=None, _sourcePosition=None):
-        """
-        Factory method of the ASTOutputBlock class.
-        :param _type: the type of the output buffer.
-        :type _type: SignalType
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTOutputBlock object
-        :rtype: ASTOutputBlock
-        """
-        return cls(_type, _sourcePosition)
-
-    def isSpike(self):
+    def is_spike(self):
         """
         Returns whether it is a spike buffer or not.
         :return: True if spike, otherwise False.
         :rtype: bool
         """
-        return self.__type is SignalType.SPIKE
+        return self.__type is ASTSignalType.SPIKE
 
-    def isCurrent(self):
+    def is_current(self):
         """
         Returns whether it is a current buffer or not.
         :return: True if current, otherwise False.
         :rtype: bool
         """
-        return self.__type is SignalType.CURRENT
+        return self.__type is ASTSignalType.CURRENT
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
@@ -93,24 +78,16 @@ class ASTOutputBlock(ASTElement):
         :return: a string representation
         :rtype: str
         """
-        return 'output: ' + ('spike' if self.isSpike() else 'current') + '\n'
+        return 'output: ' + ('spike' if self.is_spike() else 'current') + '\n'
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equals, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTOutputBlock):
+        if not isinstance(other, ASTOutputBlock):
             return False
-        return self.isSpike() == _other.isSpike() and self.isCurrent() == _other.isCurrent()
-
-
-class SignalType(Enum):
-    """
-    This enum is used to describe the type of the emitted signal. 
-    """
-    SPIKE = 1
-    CURRENT = 2
+        return self.is_spike() == other.is_spike() and self.is_current() == other.is_current()

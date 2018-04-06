@@ -17,10 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -30,31 +30,28 @@ class CoCoFunctionHaveRhs(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.FunctionWithRhs) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(FunctionRhsVisitor())
-        return
+        node.accept(FunctionRhsVisitor())
 
 
-class FunctionRhsVisitor(NESTMLVisitor):
+class FunctionRhsVisitor(ASTVisitor):
     """
     This visitor ensures that everything declared as function has a rhs.
     """
 
-    def visitDeclaration(self, _declaration=None):
+    def visit_declaration(self, node):
         """
         Checks if the coco applies.
-        :param _declaration: a single declaration.
-        :type _declaration: ASTDeclaration.
+        :param node: a single declaration.
+        :type node: ASTDeclaration.
         """
-        if _declaration.isFunction() and not _declaration.hasExpression():
-            code, message = Messages.getNoRhs(_declaration.getVariables()[0].getName())
-            Logger.logMessage(_errorPosition=_declaration.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR,
-                              _code=code, _message=message)
+        if node.is_function() and not node.has_expression():
+            code, message = Messages.getNoRhs(node.get_variables()[0].get_name())
+            Logger.log_message(error_position=node.get_source_position(), log_level=LoggingLevel.ERROR,
+                               code=code, message=message)
         return

@@ -17,10 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -38,27 +38,23 @@ class CoCoCurrentBuffersNotSpecified(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.CurrentBuffersNotSpecified) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(CurrentTypeSpecifiedVisitor())
-        return
+        node.accept(CurrentTypeSpecifiedVisitor())
 
 
-class CurrentTypeSpecifiedVisitor(NESTMLVisitor):
+class CurrentTypeSpecifiedVisitor(ASTVisitor):
     """
     This visitor ensures that all current buffers are not specified with keywords.
     """
 
-    def visitInputLine(self, _line=None):
-        if _line.isCurrent() and _line.hasInputTypes() and len(_line.getInputTypes()) > 0:
-            code, message = Messages.getCurrentBufferSpecified(_line.getName(),
-                                                               list((str(buf) for buf in _line.getInputTypes())))
-            Logger.logMessage(_errorPosition=_line.getSourcePosition(),
-                              _code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR)
-        return
+    def visit_input_line(self, node):
+        if node.is_current() and node.has_input_types() and len(node.get_input_types()) > 0:
+            code, message = Messages.getCurrentBufferSpecified(node.get_name(),
+                                                               list((str(buf) for buf in node.get_input_types())))
+            Logger.log_message(error_position=node.get_source_position(),
+                               code=code, message=message, log_level=LoggingLevel.ERROR)

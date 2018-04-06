@@ -18,10 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 
 
-class ASTBitOperator(ASTElement):
+class ASTBitOperator(ASTNode):
     """
     This class is used to store a single bit operator.
     Grammar:
@@ -34,11 +34,11 @@ class ASTBitOperator(ASTElement):
     __isBitShiftRight = False
 
     def __init__(self, _isBitAnd=False, _isBitXor=False, _isBitOr=False, _isBitShiftLeft=False, _isBitShiftRight=False,
-                 _sourcePosition=None):
+                 source_position=None):
         """
         Standard constructor.
         :param_sourcePosition: the position of the element in the source
-        :type _sourcePosition: ASTSourcePosition
+        :type source_position: ASTSourceLocation
         :param _isBitAnd: is bit and operator.
         :type _isBitAnd: bool
         :param _isBitXor: is bit xor operator.
@@ -60,37 +60,15 @@ class ASTBitOperator(ASTElement):
             '(PyNestML.AST.BitOperator) No or wrong typ of is-bit-shift-left provided (%s)!' % type(_isBitShiftLeft)
         assert (_isBitShiftRight is not None and isinstance(_isBitShiftRight, bool)), \
             '(PyNestML.AST.BitOperator) No or wrong typ of is-bit-shift-right provided (%s)!' % type(_isBitShiftRight)
-        assert ((_isBitAnd + _isBitOr + _isBitXor + _isBitShiftLeft + _isBitShiftRight) == 1),\
+        assert ((_isBitAnd + _isBitOr + _isBitXor + _isBitShiftLeft + _isBitShiftRight) == 1), \
             '(PyNestML.AST.BitOperator) Bit operator not correctly specified!'
-        super(ASTBitOperator, self).__init__(_sourcePosition)
+        super(ASTBitOperator, self).__init__(source_position)
         self.__isBitShiftRight = _isBitShiftRight
         self.__isBitShiftLeft = _isBitShiftLeft
         self.__isBitOr = _isBitOr
         self.__isBitXor = _isBitXor
         self.__isBitAnd = _isBitAnd
         return
-
-    @classmethod
-    def makeASTBitOperator(cls, _isBitAnd=False, _isBitXor=False, _isBitOr=False, _isBitShiftLeft=False,
-                           _isBitShiftRight=False, _sourcePosition=None):
-        """
-        The factory method of the ASTBitOperator class.
-        :param _isBitAnd: is bit and operator.
-        :type _isBitAnd: bool
-        :param _isBitXor: is bit xor operator.
-        :type _isBitXor: bool
-        :param _isBitOr: is bit or operator.
-        :type _isBitOr: bool
-        :param _isBitShiftLeft: is bit shift left operator.
-        :type _isBitShiftLeft: bool
-        :param _isBitShiftRight: is bit shift right operator.
-        :type _isBitShiftRight: bool
-        :param_sourcePosition: the position of the element in the source
-        :type _sourcePosition: ASTSourcePosition
-        :return: a new ASTBitOperator object.
-        :rtype: ASTBitOperator
-        """
-        return cls(_isBitAnd, _isBitXor, _isBitOr, _isBitShiftLeft, _isBitShiftRight, _sourcePosition)
 
     def isBitAnd(self):
         """
@@ -132,11 +110,11 @@ class ASTBitOperator(ASTElement):
         """
         return isinstance(self.__isBitShiftRight, bool) and self.__isBitShiftRight
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
@@ -161,16 +139,16 @@ class ASTBitOperator(ASTElement):
         else:
             raise RuntimeError('Type of bit operator not specified!')
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTBitOperator):
+        if not isinstance(other, ASTBitOperator):
             return False
-        return self.isBitAnd() == _other.isBitAnd() and self.isBitOr() == _other.isBitOr() and \
-               self.isBitXor() == _other.isBitXor() and self.isBitShiftLeft() == self.isBitShiftLeft() and \
-               self.isBitShiftRight() == _other.isBitShiftRight()
+        return self.isBitAnd() == other.isBitAnd() and self.isBitOr() == other.isBitOr() and \
+               self.isBitXor() == other.isBitXor() and self.isBitShiftLeft() == self.isBitShiftLeft() and \
+               self.isBitShiftRight() == other.isBitShiftRight()

@@ -17,10 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -34,32 +34,29 @@ class CoCoFunctionMaxOneLhs(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.FunctionsWithLhs) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(FunctionMaxOneLhs())
-        return
+        node.accept(FunctionMaxOneLhs())
 
 
-class FunctionMaxOneLhs(NESTMLVisitor):
+class FunctionMaxOneLhs(ASTVisitor):
     """
     This visitor ensures that every function has exactly one lhs.
     """
 
-    def visitDeclaration(self, _declaration=None):
+    def visit_declaration(self, node):
         """
         Checks the coco.
-        :param _declaration: a single declaration.
-        :type _declaration: ASTDeclaration
+        :param node: a single declaration.
+        :type node: ASTDeclaration
         """
-        if _declaration.isFunction() and len(_declaration.getVariables()) > 1:
-            code, message = Messages.getSeveralLhs(list((var.getName() for var in _declaration.getVariables())))
-            Logger.logMessage(_errorPosition=_declaration.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR,
-                              _code=code, _message=message)
+        if node.is_function() and len(node.get_variables()) > 1:
+            code, message = Messages.getSeveralLhs(list((var.get_name() for var in node.get_variables())))
+            Logger.log_message(error_position=node.get_source_position(),
+                               log_level=LoggingLevel.ERROR,
+                               code=code, message=message)
         return

@@ -17,13 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTIfStmt import ASTIfStmt
 from pynestml.modelprocessor.ASTWhileStmt import ASTWhileStmt
 from pynestml.modelprocessor.ASTForStmt import ASTForStmt
 
 
-class ASTCompoundStmt(ASTElement):
+class ASTCompoundStmt(ASTNode):
     """
     This class is used to store compound statements.
     Grammar:
@@ -35,7 +35,7 @@ class ASTCompoundStmt(ASTElement):
     __whileStmt = None
     __forStmt = None
 
-    def __init__(self, _ifStmt=None, _whileStmt=None, _forStmt=None, _sourcePosition=None):
+    def __init__(self, _ifStmt=None, _whileStmt=None, _forStmt=None, source_position=None):
         """
         Standard constructor.
         :param _ifStmt: a if statement object
@@ -44,8 +44,8 @@ class ASTCompoundStmt(ASTElement):
         :type _whileStmt: ASTWhileStmt
         :param _forStmt: a for statement object
         :type _forStmt: ASTForStmt
-        :param _sourcePosition: The source position of the assignment
-        :type _sourcePosition: ASTSourcePosition
+        :param source_position: The source position of the assignment
+        :type _sourcePosition: ASTSourceLocation
         """
         assert (_ifStmt is None or isinstance(_ifStmt, ASTIfStmt)), \
             '(PyNestML.AST.CompoundStmt) Wrong type of if-statement provided (%s)!' % type(_ifStmt)
@@ -53,29 +53,11 @@ class ASTCompoundStmt(ASTElement):
             '(PyNestML.AST.CompoundStmt) Wrong type of while-statement provided (%s)!' % type(_whileStmt)
         assert (_forStmt is None or isinstance(_forStmt, ASTForStmt)), \
             '(PyNestML.AST.CompoundStmt) Wrong type of for-statement provided (%s)!' % type(_forStmt)
-        super(ASTCompoundStmt, self).__init__(_sourcePosition)
+        super(ASTCompoundStmt, self).__init__(source_position)
         self.__ifStmt = _ifStmt
         self.__whileStmt = _whileStmt
         self.__forStmt = _forStmt
         return
-
-    @classmethod
-    def makeASTCompoundStmt(cls, _ifStmt=None, _whileStmt=None,
-                            _forStmt=None, _sourcePosition=None):
-        """
-        Factory method of the ASTCompound_Stmt class.
-        :param _ifStmt: a if statement object
-        :type _ifStmt: ASTIfStmt
-        :param _whileStmt: a while statement object
-        :type _whileStmt: ASTWhileStmt
-        :param _forStmt: a for statement object
-        :type _forStmt: ASTForStmt
-        :param _sourcePosition: The source position of the assignment
-        :type _sourcePosition: ASTSourcePosition
-        :return: a new compound statement object
-        :rtype: ASTCompoundStmt
-        """
-        return cls(_ifStmt, _whileStmt, _forStmt, _sourcePosition)
 
     def isIfStmt(self):
         """
@@ -125,49 +107,49 @@ class ASTCompoundStmt(ASTElement):
         """
         return self.__forStmt
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
         if self.isIfStmt():
-            if self.getIfStmt() is _ast:
+            if self.getIfStmt() is ast:
                 return self
-            elif self.getIfStmt().getParent(_ast) is not None:
-                return self.getIfStmt().getParent(_ast)
+            elif self.getIfStmt().get_parent(ast) is not None:
+                return self.getIfStmt().get_parent(ast)
         if self.isWhileStmt():
-            if self.getWhileStmt() is _ast:
+            if self.getWhileStmt() is ast:
                 return self
-            elif self.getWhileStmt().getParent(_ast) is not None:
-                return self.getWhileStmt().getParent(_ast)
+            elif self.getWhileStmt().get_parent(ast) is not None:
+                return self.getWhileStmt().get_parent(ast)
         if self.isForStmt():
-            if self.isForStmt() is _ast:
+            if self.isForStmt() is ast:
                 return self
-            elif self.getForStmt().getParent(_ast) is not None:
-                return self.getForStmt().getParent(_ast)
+            elif self.getForStmt().get_parent(ast) is not None:
+                return self.getForStmt().get_parent(ast)
         return None
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTCompoundStmt):
+        if not isinstance(other, ASTCompoundStmt):
             return False
-        if self.getForStmt() is not None and _other.getForStmt() is not None and \
-                not self.getForStmt().equals(_other.getForStmt()):
+        if self.getForStmt() is not None and other.getForStmt() is not None and \
+                not self.getForStmt().equals(other.getForStmt()):
             return False
-        if self.getWhileStmt() is not None and _other.getWhileStmt() is not None and \
-                not self.getWhileStmt().equals(_other.getWhileStmt()):
+        if self.getWhileStmt() is not None and other.getWhileStmt() is not None and \
+                not self.getWhileStmt().equals(other.getWhileStmt()):
             return False
-        if self.getIfStmt() is not None and _other.getIfStmt() is not None and \
-                not self.getIfStmt().equals(_other.getIfStmt()):
+        if self.getIfStmt() is not None and other.getIfStmt() is not None and \
+                not self.getIfStmt().equals(other.getIfStmt()):
             return False
         return True
 

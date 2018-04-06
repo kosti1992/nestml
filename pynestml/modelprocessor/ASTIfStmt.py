@@ -18,13 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTIfClause import ASTIfClause
 from pynestml.modelprocessor.ASTElseClause import ASTElseClause
 from pynestml.modelprocessor.ASTElifClause import ASTElifClause
 
 
-class ASTIfStmt(ASTElement):
+class ASTIfStmt(ASTNode):
     """
     This class is used to store a single if block.
     Grammar:
@@ -37,7 +37,7 @@ class ASTIfStmt(ASTElement):
     __elifClauses = None
     __elseClause = None
 
-    def __init__(self, _ifClause=None, _elifClauses=list(), _elseClause=None, _sourcePosition=None):
+    def __init__(self, _ifClause=None, _elifClauses=list(), _elseClause=None, source_position=None):
         """
         Standard construcotr.
         :param _ifClause: the if-clause
@@ -46,8 +46,8 @@ class ASTIfStmt(ASTElement):
         :type _elifClauses: ASTElifClause
         :param _elseClause: (optional) else clause
         :type _elseClause: ASTElseClause
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param source_position: the position of this element in the source file.
+        :type _sourcePosition: ASTSourceLocation.
         """
         assert (_ifClause is not None and isinstance(_ifClause, ASTIfClause)), \
             '(PyNestML.AST.IfStmt) No or wrong type of if-clause provided (%s)!' % type(_ifClause)
@@ -58,28 +58,11 @@ class ASTIfStmt(ASTElement):
                 '(PyNestML.AST.IfStmt) Wrong type of elif-clause provided (%s)!' % type(elifClause)
         assert (_elseClause is None or isinstance(_elseClause, ASTElseClause)), \
             '(PyNestML.AST.IfStmt) Wrong type of else-clauses provided (%s)!' % type(_elseClause)
-        super(ASTIfStmt, self).__init__(_sourcePosition)
+        super(ASTIfStmt, self).__init__(source_position)
         self.__elseClause = _elseClause
         self.__ifClause = _ifClause
         self.__elifClauses = _elifClauses
         return
-
-    @classmethod
-    def makeASTIfStmt(cls, _ifClause=None, _elifClauses=list(), _elseClause=None, _sourcePosition=None):
-        """
-        The factory method of the ASTIfStmt class.
-        :param _ifClause: the if clause
-        :type _ifClause: ASTIfClause
-        :param _elifClauses: (optional) list of elif clauses
-        :type _elifClauses: list(ASTElifClause)
-        :param _elseClause: (optional) else clause
-        :type _elseClause: ASTElseClause
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTIfStmt object
-        :rtype: ASTIfStmt
-        """
-        return cls(_ifClause, _elifClauses, _elseClause, _sourcePosition)
 
     def getIfClause(self):
         """
@@ -121,28 +104,28 @@ class ASTIfStmt(ASTElement):
         """
         return self.__elseClause
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
-        if self.getIfClause() is _ast:
+        if self.getIfClause() is ast:
             return self
-        elif self.getIfClause().getParent(_ast) is not None:
-            return self.getIfClause().getParent(_ast)
+        elif self.getIfClause().get_parent(ast) is not None:
+            return self.getIfClause().get_parent(ast)
         for elifClause in self.getElifClauses():
-            if elifClause is _ast:
+            if elifClause is ast:
                 return self
-            elif elifClause.getParent(_ast) is not None:
-                return elifClause.getParent(_ast)
+            elif elifClause.get_parent(ast) is not None:
+                return elifClause.get_parent(ast)
         if self.hasElseClause():
-            if self.getElseClause() is _ast:
+            if self.getElseClause() is ast:
                 return self
-            elif self.getElseClause().getParent(_ast) is not None:
-                return self.getElseClause().getParent(_ast)
+            elif self.getElseClause().get_parent(ast) is not None:
+                return self.getElseClause().get_parent(ast)
         return None
 
     def __str__(self):
@@ -160,27 +143,27 @@ class ASTIfStmt(ASTElement):
         ret += 'end'
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equals, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTIfStmt):
+        if not isinstance(other, ASTIfStmt):
             return False
-        if not self.getIfClause().equals(_other.getIfClause()):
+        if not self.getIfClause().equals(other.getIfClause()):
             return False
-        if len(self.getElifClauses()) != len(_other.getElifClauses()):
+        if len(self.getElifClauses()) != len(other.getElifClauses()):
             return False
         myElifClauses = self.getElifClauses()
-        yourElifClauses = _other.getElifClauses()
+        yourElifClauses = other.getElifClauses()
         for i in range(0, len(myElifClauses)):
             if not myElifClauses[i].equals(yourElifClauses[i]):
                 return False
-        if self.hasElseClause() + _other.hasElseClause() == 1:
+        if self.hasElseClause() + other.hasElseClause() == 1:
             return False
-        if self.hasElseClause() and _other.hasElseClause() and not self.getElseClause().equals(_other.getElseClause()):
+        if self.hasElseClause() and other.hasElseClause() and not self.getElseClause().equals(other.getElseClause()):
             return False
         return True

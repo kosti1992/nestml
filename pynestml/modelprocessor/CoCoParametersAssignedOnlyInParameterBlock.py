@@ -17,13 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.modelprocessor.Scope import ScopeType
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.VariableSymbol import BlockType
-from pynestml.modelprocessor.Scope import ScopeType
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -45,38 +45,34 @@ class CoCoParametersAssignedOnlyInParameterBlock(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node=None):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(ParametersAssignmentVisitor())
+        assert (node is not None and isinstance(node, ASTNeuron)), \
+            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(node)
+        node.accept(ParametersAssignmentVisitor())
         return
 
 
-class ParametersAssignmentVisitor(NESTMLVisitor):
+class ParametersAssignmentVisitor(ASTVisitor):
     """
     This visitor checks that no parameters have been assigned outside the parameters block.
     """
 
-    def visitAssignment(self, _assignment=None):
+    def visit_assignment(self, node):
         """
         Checks the coco on the current node.
-        :param _assignment: a single assignment.
-        :type _assignment: ASTAssignment
+        :param node: a single node.
+        :type node: ASTAssignment
         """
-        from pynestml.modelprocessor.ASTAssignment import ASTAssignment
-        assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
-            '(PyNestML.CoCo.ParametersAssignedOutsideParametersBlock) No or wrong type of assignment provided (%s)!' \
-            % type(_assignment)
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getName(), SymbolKind.VARIABLE)
-        if symbol is not None and symbol.getBlockType() == BlockType.PARAMETERS and \
-                        _assignment.getScope().getScopeType() != ScopeType.GLOBAL:
-            code, message = Messages.getAssignmentNotAllowed(_assignment.getVariable().getCompleteName())
-            Logger.logMessage(_errorPosition=_assignment.getSourcePosition(),
-                              _code=code, _message=message,
-                              _logLevel=LOGGING_LEVEL.ERROR)
+        symbol = node.get_scope().resolve_to_symbol(node.get_variable().get_name(), SymbolKind.VARIABLE)
+        if (symbol is not None and symbol.get_block_type() == BlockType.PARAMETERS and
+                node.get_scope().get_scope_type() != ScopeType.GLOBAL):
+            code, message = Messages.getAssignmentNotAllowed(node.get_variable().get_complete_name())
+            Logger.log_message(error_position=node.get_source_position(),
+                               code=code, message=message,
+                               log_level=LoggingLevel.ERROR)
         return

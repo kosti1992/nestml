@@ -19,63 +19,37 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 
 
-class ASTFunctionCall(ASTElement):
+class ASTFunctionCall(ASTNode):
     """
     This class is used to store a single function call.
     ASTFunctionCall Represents a function call, e.g. myFun("a", "b").
     @attribute name The (qualified) name of the function
     @attribute args Comma separated list of expressions representing parameters.
     Grammar:
-        functionCall : calleeName=NAME '(' (expression (',' expression)*)? ')';
+        functionCall : calleeName=NAME '(' (rhs (',' rhs)*)? ')';
     """
     __calleeName = None
     __args = None
 
-    def __init__(self, _calleeName=None, _args=None, _sourcePosition=None):
+    def __init__(self, callee_name, args, source_position):
         """
         Standard constructor.
-        :param _calleeName: the name of the function which is called.
-        :type _calleeName: str
-        :param _args: (Optional) List of arguments
-        :type _args: list(ASTExpression)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param callee_name: the name of the function which is called.
+        :type callee_name: str
+        :param args: (Optional) List of arguments
+        :type args: list(ASTExpression)
+        :param source_position: the position of this element in the source file.
+        :type source_position: ASTSourceLocation.
         """
-        from pynestml.modelprocessor.ASTExpression import ASTExpression
-        from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
-        assert (_calleeName is not None and isinstance(_calleeName, str)), \
-            '(PyNestML.AST.FunctionCall) No or wrong type of name of the called function provided (%s)!' % type(
-                _calleeName)
-        assert (_args is None or isinstance(_args, list)), \
-            '(PyNestML.AST.FunctionCall) No or wrong type of arguments provided (%s)!' % type(_args)
-        for arg in _args:
-            assert (arg is not None and (isinstance(arg, ASTExpression) or
-                                         isinstance(arg, ASTSimpleExpression))), \
-                '(PyNestML.AST.FunctionCall) No or wrong type of argument provided (%s)' % type(arg)
-        super(ASTFunctionCall, self).__init__(_sourcePosition)
-        self.__calleeName = _calleeName
-        self.__args = _args
+        super(ASTFunctionCall, self).__init__(source_position)
+        self.__calleeName = callee_name
+        self.__args = args
         return
 
-    @classmethod
-    def makeASTFunctionCall(cls, _calleeName=None, _args=None, _sourcePosition=None):
-        """
-        Factory method of the ASTFunctionCall class.
-        :param _calleeName: the name of the function which is called.
-        :type _calleeName: str
-        :param _args: (Optional) List of arguments
-        :type _args: list(ASTExpression)
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTFunctionCall object.
-        :rtype: ASTFunctionCall
-        """
-        return cls(_calleeName, _args, _sourcePosition)
-
-    def getName(self):
+    def get_name(self):
         """
         Returns the name of the called function.
         :return: the name of the function.
@@ -83,7 +57,7 @@ class ASTFunctionCall(ASTElement):
         """
         return self.__calleeName
 
-    def hasArgs(self):
+    def has_args(self):
         """
         Returns whether function call has arguments or not.
         :return: True if has arguments, otherwise False.
@@ -91,7 +65,7 @@ class ASTFunctionCall(ASTElement):
         """
         return (self.__args is not None) and len(self.__args) > 0
 
-    def getArgs(self):
+    def get_args(self):
         """
         Returns the list of arguments.
         :return: the list of arguments.
@@ -99,19 +73,19 @@ class ASTFunctionCall(ASTElement):
         """
         return self.__args
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
-        for param in self.getArgs():
-            if param is _ast:
+        for param in self.get_args():
+            if param is ast:
                 return self
-            elif param.getParent(_ast) is not None:
-                return param.getParent(_ast)
+            elif param.get_parent(ast) is not None:
+                return param.get_parent(ast)
         return None
 
     def __str__(self):
@@ -128,23 +102,23 @@ class ASTFunctionCall(ASTElement):
         ret += ')'
         return ret
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTFunctionCall):
+        if not isinstance(other, ASTFunctionCall):
             return False
-        if self.getName() != _other.getName():
+        if self.get_name() != other.get_name():
             return False
-        if len(self.getArgs()) != len(_other.getArgs()):
+        if len(self.get_args()) != len(other.get_args()):
             return False
-        myArgs = self.getArgs()
-        yourArgs = _other.getArgs()
-        for i in range(0, len(myArgs)):
-            if not myArgs[i].equals(yourArgs[i]):
+        my_args = self.get_args()
+        your_args = other.get_args()
+        for i in range(0, len(my_args)):
+            if not my_args[i].equals(your_args[i]):
                 return False
         return True

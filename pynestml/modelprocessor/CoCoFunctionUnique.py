@@ -20,7 +20,7 @@
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 
 
@@ -30,38 +30,39 @@ class CoCoFunctionUnique(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Checks if each function is defined uniquely.
-        :param _neuron: a single neuron
-        :type _neuron: ASTNeuron
+        :param node: a single neuron
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.FunctionUnique) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        checkedFuncsNames = list()
-        for func in _neuron.getFunctions():
-            if func.getName() not in checkedFuncsNames:
-                symbols = func.getScope().resolveToAllSymbols(func.getName(), SymbolKind.FUNCTION)
+        checked_funcs_names = list()
+        for func in node.get_functions():
+            if func.get_name() not in checked_funcs_names:
+                symbols = func.get_scope().resolve_to_all_symbols(func.get_name(), SymbolKind.FUNCTION)
                 if isinstance(symbols, list) and len(symbols) > 1:
                     checked = list()
                     for funcA in symbols:
                         for funcB in symbols:
                             if funcA is not funcB and funcB not in checked:
-                                if funcA.isPredefined():
-                                    code, message = Messages.getFunctionRedeclared(funcA.getSymbolName(), True)
-                                    Logger.logMessage(_errorPosition=funcB.getReferencedObject().getSourcePosition(),
-                                                      _logLevel=LOGGING_LEVEL.ERROR,
-                                                      _message=message, _code=code)
-                                elif funcB.isPredefined():
-                                    code, message = Messages.getFunctionRedeclared(funcA.getSymbolName(), True)
-                                    Logger.logMessage(_errorPosition=funcA.getReferencedObject().getSourcePosition(),
-                                                      _logLevel=LOGGING_LEVEL.ERROR,
-                                                      _message=message, _code=code)
+                                if funcA.is_predefined:
+                                    code, message = Messages.getFunctionRedeclared(funcA.get_symbol_name(), True)
+                                    Logger.log_message(
+                                        error_position=funcB.get_referenced_object().get_source_position(),
+                                        log_level=LoggingLevel.ERROR,
+                                        message=message, code=code)
+                                elif funcB.is_predefined:
+                                    code, message = Messages.getFunctionRedeclared(funcA.get_symbol_name(), True)
+                                    Logger.log_message(
+                                        error_position=funcA.get_referenced_object().get_source_position(),
+                                        log_level=LoggingLevel.ERROR,
+                                        message=message, code=code)
                                 else:
-                                    code, message = Messages.getFunctionRedeclared(funcA.getSymbolName(), False)
-                                    Logger.logMessage(_errorPosition=funcB.getReferencedObject().getSourcePosition(),
-                                                      _logLevel=LOGGING_LEVEL.ERROR,
-                                                      _message=message, _code=code)
+                                    code, message = Messages.getFunctionRedeclared(funcA.get_symbol_name(), False)
+                                    Logger.log_message(
+                                        error_position=funcB.get_referenced_object().get_source_position(),
+                                        log_level=LoggingLevel.ERROR,
+                                        message=message, code=code)
                         checked.append(funcA)
-            checkedFuncsNames.append(func.getName())
+            checked_funcs_names.append(func.get_name())
         return

@@ -1,5 +1,5 @@
 #
-# NestCodeGenerator.py
+# NestGenerator.py
 #
 # This file is part of NEST.
 #
@@ -28,7 +28,7 @@ from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
 from pynestml.codegeneration.GSLReferenceConverter import GSLReferenceConverter
 from pynestml.utils.OdeTransformer import OdeTransformer
 from pynestml.utils.ASTUtils import ASTUtils
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Logger import LoggingLevel, Logger
 from pynestml.utils.Messages import Messages
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.ASTSymbolTableVisitor import ASTSymbolTableVisitor
@@ -49,7 +49,6 @@ class NestCodeGenerator(object):
     __templateSLIInit = None
     __templateNeuronHeader = None
     __templateNeuronImplementation = None
-    __path = None
 
     def __init__(self):
         """
@@ -69,8 +68,6 @@ class NestCodeGenerator(object):
         self.__templateNeuronHeader = env.get_template('NeuronHeader.jinja2')
         # setup the neuron implementation template
         self.__templateNeuronImplementation = env.get_template('NeuronClass.jinja2')
-        # set up the path to the target directory
-        self.__path = os.path.join(FrontendConfiguration.getTargetPath(),'NEST')
         return
 
     def generateNESTModuleCode(self, _neurons=None):
@@ -79,23 +76,23 @@ class NestCodeGenerator(object):
         :param _neurons: a list of neurons
         :type _neurons: list(ASTNeuron)
         """
-        namespace = {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
-        with open(str(os.path.join(self.__path,
-                                   FrontendConfiguration.getModuleName())) + '.h', 'w+') as f:
+        namespace = {'neurons': _neurons, 'moduleName': FrontendConfiguration.get_module_name()}
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(),
+                                   FrontendConfiguration.get_module_name())) + '.h', 'w+') as f:
             f.write(str(self.__templateModuleHeader.render(namespace)))
-        with open(str(os.path.join(self.__path,
-                                   FrontendConfiguration.getModuleName())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(),
+                                   FrontendConfiguration.get_module_name())) + '.cpp', 'w+') as f:
             f.write(str(self.__templateModuleClass.render(namespace)))
-        with open(str(os.path.join(self.__path,
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(),
                                    'CMakeLists')) + '.txt', 'w+') as f:
             f.write(str(self.__templateCMakeLists.render(namespace)))
-        if not os.path.isdir(os.path.realpath(os.path.join(self.__path, 'sli'))):
-            os.makedirs(os.path.realpath(os.path.join(self.__path, 'sli')))
-        with open(str(os.path.join(self.__path, 'sli',FrontendConfiguration.getModuleName() + "-init")) + '.sli', 'w+')\
-                as f:
+        if not os.path.isdir(os.path.realpath(os.path.join(FrontendConfiguration.get_target_path(), 'sli'))):
+            os.makedirs(os.path.realpath(os.path.join(FrontendConfiguration.get_target_path(), 'sli')))
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(), 'sli',
+                                   FrontendConfiguration.get_module_name() + "-init")) + '.sli', 'w+') as f:
             f.write(str(self.__templateSLIInit.render(namespace)))
-        code, message = Messages.getNESTModuleGenerated(self.__path)
-        Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
+        code, message = Messages.getNESTModuleGenerated(FrontendConfiguration.get_target_path())
+        Logger.log_message(neuron=None, code=code, message=message, log_level=LoggingLevel.INFO)
         return
 
     def analyseAndGenerateNeuron(self, _neuron=None):
@@ -106,18 +103,18 @@ class NestCodeGenerator(object):
         """
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CodeGenerator.NEST) No or wrong type of module neuron provided (%s)!' % type(_neuron)
-        code, message = Messages.getStartProcessingNeuron(_neuron.getName())
-        Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
-                          _logLevel=LOGGING_LEVEL.INFO)
+        code, message = Messages.getStartProcessingNeuron(_neuron.get_name())
+        Logger.log_message(neuron=_neuron, error_position=_neuron.get_source_position(), code=code, message=message,
+                           log_level=LoggingLevel.INFO)
         workingVersion = deepcopy(_neuron)
         # solve all equations
         workingVersion = self.solveOdesAndShapes(workingVersion)
         # update the symbol table
-        ASTSymbolTableVisitor.updateSymbolTable(workingVersion)
+        workingVersion.accept(ASTSymbolTableVisitor())
         self.generateNestCode(workingVersion)
-        code, message = Messages.getNestCodeGenerated(_neuron.getName(), self.__path)
-        Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
-                          _logLevel=LOGGING_LEVEL.INFO)
+        code, message = Messages.getNestCodeGenerated(_neuron.get_name(), FrontendConfiguration.get_target_path())
+        Logger.log_message(neuron=_neuron, error_position=_neuron.get_source_position(), code=code, message=message,
+                           log_level=LoggingLevel.INFO)
         return
 
     def analyseAndGenerateNeurons(self, _neurons=None):
@@ -140,7 +137,7 @@ class NestCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronHeader = self.setupStandardNamespace(_neuron)
         outputNeuronHeader = self.__templateNeuronHeader.render(inputNeuronHeader)
-        with open(str(os.path.join(self.__path, _neuron.getName())) + '.h', 'w+') as f:
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(), _neuron.get_name())) + '.h', 'w+') as f:
             f.write(str(outputNeuronHeader))
         return
 
@@ -154,7 +151,7 @@ class NestCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         inputNeuronImplementation = self.setupStandardNamespace(_neuron)
         outputNeuronImplementation = self.__templateNeuronImplementation.render(inputNeuronImplementation)
-        with open(str(os.path.join(self.__path, _neuron.getName())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(FrontendConfiguration.get_target_path(), _neuron.get_name())) + '.cpp', 'w+') as f:
             f.write(str(outputNeuronImplementation))
         return
 
@@ -164,8 +161,8 @@ class NestCodeGenerator(object):
         :param _neuron: a single neuron object.
         :type _neuron: ASTNeuron
         """
-        if not os.path.isdir(self.__path):
-            os.makedirs(self.__path)
+        if not os.path.isdir(FrontendConfiguration.get_target_path()):
+            os.makedirs(FrontendConfiguration.get_target_path())
         self.generateModelHeader(_neuron)
         self.generateModelImplementation(_neuron)
         return
@@ -179,9 +176,9 @@ class NestCodeGenerator(object):
         :rtype: dict
         """
         namespace = {}
-        namespace['neuronName'] = _neuron.getName()
+        namespace['neuronName'] = _neuron.get_name()
         namespace['neuron'] = _neuron
-        namespace['moduleName'] = FrontendConfiguration.getModuleName()
+        namespace['moduleName'] = FrontendConfiguration.get_module_name()
         # helper classes and objects
         converter = NESTReferenceConverter(_usesGSL=False)
         legacyPrettyPrinter = LegacyExpressionPrinter(_referenceConverter=converter)
@@ -192,9 +189,9 @@ class NestCodeGenerator(object):
         namespace['utils'] = ASTUtils()
         namespace['idemPrinter'] = LegacyExpressionPrinter()
         # information regarding the neuron
-        namespace['outputEvent'] = namespace['printer'].printOutputEvent(_neuron.getBody())
-        namespace['isSpikeInput'] = ASTUtils.isSpikeInput(_neuron.getBody())
-        namespace['isCurrentInput'] = ASTUtils.isCurrentInput(_neuron.getBody())
+        namespace['outputEvent'] = namespace['printer'].printOutputEvent(_neuron.get_body())
+        namespace['is_spike_input'] = ASTUtils.is_spike_input(_neuron.get_body())
+        namespace['is_current_input'] = ASTUtils.is_current_input(_neuron.get_body())
         namespace['odeTransformer'] = OdeTransformer()
         # some additional information
         self.defineSolverType(namespace, _neuron)
@@ -216,9 +213,9 @@ class NestCodeGenerator(object):
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CodeGeneration.CodeGenerator) No or wrong type of neuron provided (%s)!' % type(_neuron)
         _namespace['useGSL'] = False
-        if _neuron.getEquationsBlocks() is not None and len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
-            if (not self.functionShapeExists(_neuron.getEquationsBlocks().getOdeShapes())) or \
-                            len(_neuron.getEquationsBlocks().getOdeEquations()) > 1:
+        if _neuron.get_equations_blocks() is not None and len(_neuron.get_equations_blocks().getDeclarations()) > 0:
+            if (not self.functionShapeExists(_neuron.get_equations_blocks().getOdeShapes())) or \
+                            len(_neuron.get_equations_blocks().getOdeEquations()) > 1:
                 _namespace['names'] = GSLNamesConverter()
                 _namespace['useGSL'] = True
                 converter = NESTReferenceConverter(_usesGSL=True)
@@ -237,7 +234,7 @@ class NestCodeGenerator(object):
         """
         from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
         for shape in _shapes:
-            if isinstance(shape, ASTOdeShape) and shape.getVariable().getDifferentialOrder() == 0:
+            if isinstance(shape, ASTOdeShape) and shape.get_variable().get_differential_order() == 0:
                 return True
         return False
 
@@ -251,19 +248,19 @@ class NestCodeGenerator(object):
         :rtype: ASTNeuron
         """
         # it should be ensured that most one equations block is present
-        equationsBlock = _neuron.getEquationsBlocks()
+        equationsBlock = _neuron.get_equations_blocks()
         if equationsBlock is None:
             return _neuron
         else:
             if len(equationsBlock.getOdeEquations()) > 1 and len(equationsBlock.getOdeShapes()) == 0:
-                code, message = Messages.getNeuronSolvedBySolver(_neuron.getName())
-                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
-                                  _errorPosition=_neuron.getSourcePosition(), _logLevel=LOGGING_LEVEL.INFO)
+                code, message = Messages.getNeuronSolvedBySolver(_neuron.get_name())
+                Logger.log_message(neuron=_neuron, code=code, message=message,
+                                   error_position=_neuron.get_source_position(), log_level=LoggingLevel.INFO)
                 return _neuron
             else:
-                code, message = Messages.getNeuronAnalyzed(_neuron.getName())
-                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
-                                  _errorPosition=_neuron.getSourcePosition(),
-                                  _logLevel=LOGGING_LEVEL.INFO)
+                code, message = Messages.getNeuronAnalyzed(_neuron.get_name())
+                Logger.log_message(neuron=_neuron, code=code, message=message,
+                                   error_position=_neuron.get_source_position(),
+                                   log_level=LoggingLevel.INFO)
                 workingCopy = EquationsBlockProcessor.solveOdeWithShapes(_neuron)
                 return workingCopy

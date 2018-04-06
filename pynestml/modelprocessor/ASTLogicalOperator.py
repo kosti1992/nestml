@@ -17,10 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTNode import ASTElement
+from pynestml.modelprocessor.ASTNode import ASTNode
 
 
-class ASTLogicalOperator(ASTElement):
+class ASTLogicalOperator(ASTNode):
     """
     This class is used to store a single logical operator.
     Grammar:
@@ -29,15 +29,15 @@ class ASTLogicalOperator(ASTElement):
     __isLogicalAnd = False
     __isLogicalOr = False
 
-    def __init__(self, _isLogicalAnd=False, _isLogicalOr=False, _sourcePosition=None):
+    def __init__(self, _isLogicalAnd=False, _isLogicalOr=False, source_position=None):
         """
         Standard constructor.
         :param _isLogicalAnd: is logical and.
         :type _isLogicalAnd: bool
         :param _isLogicalOr: is logical or.
         :type _isLogicalOr: bool
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
+        :param source_position: the position of this element in the source file.
+        :type _sourcePosition: ASTSourceLocation.
         """
         assert (_isLogicalOr is None or isinstance(_isLogicalOr, bool)), \
             '(PyNestML.AST.LogicalOperator) Wrong type of is-logical-and provided (%s)!' % type(_isLogicalAnd)
@@ -45,25 +45,10 @@ class ASTLogicalOperator(ASTElement):
             '(PyNestML.AST.LogicalOperator) Wrong type of is-logical-or provided (%s)!' % type(_isLogicalOr)
         assert (_isLogicalAnd ^ _isLogicalOr), \
             '(PyNestML.AST.LogicalOperator) Logical operator not correctly specified!'
-        super(ASTLogicalOperator, self).__init__(_sourcePosition)
+        super(ASTLogicalOperator, self).__init__(source_position)
         self.__isLogicalAnd = _isLogicalAnd
         self.__isLogicalOr = _isLogicalOr
         return
-
-    @classmethod
-    def makeASTLogicalOperator(cls, _isLogicalAnd=False, _isLogicalOr=False, _sourcePosition=None):
-        """
-        The factory method of the ASTLogicalOperator class.
-        :param _isLogicalAnd: is logical and.
-        :type _isLogicalAnd: bool
-        :param _isLogicalOr: is logical or.
-        :type _isLogicalOr: bool
-        :param _sourcePosition: the position of this element in the source file.
-        :type _sourcePosition: ASTSourcePosition.
-        :return: a new ASTLogicalOperator object.
-        :rtype: ASTLogicalOperator
-        """
-        return cls(_isLogicalAnd, _isLogicalOr, _sourcePosition)
 
     def isAnd(self):
         """
@@ -81,11 +66,11 @@ class ASTLogicalOperator(ASTElement):
         """
         return self.__isLogicalOr
 
-    def getParent(self, _ast=None):
+    def get_parent(self, ast=None):
         """
         Indicates whether a this node contains the handed over node.
-        :param _ast: an arbitrary ast node.
-        :type _ast: AST_
+        :param ast: an arbitrary ast node.
+        :type ast: AST_
         :return: AST if this or one of the child nodes contains the handed over element.
         :rtype: AST_ or None
         """
@@ -102,14 +87,14 @@ class ASTLogicalOperator(ASTElement):
         else:
             return ' or '
 
-    def equals(self, _other=None):
+    def equals(self, other=None):
         """
         The equals method.
-        :param _other: a different object.
-        :type _other: object
+        :param other: a different object.
+        :type other: object
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, ASTLogicalOperator):
+        if not isinstance(other, ASTLogicalOperator):
             return False
-        return self.isAnd() == _other.isAnd() and self.isOr() == _other.isOr()
+        return self.isAnd() == other.isAnd() and self.isOr() == other.isOr()

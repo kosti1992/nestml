@@ -17,12 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
-from pynestml.utils.Messages import Messages
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.utils.Logger import LoggingLevel, Logger
+from pynestml.utils.Messages import Messages
 
 
 class CoCoConvolveCondCorrectlyBuilt(CoCo):
@@ -37,38 +37,35 @@ class CoCoConvolveCondCorrectlyBuilt(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.CorrectNumerator) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        _neuron.accept(ConvolveCheckerVisitor())
-        return
+        node.accept(ConvolveCheckerVisitor())
 
 
-class ConvolveCheckerVisitor(NESTMLVisitor):
+class ConvolveCheckerVisitor(ASTVisitor):
     """
     Visits a function call and checks that if the function call is a cond_sum,cur_sum or convolve, the parameters
     are correct.
     """
 
-    def visitFunctionCall(self, _functionCall=None):
-        funcName = _functionCall.getName()
-        if funcName == 'convolve' or funcName == 'cond_sum' or funcName == 'curr_sum':
-            symbolVar = _functionCall.getScope().resolveToSymbol(str(_functionCall.getArgs()[0]),
-                                                                 SymbolKind.VARIABLE)
-            symbolBuffer = _functionCall.getScope().resolveToSymbol(str(_functionCall.getArgs()[1]),
-                                                                    SymbolKind.VARIABLE)
-            if symbolVar is not None and not symbolVar.isShape() and not symbolVar.isInitValues():
-                code, message = Messages.getFirstArgNotShapeOrEquation(funcName)
-                Logger.logMessage(_code=code, _message=message,
-                                  _errorPosition=_functionCall.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
-            if symbolBuffer is not None and not symbolBuffer.isInputBufferSpike():
-                code, message = Messages.getSecondArgNotABuffer(funcName)
-                Logger.logMessage(_errorPosition=_functionCall.getSourcePosition(),
-                                  _code=code, _message=message,
-                                  _logLevel=LOGGING_LEVEL.ERROR)
+    def visit_function_call(self, node):
+        func_name = node.get_name()
+        if func_name == 'convolve' or func_name == 'cond_sum' or func_name == 'curr_sum':
+            symbol_var = node.get_scope().resolve_to_symbol(str(node.get_args()[0]),
+                                                            SymbolKind.VARIABLE)
+            symbol_buffer = node.get_scope().resolve_to_symbol(str(node.get_args()[1]),
+                                                               SymbolKind.VARIABLE)
+            if symbol_var is not None and not symbol_var.is_shape() and not symbol_var.is_init_values():
+                code, message = Messages.getFirstArgNotShapeOrEquation(func_name)
+                Logger.log_message(code=code, message=message,
+                                   error_position=node.get_source_position(), log_level=LoggingLevel.ERROR)
+            if symbol_buffer is not None and not symbol_buffer.is_input_buffer_spike():
+                code, message = Messages.getSecondArgNotABuffer(func_name)
+                Logger.log_message(error_position=node.get_source_position(),
+                                   code=code, message=message,
+                                   log_level=LoggingLevel.ERROR)
             return

@@ -17,13 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
-from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
+from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
 
 
@@ -42,22 +42,19 @@ class CoCoNoShapesExceptInConvolve(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Ensures the coco for the handed over neuron.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        shapeCollectorVisitor = ShapeCollectingVisitor()
-        shapeNames = shapeCollectorVisitor.collectShapes(_neuron=_neuron)
-        shapeUsageVisitor = ShapeUsageVisitor(_shapes=shapeNames)
-        shapeUsageVisitor.workOn(_neuron)
-        return
+        shape_collector_visitor = ShapeCollectingVisitor()
+        shape_names = shape_collector_visitor.collect_shapes(neuron=node)
+        shape_usage_visitor = ShapeUsageVisitor(_shapes=shape_names)
+        shape_usage_visitor.work_on(node)
 
 
-class ShapeUsageVisitor(NESTMLVisitor):
+class ShapeUsageVisitor(ASTVisitor):
     __shapes = None
     __neuronNode = None
 
@@ -71,61 +68,60 @@ class ShapeUsageVisitor(NESTMLVisitor):
         self.__shapes = _shapes
         return
 
-    def workOn(self, _neuron=None):
-        self.__neuronNode = _neuron
-        _neuron.accept(self)
+    def work_on(self, neuron):
+        self.__neuronNode = neuron
+        neuron.accept(self)
         return
 
-    def visitVariable(self, _variable=None):
+    def visit_variable(self, node):
         """
         Visits each shape and checks if it is used correctly.
-        :param _variable: a single node.
-        :type _variable: AST_
+        :param node: a single node.
+        :type node: AST_
         """
         for shapeName in self.__shapes:
             # in order to allow shadowing by local scopes, we first check if the element has been declared locally
-            symbol = _variable.getScope().resolveToSymbol(shapeName, SymbolKind.VARIABLE)
+            symbol = node.get_scope().resolve_to_symbol(shapeName, SymbolKind.VARIABLE)
             # if it is not a shape just continue
-            if not symbol.isShape():
+            if not symbol.is_shape():
                 continue
-            if _variable.getCompleteName() == shapeName:
-                parent = self.__neuronNode.getParent(_variable)
+            if node.get_complete_name() == shapeName:
+                parent = self.__neuronNode.get_parent(node)
                 if parent is not None:
                     if isinstance(parent, ASTOdeShape):
                         continue
-                    grandparent = self.__neuronNode.getParent(parent)
+                    grandparent = self.__neuronNode.get_parent(parent)
                     if grandparent is not None and isinstance(grandparent, ASTFunctionCall):
-                        grandparentFuncName = grandparent.getName()
-                        if grandparentFuncName == 'curr_sum' or grandparentFuncName == 'cond_sum' or \
-                                        grandparentFuncName == 'convolve':
+                        grandparent_func_name = grandparent.get_name()
+                        if grandparent_func_name == 'curr_sum' or grandparent_func_name == 'cond_sum' or \
+                                grandparent_func_name == 'convolve':
                             continue
                 code, message = Messages.getShapeOutsideConvolve(shapeName)
-                Logger.logMessage(_errorPosition=_variable.getSourcePosition(),
-                                  _code=code, _message=message,
-                                  _logLevel=LOGGING_LEVEL.ERROR)
+                Logger.log_message(error_position=node.get_source_position(),
+                                   code=code, message=message,
+                                   log_level=LoggingLevel.ERROR)
         return
 
 
-class ShapeCollectingVisitor(NESTMLVisitor):
-    __shapeNames = None
+class ShapeCollectingVisitor(ASTVisitor):
+    shape_names = None
 
-    def collectShapes(self, _neuron=None):
+    def collect_shapes(self, neuron):
         """
         Collects all shapes in the model.
-        :param _neuron: a single neuron instance
-        :type _neuron: ASTNeuron
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of shapes.
         :rtype: list(str)
         """
-        self.__shapeNames = list()
-        _neuron.accept(self)
-        return self.__shapeNames
+        self.shape_names = list()
+        neuron.accept(self)
+        return self.shape_names
 
-    def visitOdeShape(self, _odeShape=None):
+    def visit_ode_shape(self, node):
         """
         Collects the shape.
-        :param _odeShape: a single shape node.
-        :type _odeShape: ASTOdeShape
+        :param node: a single shape node.
+        :type node: ASTOdeShape
         """
-        self.__shapeNames.append(_odeShape.getVariable().getNameOfLhs())
-        return
+        self.shape_names.append(node.get_variable().get_name_of_lhs())

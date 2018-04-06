@@ -21,27 +21,26 @@ import os
 import unittest
 
 from antlr4 import *
-from pynestml.generated.PyNESTMLLexer import PyNESTMLLexer
-from pynestml.generated.PyNESTMLParser import PyNESTMLParser
+from pynestml.generated.PyNestMLLexer import PyNestMLLexer
+from pynestml.generated.PyNestMLParser import PyNestMLParser
 from pynestml.modelprocessor.ASTBuilderVisitor import ASTBuilderVisitor
-from pynestml.modelprocessor.ASTNESTMLCompilationUnit import ASTNESTMLCompilationUnit
-from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
+from pynestml.modelprocessor.ASTNestMLCompilationUnit import ASTNestMLCompilationUnit
+from pynestml.modelprocessor.ASTSourceLocation import ASTSourceLocation
 from pynestml.modelprocessor.ASTSymbolTableVisitor import ASTSymbolTableVisitor
-from pynestml.modelprocessor.CoCosManager import CoCosManager
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.SymbolTable import SymbolTable
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Logger import Logger, LoggingLevel
 
 # setups the infrastructure
-PredefinedUnits.registerUnits()
-PredefinedTypes.registerTypes()
-PredefinedFunctions.registerPredefinedFunctions()
-PredefinedVariables.registerPredefinedVariables()
-SymbolTable.initializeSymbolTable(ASTSourcePosition(_startLine=0, _startColumn=0, _endLine=0, _endColumn=0))
-Logger.initLogger(LOGGING_LEVEL.NO)
+PredefinedUnits.register_units()
+PredefinedTypes.register_types()
+PredefinedFunctions.register_predefined_functions()
+PredefinedVariables.register_predefined_variables()
+SymbolTable.initialize_symbol_table(ASTSourceLocation(start_line=0, start_column=0, end_line=0, end_column=0))
+Logger.init_logger(LoggingLevel.NO)
 
 
 class SymbolTableBuilderTest(unittest.TestCase):
@@ -49,25 +48,26 @@ class SymbolTableBuilderTest(unittest.TestCase):
         for filename in os.listdir(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                                  os.path.join('..', 'models')))):
             if filename.endswith(".nestml"):
-                inputFile = FileStream(
+                input_file = FileStream(
                     os.path.join(os.path.dirname(__file__), os.path.join(os.path.join('..', 'models'), filename)))
-                lexer = PyNESTMLLexer(inputFile)
+                lexer = PyNestMLLexer(input_file)
                 # create a token stream
                 stream = CommonTokenStream(lexer)
                 stream.fill()
                 # parse the file
-                parser = PyNESTMLParser(stream)
+                parser = PyNestMLParser(stream)
                 # process the comments
-                compilationUnit = parser.nestmlCompilationUnit()
+                compilation_unit = parser.nestMLCompilationUnit()
                 # create a new visitor and return the new AST
-                astBuilderVisitor = ASTBuilderVisitor(stream.tokens)
-                ast = astBuilderVisitor.visit(compilationUnit)
+                ast_builder_visitor = ASTBuilderVisitor(stream.tokens)
+                ast = ast_builder_visitor.visit(compilation_unit)
                 # update the corresponding symbol tables
-                SymbolTable.initializeSymbolTable(ast.getSourcePosition())
-                for neuron in ast.getNeuronList():
-                    ASTSymbolTableVisitor.updateSymbolTable(neuron)
-                    SymbolTable.addNeuronScope(_name=neuron.getName(), _scope=neuron.getScope())
-                assert isinstance(ast, ASTNESTMLCompilationUnit)
+                SymbolTable.initialize_symbol_table(ast.get_source_position())
+                symbol_table_visitor = ASTSymbolTableVisitor()
+                for neuron in ast.get_neuron_list():
+                    neuron.accept(symbol_table_visitor)
+                    SymbolTable.add_neuron_scope(name=neuron.get_name(), scope=neuron.get_scope())
+                assert isinstance(ast, ASTNestMLCompilationUnit)
         return
 
 

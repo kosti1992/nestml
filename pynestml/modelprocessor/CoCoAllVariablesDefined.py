@@ -17,15 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-
-
-from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.ASTExpressionCollectorVisitor import ASTExpressionCollectorVisitor
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
-from pynestml.utils.Messages import Messages
+from pynestml.modelprocessor.ASTVisitor import ASTVisitor
+from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.VariableSymbol import BlockType
+from pynestml.utils.Logger import Logger, LoggingLevel
+from pynestml.utils.Messages import Messages
 
 
 class CoCoAllVariablesDefined(CoCo):
@@ -40,38 +39,70 @@ class CoCoAllVariablesDefined(CoCo):
     """
 
     @classmethod
-    def checkCoCo(cls, _neuron=None):
+    def check_co_co(cls, node):
         """
         Checks if this coco applies for the handed over neuron. Models which use not defined elements are not 
         correct.
-        :param _neuron: a single neuron instance.
-        :type _neuron: ASTNeuron
+        :param node: a single neuron instance.
+        :type node: ASTNeuron
         """
-        assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
-            '(PyNestML.CoCo.VariablesDefined) No or wrong type of neuron provided (%s)!' % type(_neuron)
         # for each variable in all expressions, check if the variable has been defined previously
-        expressions = list(ASTExpressionCollectorVisitor.collectExpressionsInNeuron(_neuron))
+        expression_collector_visitor = ASTExpressionCollectorVisitor()
+        node.accept(expression_collector_visitor)
+        expressions = expression_collector_visitor.ret
         for expr in expressions:
-            for var in expr.getVariables():
-                symbol = var.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
+            for var in expr.get_variables():
+                symbol = var.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
+                # this part is required to check that we handle invariants differently
+                expr_par = node.get_parent(expr)
+
                 # first test if the symbol has been defined at least
                 if symbol is None:
-                    code, message = Messages.getNoVariableFound(var.getName())
-                    Logger.logMessage(_neuron=_neuron, _code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR,
-                                      _errorPosition=var.getSourcePosition())
+                    code, message = Messages.getNoVariableFound(var.get_name())
+                    Logger.log_message(neuron=node, code=code, message=message, log_level=LoggingLevel.ERROR,
+                                       error_position=var.get_source_position())
+                # first check if it is part of an invariant
+                # if it is the case, there is no "recursive" declaration
+                # so check if the parent is a declaration and the expression the invariant
+                elif isinstance(expr_par, ASTDeclaration) and expr_par.get_invariant() == expr:
+                    # in this case its ok if it is recursive or defined later on
+                    continue
+
                 # now check if it has been defined before usage, except for buffers, those are special cases
-                elif not symbol.isPredefined() and symbol.getBlockType() != BlockType.INPUT_BUFFER_CURRENT and \
-                                symbol.getBlockType() != BlockType.INPUT_BUFFER_SPIKE:
+                elif (not symbol.is_predefined() and symbol.get_block_type() != BlockType.INPUT_BUFFER_CURRENT and
+                      symbol.get_block_type() != BlockType.INPUT_BUFFER_SPIKE):
                     # except for parameters, those can be defined after
-                    if not symbol.getReferencedObject().getSourcePosition().before(var.getSourcePosition()) and \
-                                    symbol.getBlockType() != BlockType.PARAMETERS:
-                        code, message = Messages.getVariableUsedBeforeDeclaration(var.getName())
-                        Logger.logMessage(_neuron=_neuron, _message=message, _errorPosition=var.getSourcePosition(),
-                                          _code=code, _logLevel=LOGGING_LEVEL.ERROR)
+                    if (not symbol.get_referenced_object().get_source_position().before(var.get_source_position()) and
+                            symbol.get_block_type() != BlockType.PARAMETERS):
+                        code, message = Messages.getVariableUsedBeforeDeclaration(var.get_name())
+                        Logger.log_message(neuron=node, message=message, error_position=var.get_source_position(),
+                                           code=code, log_level=LoggingLevel.ERROR)
                         # now check that they are now defined recursively, e.g. V_m mV = V_m + 1
-                    if symbol.getReferencedObject().getSourcePosition().encloses(var.getSourcePosition()) and not \
-                            symbol.getReferencedObject().getSourcePosition().isAddedSourcePosition():
-                        code, message = Messages.getVariableDefinedRecursively(var.getName())
-                        Logger.logMessage(_code=code, _message=message, _errorPosition=symbol.getReferencedObject().
-                                          getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR, _neuron=_neuron)
+                    # todo by KP: we should not check this for invariants
+                    if (symbol.get_referenced_object().get_source_position().encloses(var.get_source_position()) and
+                            not symbol.get_referenced_object().get_source_position().is_added_source_position()):
+                        code, message = Messages.getVariableDefinedRecursively(var.get_name())
+                        Logger.log_message(code=code, message=message, error_position=symbol.get_referenced_object().
+                                           get_source_position(), log_level=LoggingLevel.ERROR, neuron=node)
         return
+
+
+class ASTExpressionCollectorVisitor(ASTVisitor):
+
+    def __init__(self):
+        super(ASTExpressionCollectorVisitor, self).__init__()
+        self.ret = list()
+
+    def visit_expression(self, node):
+        self.ret.append(node)
+
+    def traverse_expression(self, node):
+        # we deactivate traversal in order to get only the root of the expression
+        pass
+
+    def visit_simple_expression(self, node):
+        self.ret.append(node)
+
+    def traverse_simple_expression(self, node):
+        # we deactivate traversal in order to get only the root of the expression
+        pass
