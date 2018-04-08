@@ -8,31 +8,26 @@ typedef struct neuron_t {
     {#-- TODO: Parameters - make sure these match with the python code,
      including the order of the variables when returned by
      get_neural_parameters.#}
-
-    // Variable-state parameters
+    {% if (neuron.get_state_symbols()|length>0) %}
+    // state variables{% endif %}
     {% for state in neuron.get_state_symbols() -%}
     /*{{state.getSymbolName()}} [{{state.get_type_symbol().print_symbol()}}] {{state.print_comment()}}*/
     REAL {{state.get_symbol_name()}};
-    {% endfor %}
-    // Initial values state variables
+    {% endfor %}{% if (neuron.get_initial_values_symbols()|length)>0 %}
+    // Initial values state variables {% endif %}
     {% for init in neuron.get_initial_values_symbols() -%}
     /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
     REAL {{names.convertToCPPName(init.get_symbol_name())}};
-    {% endfor %}
-    // Parameter
+    {% endfor %}{% if (neuron.get_parameter_symbols()|length) > 0%}
+    // Parameter{% endif %}
     {% for parameter in neuron.get_parameter_symbols() -%}
     /*{{parameter.get_symbol_name()}} [{{parameter.get_type_symbol().print_symbol()}}] {{parameter.print_comment()}}*/
     REAL {{names.convertToCPPName(parameter.get_symbol_name())}};
-    {% endfor %}
-    // Internals
+    {% endfor %}{% if (neuron.get_internal_symbols()|length) > 0 %}
+    // Internals {% endif %}
     {% for internal in neuron.get_internal_symbols() -%}
     /*{{internal.get_symbol_name()}} [{{internal.get_type_tymbol().print_symbol()}}] {{internal.print_comment()}}*/
     REAL {{names.convertToCPPName(internal.get_symbol_Name())}};
-    {% endfor %}
-    //Buffers
-    {% for buffer in neuron.get_input_buffers() -%}
-    /*{{buffer.get_symbol_name()}} [{{buffer.get_type_symbol().print_symbol()}}] {{buffer.print_comment()}}*/
-    REAL {{names.convertToCPPName(buffer.get_symbol_name())}};
     {% endfor %}
 
 } neuron_t;

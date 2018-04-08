@@ -21,9 +21,17 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
+from pynestml.codegeneration.NestAssignmentsHelper import NestAssignmentsHelper
 from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConverter
+from pynestml.codegeneration.SpiNNakerHelper import SpiNNakerHelper
+from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
+from pynestml.codegeneration.LegacyExpressionPrinter import LegacyExpressionPrinter
+from pynestml.codegeneration.NestPrinter import NestPrinter
+
+
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.utils.ASTUtils import ASTUtils
 from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
 
@@ -108,7 +116,7 @@ class SpiNNackerCodeGenerator(object):
             '(PyNestML.CodeGenerator.NEST) No or wrong type of neuron provided (%s)!' % type(_neuron)
         input_neuron_implementation = self.setup_standard_namespace(_neuron)
         output_neuron_implementation = self.__templateNeuronImplementation.render(input_neuron_implementation)
-        with open(str(os.path.join(self.__path, _neuron.get_name())) + '.cpp', 'w+') as f:
+        with open(str(os.path.join(self.__path, _neuron.get_name())) + '.c', 'w+') as f:
             f.write(str(output_neuron_implementation))
         return
 
@@ -137,5 +145,10 @@ class SpiNNackerCodeGenerator(object):
         :rtype: dict
         """
         namespace = {'neuronName': _neuron.get_name(), 'neuron': _neuron,
-                     'moduleName': FrontendConfiguration.get_module_name(), 'names': SpiNNackerNamesConverter()}
+                     'moduleName': FrontendConfiguration.get_module_name(), 'names': SpiNNackerNamesConverter(),
+                     'helper': SpiNNakerHelper, 'utils': ASTUtils}
+        namespace['assignments'] = NestAssignmentsHelper()
+        converter = NESTReferenceConverter(_usesGSL=True)
+        legacyPrettyPrinter = LegacyExpressionPrinter(_referenceConverter=converter)
+        namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
         return namespace

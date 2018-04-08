@@ -1,4 +1,4 @@
-#include "my_neuron_model_impl.h"
+#include "{{neuronName}}.h"
 
 #include <debug.h>
 
@@ -11,6 +11,8 @@ void neuron_model_set_global_neuron_params(global_neuron_params_pointer_t params
 state_t neuron_model_state_update(
         input_t exc_input, input_t inh_input, input_t external_bias,
         neuron_pointer_t neuron) {
+
+    //TODO: This is the update block, generate all instructions here
 
     // This takes the input and generates an input value, assumed to be a
     // current.  Note that the conversion to current from conductance is done
@@ -28,6 +30,14 @@ state_t neuron_model_state_update(
     // to determine if the neuron has spikes (commonly the membrane voltage)
     // TODO: Update to return the correct variable
     return neuron->V;
+
+    {%- set dynamics = neuron.get_update_blocks() -%}
+    {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}
+    {%- include "Block.jinja2" -%}{%- endfilter -%}
+    {%- endwith %}
+
+
+
 }
 
 state_t neuron_model_get_membrane_voltage(neuron_pointer_t neuron) {
@@ -36,10 +46,16 @@ state_t neuron_model_get_membrane_voltage(neuron_pointer_t neuron) {
     return neuron->V;
 }
 
+//TODO: print init values by expression pretty printr
 void neuron_model_has_spiked(neuron_pointer_t neuron) {
-
     // TODO: Perform operations required to reset the state after a spike
-    neuron->V = neuron->my_parameter;
+    {% for state in neuron.get_state_symbols() -%}
+    neuron->{{names.name(state)}} = {{state.get_initial_value()}};
+    {% endfor %}
+    {% for init in neuron.get_initial_values_symbols() -%}
+    /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
+    neuron->{{names.name(init)}} = {{init.get_initial_value()}};
+    {% endfor %}
 }
 
 void neuron_model_print_state_variables(restrict neuron_pointer_t neuron) {

@@ -11,11 +11,10 @@ from enum import Enum
 
 
 class _{{neuronName.upper()}}_TYPES(Enum):
-    # TODO: Here all parameters
-    {% for parameter in neuron.get_parameter_symbols() -%}
-    {{names.convertToCPPName(parameter.get_symbol_name()).upper()}} = ({{loop.index}}, DataType.S1615)
+    # TODO: curretly all vars REAL typed
+    {% for var in helper.get_parameters_and_inits(neuron) -%}
+    {{names.name(var)}} = ({{loop.index}}, DataType.S1615)
     {% endfor %}
-
     def __new__(cls, value, data_type):
         obj = object.__new__(cls)
         obj._value_ = value
@@ -43,71 +42,53 @@ class _{{neuronName.upper()}}_GLOBAL_TYPES(Enum):
 
 class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUnits):
 
-    def __init__(self, n_neurons, {%for parameter in neuron.get_parameter_symbols()%}{{names.convertToCPPName(parameter.get_symbol_name())}}{% if parameter != (neuron.get_parameter_symbols()|last) %}, {% endif %}{% endfor %}):
+    def __init__(self, n_neurons, {%for var in helper.get_parameters_and_inits(neuron)%}{{names.name(var)}}{% if var!= (helper.get_parameters_and_inits(neuron)|last) %}, {% endif %}{% endfor %}):
         AbstractNeuronModel.__init__(self)
         AbstractContainsUnits.__init__(self)
 
         self._units = {
-         {% for parameter in neuron.get_parameter_symbols() -%}
-            '{{names.convertToCPPName(parameter.get_symbol_name())}}': "{{parameter.get_type_symbol().print_symbol()}}"{%- if parameter != (neuron.get_parameter_symbols()|last) %},{% endif %}
+         {% for var in helper.get_parameters_and_inits(neuron) -%}
+            '{{names.name(var)}}': "{{var.get_type_symbol().print_symbol()}}"{%- if var != (helper.get_parameters_and_inits(neuron)|last) %},{% endif %}
          {% endfor -%}
         }
 
         self._n_neurons = n_neurons
-        {% for parameter in neuron.get_parameter_symbols() -%}
-            self._{{names.convertToCPPName(parameter.get_symbol_name())}} = utility_calls.convert_param_to_numpy({{names.convertToCPPName(parameter.get_symbol_name())}}, n_neurons)
+        {% for var in helper.get_parameters_and_inits(neuron) -%}
+            self._{{names.name(var)}} = utility_calls.convert_param_to_numpy({{names.name(var)}}, n_neurons)
         {% endfor -%}
 
 
-    {% for parameter in neuron.get_parameter_symbols() %}
+    {% for parameter in helper.get_parameters_and_inits(neuron) %}
     @property
-    def {{names.convertToCPPName(parameter.get_symbol_name())}}(self):
-        return self._{{names.convertToCPPName(parameter.get_symbol_name())}}
+    def {{names.name(parameter)}}(self):
+        return self._{{names.name(parameter)}}
 
-    @{{names.convertToCPPName(parameter.get_symbol_name())}}.setter
-    def {{names.convertToCPPName(parameter.get_symbol_name())}}(self, {{names.convertToCPPName(parameter.get_symbol_name())}}):
-        self._{{names.convertToCPPName(parameter.get_symbol_name())}} = utility_calls.convert_param_to_numpy({{names.convertToCPPName(parameter.get_symbol_name())}}, self._n_neurons)
+    @{{names.name(parameter)}}.setter
+    def {{names.name(parameter)}}(self, {{names.name(parameter)}}):
+        self._{{names.name(parameter)}} = utility_calls.convert_param_to_numpy({{names.name(parameter)}}, self._n_neurons)
     {% endfor %}
-
-    # TODO Here we have to iniz all state / init values ?
-    # Here we have to initialize all state variables and all initial values variables.
-
-    def initialize_v(self, v_init):
-        self._v_init = utility_calls.convert_param_to_numpy(
-            v_init, self._n_neurons)
-
-    def initialize_u(self, u_init):
-        self._u_init = utility_calls.convert_param_to_numpy(
-            u_init, self._n_neurons)
-
-    {% for init in neuron.getInitialValuesSymbols() %}
+    {%- for init in neuron.getInitialValuesSymbols() %}
     # INIT INITIAL VALUES
-    def initialize_{{names.convertToCPPName(init.get_symbol_name())}}(self, _{{names.convertToCPPName(init.get_symbol_name())}}):
-        self._{{names.convertToCPPName(init.get_symbol_name())}} = utility_calls.convert_param_to_numpy(init_{{names.convertToCPPName(init.get_symbol_name())}}, self._n_neurons)
+    def initialize_{{names.convertToCPPName(init.get_symbol_name())}}(self, {{names.name(init)}}):
+        self._{{names.name(init)}} = utility_calls.convert_param_to_numpy({{names.name(init)}}, self._n_neurons)
     {% endfor %}
-    # TODO end
-
     @overrides(AbstractNeuronModel.get_n_neural_parameters)
     def get_n_neural_parameters(self):
-        return {{neuron.get_parameter_symbols()|length}}
+        return {{helper.get_parameters_and_inits(neuron)|length}}
 
     @inject_items({"machine_time_step": "MachineTimeStep"})
     @overrides(AbstractNeuronModel.get_neural_parameters,
                additional_arguments={'machine_time_step'})
     def get_neural_parameters(self, machine_time_step):
-        # TODO: update to match the parameters and state variables
-        # Note: this must match the order of the parameters in the neuron_t
-        # data structure in the C code
         return [
-            {% for parameter in neuron.get_parameter_symbols() -%}
-            # REAL {{names.convertToCPPName(parameter.get_symbol_name())}}
-            NeuronParameter(self._{{names.convertToCPPName(parameter.get_symbol_name())}}, _{{neuronName.upper()}}_TYPES.{{names.convertToCPPName(parameter.get_symbol_name())}}.data_type){% if parameter != (neuron.get_parameter_symbols()|last) %}, {% endif %}
+            {% for parameter in helper.get_parameters_and_inits(neuron) -%}
+            # REAL {{names.name(parameter)}}
+            NeuronParameter(self._{{names.name(parameter)}}, _{{neuronName.upper()}}_TYPES.{{names.name(parameter)}}.data_type){% if parameter != (helper.get_parameters_and_inits(neuron)|last) %}, {% endif %}
             {% endfor -%}
         ]
 
     @overrides(AbstractNeuronModel.get_neural_parameter_types)
     def get_neural_parameter_types(self):
-        # TODO: update to match the parameter types
         return [item.data_type for item in _{{neuronName.upper()}}_TYPES]
 
     @overrides(AbstractNeuronModel.get_n_global_parameters)
@@ -122,14 +103,8 @@ class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUni
     @overrides(AbstractNeuronModel.get_global_parameters,
                additional_arguments={'machine_time_step'})
     def get_global_parameters(self, machine_time_step):
-        # TODO: update to match the global parameters
-        # Note: This must match the order of the parameters in the
-        # global_neuron_t data structure in the C code
-        return [
-            NeuronParameter(
-                machine_time_step / 1000.0,
-                _{{neuronName.upper()}}_GLOBAL_TYPES.TIMESTEP.data_type)
-        ]
+        return [NeuronParameter(machine_time_step / 1000.0,
+                _{{neuronName.upper()}}_GLOBAL_TYPES.TIMESTEP.data_type)]
 
     @overrides(AbstractNeuronModel.get_global_parameter_types)
     def get_global_parameter_types(self):
@@ -137,14 +112,10 @@ class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUni
 
     @overrides(AbstractNeuronModel.set_neural_parameters)
     def set_neural_parameters(self, neural_parameters, vertex_slice):
-        self._v_init[vertex_slice.as_slice] = neural_parameters[4]
-        self._u_init[vertex_slice.as_slice] = neural_parameters[5]
-
+        {% for inits in neuron.get_initial_values_symbols() -%}
+        self._{{names.name(inits)}}[vertex_slice.as_slice] = neural_parameters[{{helper.get_parameters_and_inits(neuron).index(inits)}}]
+        {% endfor %}
     def get_n_cpu_cycles_per_neuron(self):
-        # TODO: update with the number of CPU cycles taken by the
-        # neuron_model_state_update, neuron_model_get_membrane_voltage
-        # and neuron_model_has_spiked functions in the C code
-        # Note: This can be a guess
         return 150
 
     @overrides(AbstractContainsUnits.get_units)
