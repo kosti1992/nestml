@@ -24,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 from pynestml.codegeneration.NestAssignmentsHelper import NestAssignmentsHelper
 from pynestml.codegeneration.SpiNNackerNamesConverter import SpiNNackerNamesConverter
 from pynestml.codegeneration.SpiNNakerHelper import SpiNNakerHelper
-from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
+from pynestml.codegeneration.SpiNNakerReferenceConverter import SpiNNakerReferenceConverter
 from pynestml.codegeneration.LegacyExpressionPrinter import LegacyExpressionPrinter
 from pynestml.codegeneration.NestPrinter import NestPrinter
 
@@ -148,7 +148,7 @@ class SpiNNackerCodeGenerator(object):
                      'moduleName': FrontendConfiguration.get_module_name(), 'names': SpiNNackerNamesConverter(),
                      'helper': SpiNNakerHelper, 'utils': ASTUtils}
         namespace['assignments'] = NestAssignmentsHelper()
-        converter = NESTReferenceConverter(_usesGSL=True)
-        legacyPrettyPrinter = LegacyExpressionPrinter(_referenceConverter=converter)
-        namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
+        converter = SpiNNakerReferenceConverter()
+        legacy_pretty_printer = LegacyExpressionPrinter(_referenceConverter=converter)
+        namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacy_pretty_printer)
         return namespace

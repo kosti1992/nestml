@@ -1,77 +1,40 @@
-#
-# NESTReferenceConverter.py
-#
-# This file is part of NEST.
-#
-# Copyright (C) 2004 The NEST Initiative
-#
-# NEST is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#
-# NEST is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.codegeneration.IReferenceConverter import IReferenceConverter
 from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
-from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.codegeneration.UnitConverter import UnitConverter
+from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
+from pynestml.modelprocessor.ASTBitOperator import ASTBitOperator
+from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
+from pynestml.modelprocessor.ASTLogicalOperator import ASTLogicalOperator
 from pynestml.modelprocessor.ASTVariable import ASTVariable
+from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
-from pynestml.codegeneration.UnitConverter import UnitConverter
+from pynestml.utils.ASTUtils import ASTUtils
 from pynestml.utils.Logger import Logger, LoggingLevel
 from pynestml.utils.Messages import Messages
-from pynestml.utils.ASTUtils import ASTUtils
 
 
-class NESTReferenceConverter(IReferenceConverter):
-    """
-    This concrete reference converter is used to transfer internal names to counter-pieces in NEST.
-    """
-
-    __usesGSL = False
-
-    def __init__(self, _usesGSL=False):
-        """
-        Standard constructor.
-        :param _usesGSL: indicates whether GSL is used.
-        :type _usesGSL: bool
-        """
-        assert (_usesGSL is not None and isinstance(_usesGSL, bool)), \
-            '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
-                _usesGSL)
-        self.__usesGSL = _usesGSL
-        return
+class SpiNNakerReferenceConverter(IReferenceConverter):
 
     @classmethod
-    def convertBinaryOp(cls, _binaryOperator):
+    def convertBinaryOp(cls, binary_operator):
         """
         Converts a single binary operator to nest processable format.
-        :param _binaryOperator: a single binary operator string.
-        :type _binaryOperator: AST_
+        :param binary_operator: a single binary operator string.
+        :type binary_operator: AST_
         :return: the corresponding nest representation
         :rtype: str
         """
-        from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
-        from pynestml.modelprocessor.ASTBitOperator import ASTBitOperator
-        from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
-        from pynestml.modelprocessor.ASTLogicalOperator import ASTLogicalOperator
-        if isinstance(_binaryOperator, ASTArithmeticOperator):
-            return cls.convertArithmeticOperator(_binaryOperator)
-        if isinstance(_binaryOperator, ASTBitOperator):
-            return cls.convertBitOperator(_binaryOperator)
-        if isinstance(_binaryOperator, ASTComparisonOperator):
-            return cls.convertComparisonOperator(_binaryOperator)
-        if isinstance(_binaryOperator, ASTLogicalOperator):
-            return cls.convertLogicalOperator(_binaryOperator)
+        if isinstance(binary_operator, ASTArithmeticOperator):
+            return cls.convertArithmeticOperator(binary_operator)
+        if isinstance(binary_operator, ASTBitOperator):
+            return cls.convertBitOperator(binary_operator)
+        if isinstance(binary_operator, ASTComparisonOperator):
+            return cls.convertComparisonOperator(binary_operator)
+        if isinstance(binary_operator, ASTLogicalOperator):
+            return cls.convertLogicalOperator(binary_operator)
         else:
             Logger.log_message('Cannot determine binary operator!', LoggingLevel.ERROR)
             return '(%s) ERROR (%s)'
@@ -85,9 +48,6 @@ class NESTReferenceConverter(IReferenceConverter):
         :return: a string representation
         :rtype: str
         """
-        assert (_astFunctionCall is not None and isinstance(_astFunctionCall, ASTFunctionCall)), \
-            '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
-                _astFunctionCall)
         function_name = _astFunctionCall.get_name()
         if function_name == 'and':
             return '&&'
@@ -133,7 +93,7 @@ class NESTReferenceConverter(IReferenceConverter):
         variable_name = NestNamesConverter.convertToCPPName(_astVariable.get_complete_name())
 
         if PredefinedUnits.is_unit(_astVariable.get_complete_name()):
-            return str(
+            return 'REAL_CONST(%s)' % (
                 UnitConverter.getFactor(PredefinedUnits.get_unit(_astVariable.get_complete_name()).get_unit()))
         if variable_name == PredefinedVariables.E_CONSTANT:
             return 'numerics::e'
@@ -157,8 +117,7 @@ class NESTReferenceConverter(IReferenceConverter):
                     else:
                         if symbol.is_init_values():
                             return NestPrinter.printOrigin(symbol) + \
-                                   (GSLNamesConverter.name(symbol)
-                                    if self.__usesGSL else NestNamesConverter.name(symbol)) + \
+                                   (NestNamesConverter.name(symbol)) + \
                                    ('[i]' if symbol.has_vector_parameter() else '')
                         else:
                             return NestPrinter.printOrigin(symbol) + \
@@ -166,24 +125,25 @@ class NESTReferenceConverter(IReferenceConverter):
                                    ('[i]' if symbol.has_vector_parameter() else '')
 
     @classmethod
-    def convertConstant(cls, _constantName):
+    def convertConstant(cls, constant):
         """
         Converts a single handed over constant.
-        :param _constantName: a constant as string.
-        :type _constantName: str
+        :param constant: a constant as string.
+        :type constant: str
         :return: the corresponding nest representation
         :rtype: str
         """
-        if _constantName == 'True':
-            return 'true'
-        elif _constantName == 'False':
-            return 'false'
-        elif isinstance(_constantName, int) or isinstance(_constantName, float):
-            return str(_constantName)
-        elif _constantName == 'inf':
+        # TODO: SpiNNaker does not support boolean , thus 1 == True, 0 == False
+        if constant == 'True':
+            return '1'
+        elif constant == 'False':
+            return '0'
+        elif isinstance(constant, int) or isinstance(constant, float):
+            return 'REAL_CONST(%s)' % constant
+        elif constant == 'inf':
             return 'std::numeric_limits<double_t>::infinity()'
         else:
-            return str(_constantName)
+            return str(constant)
 
     @classmethod
     def convertUnaryOp(cls, _unaryOperator):
@@ -308,7 +268,7 @@ class NESTReferenceConverter(IReferenceConverter):
         """
         Prints a logical operator in NEST syntax.
         :param _op: a logical operator object
-        :type _op: ASTLogicalOperator
+        :type _op: ASTArithmeticOperator
         :return: a string representation
         :rtype: str
         """

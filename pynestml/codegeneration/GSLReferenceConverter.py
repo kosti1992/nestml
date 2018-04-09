@@ -115,7 +115,7 @@ class GSLReferenceConverter(IReferenceConverter):
         :return: the same constant
         :rtype: str
         """
-        return constant_name
+        return str(constant_name)
 
     def convertUnaryOp(self, unary_operator):
         """

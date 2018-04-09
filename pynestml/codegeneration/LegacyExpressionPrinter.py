@@ -61,15 +61,15 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
         """
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.is_numeric_literal():
-                return self.__typesPrinter.prettyPrint(_expr.get_numeric_literal())
+                return self.__referenceConverter.convertConstant(_expr.get_numeric_literal())
             elif _expr.is_inf_literal():
                 return self.__referenceConverter.convertConstant('inf')
             elif _expr.is_string():
-                return self.__typesPrinter.prettyPrint(_expr.get_string())
+                return self.__referenceConverter.convertConstant(_expr.get_string())
             elif _expr.is_boolean_true():
-                return self.__typesPrinter.prettyPrint(True)
+                return self.__referenceConverter.convertConstant('True')
             elif _expr.is_boolean_false():
-                return self.__typesPrinter.prettyPrint(False)
+                return self.__referenceConverter.convertConstant('False')
             elif _expr.is_variable():
                 return self.__referenceConverter.convertNameReference(_expr.get_variable())
             elif _expr.is_function_call():
@@ -92,45 +92,31 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
                 return self.__referenceConverter.convertUnaryOp('not') + ' ' + \
                        self.printExpression(_expr.get_expression())
             # compound rhs with lhs + rhs
-            elif _expr.is_compound_expression():
-                # arithmetic op, i.e. +,-,*,/
-                if isinstance(_expr.get_binary_operator(), ASTArithmeticOperator) and \
-                        (_expr.get_binary_operator().is_times_op or _expr.get_binary_operator().is_div_op or
-                         _expr.get_binary_operator().is_minus_op() or _expr.get_binary_operator().is_plus_op() or
-                         _expr.get_binary_operator().is_modulo_op):
-                    return self.printExpression(_expr.get_lhs()) + ' ' + \
-                           self.printArithmeticOperator(_expr.get_binary_operator()) + ' ' + \
-                           self.printExpression(_expr.get_rhs())
-                # pow op
-                elif isinstance(_expr.get_binary_operator(),
-                                ASTArithmeticOperator) and _expr.get_binary_operator().is_pow_op():
+            elif isinstance(_expr, ASTExpression):
+                # a unary operator
+                if _expr.is_unary_operator():
+                    op = self.__referenceConverter.convertUnaryOp(_expr.get_unary_operator())
+                    rhs = self.printExpression(_expr.get_expression())
+                    return op % rhs
+                # encapsulated in brackets
+                elif _expr.is_encapsulated:
+                    return self.__referenceConverter.convertEncapsulated() % self.printExpression(
+                        _expr.get_expression())
+                # logical not
+                elif _expr.isLogicalNot():
+                    op = self.__referenceConverter.convertLogicalNot()
+                    rhs = self.printExpression(_expr.get_expression())
+                    return op % rhs
+                # compound rhs with lhs + rhs
+                elif _expr.is_compound_expression():
                     lhs = self.printExpression(_expr.get_lhs())
-                    pow = self.__referenceConverter.convertBinaryOp('**')
-                    rhs = self.printExpression(_expr.get_rhs())
-                    return pow % (lhs, rhs)
-                # bit operator
-                elif isinstance(_expr.get_binary_operator(), ASTBitOperator):
-                    lhs = self.printExpression(_expr.get_lhs())
-                    bit = self.printBitOperator(_expr.get_binary_operator())
-                    rhs = self.printExpression(_expr.get_rhs())
-                    return lhs + ' ' + bit + ' ' + rhs
-                # comparison operator
-                elif isinstance(_expr.get_binary_operator(), ASTComparisonOperator):
-                    lhs = self.printExpression(_expr.get_lhs())
-                    comp = self.printComparisonOperator(_expr.get_binary_operator())
-                    rhs = self.printExpression(_expr.get_rhs())
-                    return lhs + ' ' + comp + ' ' + rhs
-                elif isinstance(_expr.get_binary_operator(), ASTLogicalOperator):
-                    lhs = self.printExpression(_expr.get_lhs())
-                    op = self.printLogicalOperator(_expr.get_binary_operator())
+                    op = self.__referenceConverter.convertBinaryOp(_expr.get_binary_operator())
                     rhs = self.printExpression(_expr.get_rhs())
                     return op % (lhs, rhs)
-
-            elif _expr.is_ternary_operator():
-                condition = self.printExpression(_expr.get_condition())
-                ifTrue = self.printExpression(_expr.get_if_true())
-                ifNot = self.printExpression(_expr.get_if_not())
-                return '(' + condition + ')?(' + ifTrue + '):(' + ifNot + ')'
+                elif _expr.is_ternary_operator():
+                    condition = self.printExpression(_expr.get_condition())
+                    ifTrue = self.printExpression(_expr.get_if_true())
+                    ifNot = self.printExpression(_expr.if_not)
+                    return self.__referenceConverter.convertTernaryOperator() % (condition, ifTrue, ifNot)
         else:
-            Logger.log_message('Unsupported rhs in rhs pretty printer!', LoggingLevel.ERROR)
-            return ''
+            raise RuntimeError('Unsupported expression!')

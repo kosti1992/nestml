@@ -89,7 +89,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
         :return: the same string
         :rtype: str
         """
-        return _constantName
+        return str(_constantName)
 
     def convertTernaryOperator(self):
         """

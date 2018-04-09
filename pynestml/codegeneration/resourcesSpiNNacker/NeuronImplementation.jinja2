@@ -24,12 +24,16 @@ state_t neuron_model_state_update(
     // TODO: Solve your equation here
     neuron->V += input_this_timestep;
 
+
+
     log_info("TESTING TESTING V = %11.4k mv", neuron->V);
 
     // Return the state variable to be compared with the threshold value
     // to determine if the neuron has spikes (commonly the membrane voltage)
     // TODO: Update to return the correct variable
     return neuron->V;
+
+    //---------------------------------------------------------------
 
     {%- set dynamics = neuron.get_update_blocks() -%}
     {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}

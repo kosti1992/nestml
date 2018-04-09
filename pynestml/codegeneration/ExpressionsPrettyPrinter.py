@@ -80,18 +80,19 @@ class ExpressionsPrettyPrinter(object):
         """
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.has_unit():
-                return self.__typesPrinter.prettyPrint(_expr.get_numeric_literal()) + '*' + \
-                       self.__referenceConverter.convertNameReference(_expr.get_variable())
+                lhs = self.__referenceConverter.convertConstant(_expr.get_numeric_literal())
+                rhs = self.__referenceConverter.convertNameReference(_expr.get_variable())
+                return lhs + '*' + rhs
             elif _expr.is_numeric_literal():
-                return str(_expr.get_numeric_literal())
+                return self.__referenceConverter.convertConstant(_expr.get_numeric_literal())
             elif _expr.is_inf_literal():
                 return self.__referenceConverter.convertConstant('inf')
             elif _expr.is_string():
-                return self.__typesPrinter.prettyPrint(_expr.get_string())
+                return self.__referenceConverter.convertConstant(_expr.get_string())
             elif _expr.is_boolean_true():
-                return self.__typesPrinter.prettyPrint(True)
+                return self.__referenceConverter.convertConstant('True')
             elif _expr.is_boolean_false():
-                return self.__typesPrinter.prettyPrint(False)
+                return self.__referenceConverter.convertConstant('False')
             elif _expr.is_variable():
                 return self.__referenceConverter.convertNameReference(_expr.get_variable())
             elif _expr.is_function_call():
