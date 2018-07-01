@@ -57,6 +57,7 @@ class FrontendConfiguration(object):
     module_name = None
     store_log = False
     is_debug = False
+    targets = list()
 
     @classmethod
     def parse_config(cls, args):
@@ -208,3 +209,8 @@ class FrontendConfiguration(object):
         # check if the target path dir already exists
         if not os.path.isdir(cls.target_path):
             os.makedirs(cls.target_path)
+
+
+class Targets(enumerate):
+    NEST = 1
+    SpiNNaker = 2

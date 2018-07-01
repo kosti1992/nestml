@@ -21,6 +21,8 @@
 import os
 import sys
 
+from pynestml.frontend.frontend_configuration import Targets
+from pynestml.codegeneration.spinnaker_codegenerator import SpiNNakerCodeGenerator
 from pynestml.cocos.co_cos_manager import CoCosManager
 from pynestml.codegeneration.nest_codegeneration import analyse_and_generate_neurons, generate_nest_module_code
 from pynestml.frontend.frontend_configuration import FrontendConfiguration, InvalidPathException, \
@@ -112,6 +114,10 @@ def process():
     if not FrontendConfiguration.is_dry_run():
         analyse_and_generate_neurons(neurons)
         generate_nest_module_code(neurons)
+        # todo: extract this part
+        if Targets.SpiNNaker in FrontendConfiguration.targets:
+            spin = SpiNNakerCodeGenerator()
+            spin.analyse_and_generate_neurons(neurons)
     else:
         code, message = Messages.get_dry_run()
         Logger.log_message(neuron=None, code=code, message=message, log_level=LoggingLevel.INFO)

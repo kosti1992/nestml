@@ -1,0 +1,44 @@
+#ifndef _NEURON_MODEL_{{neuronName.upper()}}_H_
+#define _NEURON_MODEL_{{neuronName.upper()}}_H_
+
+#include <neuron/models/neuron_model.h>
+
+typedef struct neuron_t {
+
+    {#-- TODO: Parameters - make sure these match with the python code,
+     including the order of the variables when returned by
+     get_neural_parameters.#}
+    {% if (neuron.get_state_symbols()|length>0) %}
+    // state variables{% endif %}
+    {% for state in neuron.get_state_symbols() -%}
+    /*{{state.getSymbolName()}} [{{state.get_type_symbol().print_symbol()}}] {{state.print_comment()}}*/
+    REAL {{state.get_symbol_name()}};
+    {% endfor %}{% if (neuron.get_initial_values_symbols()|length)>0 %}
+    // Initial values state variables {% endif %}
+    {% for init in neuron.get_initial_values_symbols() -%}
+    /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
+    REAL {{names.convert_to_cpp_name(init.get_symbol_name())}};
+    {% endfor %}{% if (neuron.get_parameter_symbols()|length) > 0%}
+    // Parameter{% endif %}
+    {% for parameter in neuron.get_parameter_symbols() -%}
+    /*{{parameter.get_symbol_name()}} [{{parameter.get_type_symbol().print_symbol()}}] {{parameter.print_comment()}}*/
+    REAL {{names.convert_to_cpp_name(parameter.get_symbol_name())}};
+    {% endfor %}{% if (neuron.get_internal_symbols()|length) > 0 %}
+    // Internals {% endif %}
+    {% for internal in neuron.get_internal_symbols() -%}
+    /*{{internal.get_symbol_name()}} [{{internal.get_type_tymbol().print_symbol()}}] {{internal.print_comment()}}*/
+    REAL {{names.convert_to_cpp_name(internal.get_symbol_Name())}};
+    {% endfor %}
+
+} neuron_t;
+
+typedef struct global_neuron_params_t {
+
+    {# TODO: Add any parameters that apply to the whole model here (i.e. not
+     just to a single neuron)
+    Note: often these are not user supplied, but computed parameters--#}
+    uint32_t machine_time_step;
+
+} global_neuron_params_t;
+
+#endif // _NEURON_MODEL_{{neuronName.upper()}}_H_

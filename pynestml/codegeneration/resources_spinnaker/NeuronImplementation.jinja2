@@ -1,0 +1,78 @@
+#include "{{neuronName}}.h"
+
+#include <debug.h>
+
+static global_neuron_params_pointer_t global_params;
+
+void neuron_model_set_global_neuron_params(global_neuron_params_pointer_t params){
+    global_params = params;
+}
+
+state_t neuron_model_state_update(
+        input_t exc_input, input_t inh_input, input_t external_bias,
+        neuron_pointer_t neuron) {
+
+    //TODO: This is the update block, generate all instructions here
+
+    // This takes the input and generates an input value, assumed to be a
+    // current.  Note that the conversion to current from conductance is done
+    // outside of this function, so does not need to be repeated here.
+    input_t input_this_timestep =
+        exc_input - inh_input + external_bias + neuron->I_offset;
+
+
+    // TODO: Solve your equation here
+    neuron->V += input_this_timestep;
+
+
+
+    log_info("TESTING TESTING V = %11.4k mv", neuron->V);
+
+    // Return the state variable to be compared with the threshold value
+    // to determine if the neuron has spikes (commonly the membrane voltage)
+    // TODO: Update to return the correct variable
+    return neuron->V;
+
+    //---------------------------------------------------------------
+
+    {%- set dynamics = neuron.get_update_blocks() -%}
+    {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}
+    {%- include "Block.jinja2" -%}{%- endfilter -%}
+    {%- endwith %}
+
+
+
+}
+
+state_t neuron_model_get_membrane_voltage(neuron_pointer_t neuron) {
+
+    // TODO: Get the state value representing the membrane voltage
+    return neuron->V;
+}
+
+//TODO: print init values by expression pretty printr
+void neuron_model_has_spiked(neuron_pointer_t neuron) {
+    // TODO: Perform operations required to reset the state after a spike
+    {% for state in neuron.get_state_symbols() -%}
+    neuron->{{names.name(state)}} = {{state.get_initial_value()}};
+    {% endfor %}
+    {% for init in neuron.get_initial_values_symbols() -%}
+    /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
+    neuron->{{names.name(init)}} = {{init.get_initial_value()}};
+    {% endfor %}
+}
+
+void neuron_model_print_state_variables(restrict neuron_pointer_t neuron) {
+    {% for state in neuron.get_state_symbols() -%}
+    log_debug("{{state.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(state.get_symbol_name())}});
+    {% endfor %}
+    {% for init in neuron.get_initial_values_symbols() -%}
+    log_debug("{{init.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(init.get_symbol_name())}});
+    {% endfor %}
+}
+
+void neuron_model_print_parameters(restrict neuron_pointer_t neuron) {
+    {% for parameter in neuron.get_parameter_symbols() -%}
+    log_debug("{{parameter.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(parameter.get_symbol_name())}});
+    {% endfor %}
+}
