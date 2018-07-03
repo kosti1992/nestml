@@ -1,11 +1,12 @@
 {#
-  Generates C++ declaration
+  Generates C assignment
   @grammar: Assignment = variableName:QualifiedName "=" Expr;
   @param ast ASTAssignment
 #}
 {%- set lhsVariable = assignments.lhs_variable(ast) -%}
 {%- if assignments.is_vectorized_assignment(ast) -%}
-for (long i=0; i < P_.{{assignments.print_size_parameter(ast)}}; i++) {
+long i = 0;//TODO: in this C this can lead to redeclaration
+for (i=0; i < P_.{{assignments.print_size_parameter(ast)}}; i++) {
   {%- if lhsVariable.has_vector_parameter() -%}
     {{printer.print_origin(lhsVariable)}}{{names.name(lhsVariable)}}[i]
   {%- else -%}

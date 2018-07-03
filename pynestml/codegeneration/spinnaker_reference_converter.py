@@ -103,43 +103,16 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         :return: a nest processable format.
         :rtype: str
         """
-        from pynestml.codegeneration.nest_printer import NestPrinter
         assert (op is not None and isinstance(op, ASTVariable)), \
             '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
-                op)
-        variable_name = NestNamesConverter.convert_to_cpp_name(op.get_complete_name())
-
+                    op)
         if PredefinedUnits.is_unit(op.get_complete_name()):
             return 'REAL_CONST(%s)' % (
                 UnitConverter.get_factor(PredefinedUnits.get_unit(op.get_complete_name()).get_unit()))
+        variable_name = NestNamesConverter.convert_to_cpp_name(op.get_complete_name())
         if variable_name == PredefinedVariables.E_CONSTANT:
-            return 'numerics::e'
-        else:
-            symbol = op.get_scope().resolve_to_symbol(variable_name, SymbolKind.VARIABLE)
-            if symbol is None:
-                # this should actually not happen, but an error message is better than an exception
-                code, message = Messages.get_could_not_resolve(variable_name)
-                Logger.log_message(log_level=LoggingLevel.ERROR, code=code, message=message,
-                                   error_position=op.get_source_position())
-                return ''
-            else:
-                if symbol.is_local():
-                    return variable_name + ('[i]' if symbol.has_vector_parameter() else '')
-                elif symbol.is_buffer():
-                    return NestPrinter.print_origin(symbol) + NestNamesConverter.buffer_value(symbol) \
-                           + ('[i]' if symbol.has_vector_parameter() else '')
-                else:
-                    if symbol.is_function:
-                        return 'get_' + variable_name + '()' + ('[i]' if symbol.has_vector_parameter() else '')
-                    else:
-                        if symbol.is_init_values():
-                            return NestPrinter.print_origin(symbol) + \
-                                   (NestNamesConverter.name(symbol)) + \
-                                   ('[i]' if symbol.has_vector_parameter() else '')
-                        else:
-                            return NestPrinter.print_origin(symbol) + \
-                                   NestNamesConverter.name(symbol) + \
-                                   ('[i]' if symbol.has_vector_parameter() else '')
+            return 'M_E'
+        return 'neuron->' + op.get_name()
 
     def convert_constant(self, constant):
         """
@@ -157,7 +130,8 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         elif isinstance(constant, int) or isinstance(constant, float):
             return 'REAL_CONST(%s)' % constant
         elif constant == 'inf':
-            return 'std::numeric_limits<double_t>::infinity()'
+            raise Exception('SpiNNaker: Inf currently not supported!')
+            # return 'std::numeric_limits<double_t>::infinity()'
         else:
             return str(constant)
 

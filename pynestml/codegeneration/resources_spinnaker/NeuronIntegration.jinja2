@@ -11,8 +11,7 @@ from enum import Enum
 
 
 class _{{neuronName.upper()}}_TYPES(Enum):
-    # TODO: curretly all vars REAL typed
-    {% for var in helper.get_parameters_and_inits(neuron) -%}
+    {% for var in helper.get_defined_elements(neuron) -%}
     {{names.name(var)}} = ({{loop.index}}, DataType.S1615)
     {% endfor %}
     def __new__(cls, value, data_type):
@@ -42,23 +41,23 @@ class _{{neuronName.upper()}}_GLOBAL_TYPES(Enum):
 
 class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUnits):
 
-    def __init__(self, n_neurons, {%for var in helper.get_parameters_and_inits(neuron)%}{{names.name(var)}}{% if var!= (helper.get_parameters_and_inits(neuron)|last) %}, {% endif %}{% endfor %}):
+    def __init__(self, n_neurons, {%for var in helper.get_defined_elements(neuron)%}{{names.name(var)}}{% if var!= (helper.get_defined_elements(neuron)|last) %}, {% endif %}{% endfor %}):
         AbstractNeuronModel.__init__(self)
         AbstractContainsUnits.__init__(self)
 
         self._units = {
-         {% for var in helper.get_parameters_and_inits(neuron) -%}
-            '{{names.name(var)}}': "{{var.get_type_symbol().print_symbol()}}"{%- if var != (helper.get_parameters_and_inits(neuron)|last) %},{% endif %}
+         {% for var in helper.get_defined_elements(neuron) -%}
+            '{{names.name(var)}}': "{{var.get_type_symbol().print_symbol()}}"{%- if var != (helper.get_defined_elements(neuron)|last) %},{% endif %}
          {% endfor -%}
         }
 
         self._n_neurons = n_neurons
-        {% for var in helper.get_parameters_and_inits(neuron) -%}
+        {% for var in helper.get_defined_elements(neuron) -%}
             self._{{names.name(var)}} = utility_calls.convert_param_to_numpy({{names.name(var)}}, n_neurons)
         {% endfor -%}
 
 
-    {% for parameter in helper.get_parameters_and_inits(neuron) %}
+    {% for parameter in helper.get_defined_elements(neuron) %}
     @property
     def {{names.name(parameter)}}(self):
         return self._{{names.name(parameter)}}
@@ -74,16 +73,16 @@ class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUni
     {% endfor %}
     @overrides(AbstractNeuronModel.get_n_neural_parameters)
     def get_n_neural_parameters(self):
-        return {{helper.get_parameters_and_inits(neuron)|length}}
+        return {{helper.get_defined_elements(neuron)|length}}
 
     @inject_items({"machine_time_step": "MachineTimeStep"})
     @overrides(AbstractNeuronModel.get_neural_parameters,
                additional_arguments={'machine_time_step'})
     def get_neural_parameters(self, machine_time_step):
         return [
-            {% for parameter in helper.get_parameters_and_inits(neuron) -%}
+            {% for parameter in helper.get_defined_elements(neuron) -%}
             # REAL {{names.name(parameter)}}
-            NeuronParameter(self._{{names.name(parameter)}}, _{{neuronName.upper()}}_TYPES.{{names.name(parameter)}}.data_type){% if parameter != (helper.get_parameters_and_inits(neuron)|last) %}, {% endif %}
+            NeuronParameter(self._{{names.name(parameter)}}, _{{neuronName.upper()}}_TYPES.{{names.name(parameter)}}.data_type){% if parameter != (helper.get_defined_elements(neuron)|last) %}, {% endif %}
             {% endfor -%}
         ]
 
@@ -113,7 +112,7 @@ class NeuronModel{{neuronName.upper()}}(AbstractNeuronModel, AbstractContainsUni
     @overrides(AbstractNeuronModel.set_neural_parameters)
     def set_neural_parameters(self, neural_parameters, vertex_slice):
         {% for inits in neuron.get_initial_values_symbols() -%}
-        self._{{names.name(inits)}}[vertex_slice.as_slice] = neural_parameters[{{helper.get_parameters_and_inits(neuron).index(inits)}}]
+        self._{{names.name(inits)}}[vertex_slice.as_slice] = neural_parameters[{{helper.get_defined_elements(neuron).index(inits)}}]
         {% endfor %}
     def get_n_cpu_cycles_per_neuron(self):
         return 150

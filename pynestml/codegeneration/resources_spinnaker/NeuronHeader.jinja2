@@ -12,22 +12,22 @@ typedef struct neuron_t {
     // state variables{% endif %}
     {% for state in neuron.get_state_symbols() -%}
     /*{{state.getSymbolName()}} [{{state.get_type_symbol().print_symbol()}}] {{state.print_comment()}}*/
-    REAL {{state.get_symbol_name()}};
+    {{helper.get_spinnaker_type(state.get_type_symbol())}} {{state.get_symbol_name()}};
     {% endfor %}{% if (neuron.get_initial_values_symbols()|length)>0 %}
     // Initial values state variables {% endif %}
     {% for init in neuron.get_initial_values_symbols() -%}
     /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
-    REAL {{names.convert_to_cpp_name(init.get_symbol_name())}};
+    {{helper.get_spinnaker_type(init.get_type_symbol())}} {{names.convert_to_cpp_name(init.get_symbol_name())}};
     {% endfor %}{% if (neuron.get_parameter_symbols()|length) > 0%}
     // Parameter{% endif %}
     {% for parameter in neuron.get_parameter_symbols() -%}
     /*{{parameter.get_symbol_name()}} [{{parameter.get_type_symbol().print_symbol()}}] {{parameter.print_comment()}}*/
-    REAL {{names.convert_to_cpp_name(parameter.get_symbol_name())}};
+    {{helper.get_spinnaker_type(parameter.get_type_symbol())}} {{names.convert_to_cpp_name(parameter.get_symbol_name())}};
     {% endfor %}{% if (neuron.get_internal_symbols()|length) > 0 %}
     // Internals {% endif %}
     {% for internal in neuron.get_internal_symbols() -%}
-    /*{{internal.get_symbol_name()}} [{{internal.get_type_tymbol().print_symbol()}}] {{internal.print_comment()}}*/
-    REAL {{names.convert_to_cpp_name(internal.get_symbol_Name())}};
+    /*{{internal.get_symbol_name()}} [{{internal.get_type_symbol().print_symbol()}}] {{internal.print_comment()}}*/
+    {{helper.get_spinnaker_type(internal.get_type_symbol())}} {{names.convert_to_cpp_name(internal.get_symbol_Name())}};
     {% endfor %}
 
 } neuron_t;

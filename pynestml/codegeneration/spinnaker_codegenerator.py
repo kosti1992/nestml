@@ -21,6 +21,8 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
+from pynestml.codegeneration.expressions_pretty_printer import ExpressionsPrettyPrinter
+from pynestml.codegeneration.spinnaker_reference_converter import SpiNNakerReferenceConverter
 from pynestml.codegeneration.nest_assignments_helper import NestAssignmentsHelper
 from pynestml.codegeneration.spinnaker_names_converter import SpiNNakerNamesConverter
 from pynestml.codegeneration.spinnaker_helper import SpiNNakerHelper
@@ -28,6 +30,7 @@ from pynestml.codegeneration.spinnaker_reference_converter import SpiNNakerRefer
 from pynestml.codegeneration.legacy_expression_printer import LegacyExpressionPrinter
 from pynestml.codegeneration.nest_printer import NestPrinter
 
+from pynestml.codegeneration.spinnaker_printer import SpiNNakerPrinter
 from pynestml.frontend.frontend_configuration import FrontendConfiguration
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.utils.ast_utils import ASTUtils
@@ -63,7 +66,7 @@ class SpiNNakerCodeGenerator(object):
 
         return
 
-    def analyse_and_generate_neuron(self, _neuron=None):
+    def analyse_and_generate_neuron(self, _neuron = None):
         """
         Generates the code for the handed over neuron model.
         :param _neuron: a single neuron instance
@@ -120,7 +123,7 @@ class SpiNNakerCodeGenerator(object):
             f.write(str(output_neuron_implementation))
         return
 
-    def generate_model_integration(self, _neuron=None):
+    def generate_model_integration(self, _neuron = None):
         """
         For a handed over neuron, this method generates the corresponding simulation integration file.
         :param _neuron: a single neuron instance
@@ -147,7 +150,7 @@ class SpiNNakerCodeGenerator(object):
         namespace = {'neuronName': neuron.get_name(), 'neuron': neuron,
                      'moduleName': FrontendConfiguration.get_module_name(), 'names': SpiNNakerNamesConverter(),
                      'helper': SpiNNakerHelper, 'utils': ASTUtils, 'assignments': NestAssignmentsHelper()}
-        converter = SpiNNakerReferenceConverter()
-        legacy_pretty_printer = LegacyExpressionPrinter(reference_converter=converter)
-        namespace['printer'] = NestPrinter(expression_pretty_printer=legacy_pretty_printer)
+        ref_converter = SpiNNakerReferenceConverter()
+        printer = ExpressionsPrettyPrinter(reference_converter=ref_converter)
+        namespace['printer'] = SpiNNakerPrinter(expression_pretty_printer=printer)
         return namespace

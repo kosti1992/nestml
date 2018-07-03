@@ -19,14 +19,32 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.symbols.predefined_types import PredefinedTypes
+from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 
 
 class SpiNNakerHelper(object):
 
     @classmethod
-    def get_parameters_and_inits(cls, neuron):
+    def get_defined_elements(cls, neuron):
         ret = list()
         assert isinstance(neuron, ASTNeuron)
-        ret.extend(neuron.get_parameter_symbols())
+        ret.extend(neuron.get_state_symbols())
         ret.extend(neuron.get_initial_values_symbols())
+        ret.extend(neuron.get_parameter_symbols())
+        ret.extend(neuron.get_internal_symbols())
         return ret
+
+    @classmethod
+    def get_spinnaker_type(cls, type_symbol):
+        if type_symbol.equals(PredefinedTypes.get_integer_type()):
+            return 'DataType.INT32'
+        elif type_symbol.equals(PredefinedTypes.get_real_type()):
+            return 'DataType.S1615'
+        elif type_symbol.equals(PredefinedTypes.get_boolean_type()):
+            return ''
+        elif isinstance(type_symbol, UnitTypeSymbol):
+            return 'DataType.S1615'
+        else:
+            raise Exception('SpiNNaker: Void and String currently not supported!')
+
