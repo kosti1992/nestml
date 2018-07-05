@@ -48,3 +48,26 @@ class SpiNNakerHelper(object):
         else:
             raise Exception('SpiNNaker: Void and String currently not supported!')
 
+    @classmethod
+    def get_membrane_variable(cls, ast):
+        assert isinstance(ast, ASTNeuron)
+        v = None
+        v_star = None
+        # list of all checked vars
+        var_list = list()
+        var_list.extend(ast.get_initial_values_symbols())
+        var_list.extend(ast.get_state_symbols())
+        for var in var_list:
+            if var.name == 'V_m':
+                return var  # return, since V_m is always the membrane potential
+            if var.name == 'V':
+                v = var
+                continue  # continue, since V_m can still be there
+            if var.name.startswith('V'):
+                v_star = var  # in worst take anything which starts with V, e.g., V_mn
+        if v is not None:
+            return v
+        elif v_star is not None:
+            return v_star
+        else:
+            return None

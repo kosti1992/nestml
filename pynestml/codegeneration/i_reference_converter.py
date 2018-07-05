@@ -75,3 +75,15 @@ class IReferenceConverter(object):
     @abstractmethod
     def convert_ternary_operator(self):
         pass
+
+    @abstractmethod
+    def convert_bool(self, value):
+        pass
+
+    @abstractmethod
+    def convert_numeric(self, value):
+        pass
+
+    @abstractmethod
+    def convert_string(self, value):
+        pass

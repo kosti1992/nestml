@@ -43,7 +43,7 @@ class NESTReferenceConverter(IReferenceConverter):
     This concrete reference converter is used to transfer internal names to counter-pieces in NEST.
     """
 
-    def __init__(self, uses_gsl=False):
+    def __init__(self, uses_gsl = False):
         """
         Standard constructor.
         :param uses_gsl: indicates whether GSL is used.
@@ -122,12 +122,12 @@ class NESTReferenceConverter(IReferenceConverter):
         from pynestml.codegeneration.nest_printer import NestPrinter
         assert (variable is not None and isinstance(variable, ASTVariable)), \
             '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
-                variable)
+                    variable)
         variable_name = NestNamesConverter.convert_to_cpp_name(variable.get_complete_name())
 
         if PredefinedUnits.is_unit(variable.get_complete_name()):
             return str(
-                UnitConverter.get_factor(PredefinedUnits.get_unit(variable.get_complete_name()).get_unit()))
+                    UnitConverter.get_factor(PredefinedUnits.get_unit(variable.get_complete_name()).get_unit()))
         if variable_name == PredefinedVariables.E_CONSTANT:
             return 'numerics::e'
         else:
@@ -305,3 +305,19 @@ class NESTReferenceConverter(IReferenceConverter):
         :rtype: str
         """
         return '(' + '%s' + ')?(' + '%s' + '):(' + '%s' + ')'
+
+    @classmethod
+    def convert_bool(cls, value):
+        if value:
+            return 'true'
+        else:
+            return 'false'
+
+    @classmethod
+    def convert_numeric(cls, value):
+        if isinstance(value, int) or isinstance(value, float):
+            return str(value)
+
+    @classmethod
+    def convert_string(cls, value):
+        return str(value)

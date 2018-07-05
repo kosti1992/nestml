@@ -37,6 +37,19 @@ from pynestml.utils.messages import Messages
 
 class SpiNNakerReferenceConverter(IReferenceConverter):
 
+    def convert_bool(self, value):
+        # in spinnaker, there are no booleans, thus 1 is true, 0 is false
+        if value:
+            return '1'
+        else:
+            return '0'
+
+    def convert_numeric(self, value):
+        return 'REAL_CONST(%s)' % str(value)
+
+    def convert_string(self, value):
+        return str(value)
+
     def convert_binary_op(self, op):
         """
         Converts a single binary operator to nest processable format.
@@ -107,8 +120,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
             '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
                     op)
         if PredefinedUnits.is_unit(op.get_complete_name()):
-            return 'REAL_CONST(%s)' % (
-                UnitConverter.get_factor(PredefinedUnits.get_unit(op.get_complete_name()).get_unit()))
+            return 'REAL_CONST(1.0)'
         variable_name = NestNamesConverter.convert_to_cpp_name(op.get_complete_name())
         if variable_name == PredefinedVariables.E_CONSTANT:
             return 'M_E'

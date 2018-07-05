@@ -41,39 +41,37 @@ state_t neuron_model_state_update(
     {%- include "Block.jinja2" -%}{%- endfilter -%}
     {%- endwith %}
 
-
-
+    {%- set membrane_var = helper.get_membrane_variable(neuron) %}
+    return {{printer.print_origin(membrane_var)}}{{membrane_var.name}};
 }
 
 state_t neuron_model_get_membrane_voltage(neuron_pointer_t neuron) {
-
-    // TODO: Get the state value representing the membrane voltage
-    return neuron->V;
+    {%- set membrane_var = helper.get_membrane_variable(neuron) %}
+    return {{printer.print_origin(membrane_var)}}{{membrane_var.name}};
 }
 
-//TODO: print init values by expression pretty printr
 void neuron_model_has_spiked(neuron_pointer_t neuron) {
     // TODO: Perform operations required to reset the state after a spike
-    {% for state in neuron.get_state_symbols() -%}
-    neuron->{{names.name(state)}} = {{state.get_initial_value()}};
+    {%- for state in neuron.get_state_symbols() -%}
+    {{printer.print_origin(state)}}{{names.name(state)}} = {{printer.print_expression(state.get_initial_value())}};
     {% endfor %}
     {% for init in neuron.get_initial_values_symbols() -%}
     /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
-    neuron->{{names.name(init)}} = {{init.get_initial_value()}};
-    {% endfor %}
+    {{printer.print_origin(state)}}{{names.name(init)}} = {{printer.print_expression(init.get_initial_value())}};
+    {% endfor -%}
 }
 
-void neuron_model_print_state_variables(restrict neuron_pointer_t neuron) {
-    {% for state in neuron.get_state_symbols() -%}
-    log_debug("{{state.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(state.get_symbol_name())}});
+void neuron_model_print_state_variables(restrict neuron_pointer_t neuron){
+    {%- for state in neuron.get_state_symbols() -%}
+    log_debug("{{state.get_symbol_name()}} = %11.4k {{init.get_type_symbol().print_symbol()}}", neuron->{{names.convert_to_cpp_name(state.get_symbol_name())}});
     {% endfor %}
     {% for init in neuron.get_initial_values_symbols() -%}
-    log_debug("{{init.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(init.get_symbol_name())}});
-    {% endfor %}
+    log_debug("{{init.get_symbol_name()}} = %11.4k {{init.get_type_symbol().print_symbol()}}", neuron->{{names.convert_to_cpp_name(init.get_symbol_name())}});
+    {% endfor -%}
 }
 
 void neuron_model_print_parameters(restrict neuron_pointer_t neuron) {
     {% for parameter in neuron.get_parameter_symbols() -%}
-    log_debug("{{parameter.get_symbol_name()}} = %11.4k mv", neuron->{{names.convert_to_cpp_name(parameter.get_symbol_name())}});
-    {% endfor %}
+    log_debug("{{parameter.get_symbol_name()}} = %11.4k {{parameter.get_type_symbol().print_symbol()}}", neuron->{{names.convert_to_cpp_name(parameter.get_symbol_name())}});
+    {% endfor -%}
 }

@@ -159,3 +159,12 @@ class GSLReferenceConverter(IReferenceConverter):
 
     def convert_arithmetic_operator(self, op):
         return NESTReferenceConverter.convert_arithmetic_operator(op)
+
+    def convert_bool(self, value):
+        return NESTReferenceConverter.convert_bool(value)
+
+    def convert_numeric(self, value):
+        return NESTReferenceConverter.convert_numeric(value)
+
+    def convert_string(self, value):
+        return NESTReferenceConverter.convert_string(value)
