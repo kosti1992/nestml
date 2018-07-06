@@ -27,7 +27,8 @@ class SpiNNakerPrinter(object):
         """
         return self.expression_pretty_printer.print_expression(node)
 
-    def print_origin(self, node):
+    @classmethod
+    def print_origin(cls, node):
         return 'neuron->'
 
     def print_function_call(self, node):

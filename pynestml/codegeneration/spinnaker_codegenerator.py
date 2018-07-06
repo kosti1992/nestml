@@ -22,6 +22,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 
 from pynestml.codegeneration.expressions_pretty_printer import ExpressionsPrettyPrinter
+from pynestml.codegeneration.nest_declarations_helper import NestDeclarationsHelper
 from pynestml.codegeneration.spinnaker_reference_converter import SpiNNakerReferenceConverter
 from pynestml.codegeneration.nest_assignments_helper import NestAssignmentsHelper
 from pynestml.codegeneration.spinnaker_names_converter import SpiNNakerNamesConverter
@@ -153,4 +154,5 @@ class SpiNNakerCodeGenerator(object):
         ref_converter = SpiNNakerReferenceConverter()
         printer = ExpressionsPrettyPrinter(reference_converter=ref_converter)
         namespace['printer'] = SpiNNakerPrinter(expression_pretty_printer=printer)
+        namespace['declarations'] = NestDeclarationsHelper()
         return namespace

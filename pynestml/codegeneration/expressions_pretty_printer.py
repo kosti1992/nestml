@@ -36,7 +36,6 @@ class ExpressionsPrettyPrinter(object):
 
     def __init__(self, reference_converter = None):
         # type: (IReferenceConverter) -> None
-        # todo by kp: this should expect a ITypesPrinter as the second arg
         if reference_converter is not None:
             self.reference_converter = reference_converter
         else:
@@ -53,9 +52,8 @@ class ExpressionsPrettyPrinter(object):
         # type: (ASTExpressionNode) -> str
         if isinstance(node, ASTSimpleExpression):
             if node.has_unit():
-                # todo by kp: this should not be done in the typesPrinter, obsolete
-                return self.reference_converter.convert_numeric(node.get_numeric_literal()) + '*' + \
-                       self.reference_converter.convert_name_reference(node.get_variable())
+                return (self.reference_converter.convert_numeric(node.get_numeric_literal()) + '*' +
+                        self.reference_converter.convert_name_reference(node.get_variable()))
             elif node.is_numeric_literal():
                 return str(node.get_numeric_literal())
             elif node.is_inf_literal:

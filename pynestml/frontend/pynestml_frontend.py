@@ -112,8 +112,8 @@ def process():
                                    log_level=LoggingLevel.INFO)
                 neurons.remove(neuron)
     if not FrontendConfiguration.is_dry_run():
-        analyse_and_generate_neurons(neurons)
-        generate_nest_module_code(neurons)
+        #analyse_and_generate_neurons(neurons)
+        #generate_nest_module_code(neurons)
         # todo: extract this part
         if Targets.SpiNNaker in FrontendConfiguration.targets:
             spin = SpiNNakerCodeGenerator()

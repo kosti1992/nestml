@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.codegeneration.i_reference_converter import IReferenceConverter
+from pynestml.codegeneration.spinnaker_printer import SpiNNakerPrinter
 from pynestml.codegeneration.nest_names_converter import NestNamesConverter
 from pynestml.codegeneration.unit_converter import UnitConverter
 from pynestml.meta_model.ast_arithmetic_operator import ASTArithmeticOperator
@@ -108,23 +109,53 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         else:
             return function_name + '()'
 
-    def convert_name_reference(self, op):
+    def convert_name_reference(self, variable):
         """
         Converts a single variable to nest processable format.
-        :param op: a single variable.
-        :type op: ASTVariable
+        :param variable: a single variable.
+        :type variable: ASTVariable
         :return: a nest processable format.
         :rtype: str
         """
-        assert (op is not None and isinstance(op, ASTVariable)), \
+        assert (variable is not None and isinstance(variable, ASTVariable)), \
             '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
-                    op)
-        if PredefinedUnits.is_unit(op.get_complete_name()):
-            return 'REAL_CONST(1.0)'
-        variable_name = NestNamesConverter.convert_to_cpp_name(op.get_complete_name())
+                    variable)
+        variable_name = NestNamesConverter.convert_to_cpp_name(variable.get_complete_name())
+
+        if PredefinedUnits.is_unit(variable.get_complete_name()):
+            factor = str(UnitConverter.get_factor(PredefinedUnits.get_unit(variable.get_complete_name()).get_unit()))
+            return 'REAL_CONST(%s)' % factor
+
         if variable_name == PredefinedVariables.E_CONSTANT:
             return 'M_E'
-        return 'neuron->' + op.get_name()
+        else:
+            symbol = variable.get_scope().resolve_to_symbol(variable_name, SymbolKind.VARIABLE)
+            if symbol is None:
+                # this should actually not happen, but an error message is better than an exception
+                code, message = Messages.get_could_not_resolve(variable_name)
+                Logger.log_message(log_level=LoggingLevel.ERROR, code=code, message=message,
+                                   error_position=variable.get_source_position())
+                return ''
+            else:
+                if symbol.is_local():
+                    return variable_name + ('[i]' if symbol.has_vector_parameter() else '')
+                elif symbol.is_buffer():
+                    # TODO: extend to use Spinnaker specific stuff
+                    return SpiNNakerPrinter.print_origin(symbol) + NestNamesConverter.buffer_value(symbol) \
+                           + ('[i]' if symbol.has_vector_parameter() else '')
+                else:
+                    if symbol.is_function:
+                        return 'get_' + variable_name + '()' + ('[i]' if symbol.has_vector_parameter() else '')
+                    else:
+                        if symbol.is_init_values():
+                            temp = SpiNNakerPrinter.print_origin(symbol)
+                            temp += NestNamesConverter.name(symbol)
+                            temp += ('[i]' if symbol.has_vector_parameter() else '')
+                            return temp
+                        else:
+                            return SpiNNakerPrinter.print_origin(symbol) + \
+                                   NestNamesConverter.name(symbol) + \
+                                   ('[i]' if symbol.has_vector_parameter() else '')
 
     def convert_constant(self, constant):
         """

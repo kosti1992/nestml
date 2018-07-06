@@ -21,6 +21,7 @@
 """
 rhs : condition=rhs '?' ifTrue=rhs ':' ifNot=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
@@ -39,7 +40,7 @@ class ASTConditionVisitor(ASTVisitor):
         """
         Visits an rhs consisting of the ternary operator and updates its type.
         :param node: a single rhs
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         condition = node.get_condition().type
         if_true = node.get_if_true().type
