@@ -43,17 +43,19 @@ class SpiNNakerNamesConverter(object):
             return variable_name
 
     @classmethod
-    def name(cls, obj):
+    def name(cls, obj, with_init=False):
         """
         Returns for the handed over element the corresponding nest processable string.
         :param obj: a single variable symbol or variable
         :type obj: VariableSymbol or ASTVariable
+        :param with_init: indicates whether the _init postfix shall be attached
+        :type with_init: bool
         :return: the corresponding string representation
         :rtype: str
         """
         if isinstance(obj, VariableSymbol):
             # we have to regard the init values als different parameters
-            if obj.block_type == BlockType.INITIAL_VALUES:
+            if obj.block_type == BlockType.INITIAL_VALUES and with_init:
                 return cls.convert_to_cpp_name(obj.get_symbol_name()) + '_init'
             else:
                 return cls.convert_to_cpp_name(obj.get_symbol_name())

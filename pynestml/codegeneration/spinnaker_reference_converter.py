@@ -68,8 +68,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         if isinstance(op, ASTLogicalOperator):
             return self.convert_logical_operator(op)
         else:
-            Logger.log_message('Cannot determine binary operator!', LoggingLevel.ERROR)
-            return '(%s) ERROR (%s)'
+            raise Exception('Cannot determine binary operator!')
 
     def convert_function_call(cls, op):
         """
@@ -197,8 +196,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         elif unary_operator.is_unary_tilde:
             return '(' + '~' + '%s' + ')'
         else:
-            Logger.log_message('Cannot determine unary operator!', LoggingLevel.ERROR)
-            return '(' + '%s' + ')'
+            raise Exception('Cannot determine unary operator!')
 
     def convert_encapsulated(self):
         """
@@ -233,8 +231,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         elif op.is_logical_or:
             return '%s' + '||' + '%s'
         else:
-            Logger.log_message('Cannot determine logical operator!', LoggingLevel.ERROR)
-            return '(%s) ERROR  (%s)'
+            raise Exception('Cannot determine logical operator!')
 
     @classmethod
     def convert_comparison_operator(cls, op):
@@ -262,8 +259,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         elif op.is_gt:
             return '%s' + '>' + '%s'
         else:
-            Logger.log_message('Cannot determine comparison operator!', LoggingLevel.ERROR)
-            return '(%s) ERROR  (%s)'
+            raise Exception('Cannot determine comparison operator!')
 
     @classmethod
     def convert_bit_operator(cls, op):
@@ -289,8 +285,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         if op.is_bit_xor:
             return '%s' + '^' + '%s'
         else:
-            Logger.log_message('Cannot determine bit operator!', LoggingLevel.ERROR)
-            return '(%s) ERROR (%s)'
+            raise Exception('Cannot determine bit operator!')
 
     def convert_arithmetic_operator(self, op):
         """
@@ -317,8 +312,7 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
         if op.is_pow_op:
             return 'pow' + '(%s,%s)'
         else:
-            Logger.log_message('Cannot determine arithmetic operator!', LoggingLevel.ERROR)
-            return '(%s) ERROR (%s)'
+            raise Exception('Cannot determine arithmetic operator!')
 
     def convert_ternary_operator(self):
         """
