@@ -21,6 +21,11 @@
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
+from pynestml.visitors.ast_parent_aware_visitor import ASTParentAwareVisitor
+from pynestml.symbols.predefined_functions import PredefinedFunctions
+from pynestml.meta_model.ast_update_block import ASTUpdateBlock
+from pynestml.meta_model.ast_compound_stmt import ASTCompoundStmt
+from copy import deepcopy
 
 
 class SpiNNakerHelper(object):
@@ -71,3 +76,42 @@ class SpiNNakerHelper(object):
             return v_star
         else:
             return None
+
+    @classmethod
+    def is_update_block(cls, ast):
+        return isinstance(ast, ASTUpdateBlock)
+
+    @classmethod
+    def is_compound_stmt(cls, ast):
+        return isinstance(ast, ASTCompoundStmt)
+
+    @classmethod
+    def has_threshold_block(cls, ast):
+        # now check if the handed over block contains an emit spike
+        visitor = ContainsEmitSpikeVisitor()
+        ast.accept(visitor)
+        return visitor.contains_emit_spike
+
+    @classmethod
+    def get_threshold_block(cls, ast):
+        visitor = ContainsEmitSpikeVisitor()
+        ast.accept(visitor)
+        top = visitor.trace.pop()
+        while (not isinstance(top, ASTCompoundStmt)) and (not isinstance(top, ASTUpdateBlock)) and \
+                not visitor.trace.is_empty():
+            top = visitor.trace.pop()
+        if isinstance(top, ASTCompoundStmt) or isinstance(top, ASTUpdateBlock):
+            return top
+        raise Exception('spinnaker:not implemented yet')
+
+
+class ContainsEmitSpikeVisitor(ASTParentAwareVisitor):
+    def __init__(self):
+        super(ContainsEmitSpikeVisitor, self).__init__()
+        self.contains_emit_spike = False
+        self.trace = None
+
+    def visit_function_call(self, node):
+        if node.get_name() == PredefinedFunctions.EMIT_SPIKE:
+            self.contains_emit_spike = True
+            self.trace = deepcopy(self.parents)

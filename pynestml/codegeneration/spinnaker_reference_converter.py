@@ -139,9 +139,15 @@ class SpiNNakerReferenceConverter(IReferenceConverter):
                 if symbol.is_local():
                     return variable_name + ('[i]' if symbol.has_vector_parameter() else '')
                 elif symbol.is_buffer():
-                    # TODO: extend to use Spinnaker specific stuff
-                    return SpiNNakerPrinter.print_origin(symbol) + NestNamesConverter.buffer_value(symbol) \
-                           + ('[i]' if symbol.has_vector_parameter() else '')
+                    if symbol.is_current_buffer():
+                        return 'TODO current'
+                    else:
+                        if symbol.is_excitatory() and symbol.is_inhibitory():
+                            return '(exc_input - inh_input)'
+                        elif symbol.is_excitatory():
+                            return 'exc_input'
+                        else:
+                            return 'inh_input'
                 else:
                     if symbol.is_function:
                         return 'get_' + variable_name + '()' + ('[i]' if symbol.has_vector_parameter() else '')

@@ -4,7 +4,7 @@
   @param ast ASTFunctionCall
 #}
 {%- if utils.is_integrate(ast) -%}
-{%- include "GSLIntegrator.jinja2" -%}
-{%- else -%}
+<---- integrate ----->
+{%- elif not helper.has_threshold_block(ast) %}
 {{printer.print_method_call(ast)}};
 {%- endif -%}

@@ -27,14 +27,27 @@ state_t neuron_model_get_membrane_voltage(neuron_pointer_t neuron) {
 }
 
 void neuron_model_has_spiked(neuron_pointer_t neuron) {
-    // TODO: Perform operations required to reset the state after a spike
+    {% if helper.has_threshold_block(neuron.get_update_blocks()) %}
+    {%- with ast = helper.get_threshold_block(neuron.get_update_blocks()) -%}
+    {% if helper.is_update_block(ast) %}
+    {%- with ast = ast.get_block() %}
+    {%- include "Block.jinja2" -%}
+    {% endwith %}
+    {% elif helper.is_compound_stmt(ast)%}
+    {% with stmt = ast -%}
+    {% include "CompoundStatement.jinja2" -%}
+    {% endwith -%}
+    {% else %}
+    //TODO: block of threshold check not recognized
+    {% endif %}
+    {%- endwith -%}{%- else -%}
     {%- for state in neuron.get_state_symbols() -%}
     {{printer.print_origin(state)}}{{names.name(state)}} = {{printer.print_expression(state.get_initial_value())}};
     {% endfor %}
     {% for init in neuron.get_initial_values_symbols() -%}
     /*{{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}*/
     {{printer.print_origin(state)}}{{names.name(init)}} = {{printer.print_expression(init.get_initial_value())}};
-    {% endfor -%}
+    {% endfor -%}{% endif %}
 }
 
 void neuron_model_print_state_variables(restrict neuron_pointer_t neuron){
