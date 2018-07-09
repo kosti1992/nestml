@@ -19,6 +19,9 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 from pynestml.meta_model.ast_node import ASTNode
+from pynestml.meta_model.ast_if_clause import ASTIfClause
+from pynestml.meta_model.ast_elif_clause import ASTElifClause
+from pynestml.meta_model.ast_else_clause import ASTElseClause
 
 
 class ASTIfStmt(ASTNode):
@@ -35,7 +38,7 @@ class ASTIfStmt(ASTNode):
         else_clause = None
     """
 
-    def __init__(self, if_clause, elif_clauses=list(), else_clause=None, source_position=None):
+    def __init__(self, if_clause, elif_clauses = list(), else_clause = None, source_position = None):
         """
         Standard construcotr.
         :param if_clause: the if-clause
@@ -59,7 +62,7 @@ class ASTIfStmt(ASTNode):
         """
         Returns the if-clause.
         :return: the if clause
-        :rtype: ASTfClause
+        :rtype: ASTIfClause
         """
         return self.if_clause
 
@@ -72,6 +75,7 @@ class ASTIfStmt(ASTNode):
         return len(self.elif_clauses) > 0
 
     def get_elif_clauses(self):
+        # type: (None) -> list(ASTElifClause)
         """
         Returns a list of elif-clauses.
         :return: a list of elif-clauses.
@@ -91,7 +95,7 @@ class ASTIfStmt(ASTNode):
         """
         Returns the else-clause.
         :return: the else-clause.
-        :rtype: ast_else_clause
+        :rtype: ASTElseClause
         """
         return self.else_clause
 

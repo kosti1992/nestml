@@ -4,7 +4,7 @@
   @param ast ASTFunctionCall
 #}
 {%- if utils.is_integrate(ast) -%}
-<---- integrate ----->
+neuron_model_integrate(exc_input, inh_input, external_bias, neuron);
 {%- elif not helper.has_threshold_block(ast) %}
 {{printer.print_method_call(ast)}};
 {%- endif -%}

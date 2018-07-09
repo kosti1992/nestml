@@ -9,12 +9,38 @@ void neuron_model_set_global_neuron_params(global_neuron_params_pointer_t params
     global_params = params;
 }
 
+void neuron_model_integrate(input_t exc_input, input_t inh_input, input_t external_bias, neuron_pointer_t neuron){
+    typedef {{neuronName}}::State_ State_;
+  {%- for ode in neuron.get_equations_blocks().get_declarations() -%}
+    {%- for function in utils.get_alias_symbols(ode) -%}
+      {%- if not function.is_equation() -%}
+        {% set declaringExpression = function.get_declaring_expression() -%}
+  double {{names.name(function)}} = {{printerGSL.print_expression(declaringExpression)}};
+      {% endif -%}
+    {% endfor -%}
+  {% endfor %}
+  {%- for odeVariable in neuron.get_non_function_initial_values_symbols() -%}
+  {%- if odeVariable.is_ode_defined() %}
+  neuron->{{names.name(odeVariable)}} = {{printer.print_expression(odeVariable.get_ode_definition())}};
+  {%- endif -%}
+  {%- endfor %}
+}
+
+
 state_t neuron_model_state_update(
         input_t exc_input, input_t inh_input, input_t external_bias,
         neuron_pointer_t neuron){
     {%- set dynamics = neuron.get_update_blocks() -%}
-    {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}
-    {%- include "Block.jinja2" -%}{%- endfilter -%}
+    {%- with ast = dynamics.get_block() -%}
+    {% for statement in ast.get_stmts() -%}
+    {% if not helper.has_threshold_block(statement) %}
+    {% filter indent(2,True) -%}
+    {% with stmt = statement -%}
+    {% include "Statement.jinja2" -%}
+    {% endwith -%}
+    {% endfilter %}
+    {% endif %}
+    {% endfor -%}
     {%- endwith %}
 
     {%- set membrane_var = helper.get_membrane_variable(neuron) %}
@@ -33,9 +59,9 @@ void neuron_model_has_spiked(neuron_pointer_t neuron) {
     {%- with ast = ast.get_block() %}
     {%- include "Block.jinja2" -%}
     {% endwith %}
-    {% elif helper.is_compound_stmt(ast)%}
-    {% with stmt = ast -%}
-    {% include "CompoundStatement.jinja2" -%}
+    {%- elif helper.is_compound_stmt(ast)%}
+    {%- with stmt = ast -%}{%- filter indent(2,True) -%}
+    {% include "CompoundStatement.jinja2" -%}{%- endfilter -%}
     {% endwith -%}
     {% else %}
     //TODO: block of threshold check not recognized

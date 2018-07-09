@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.meta_model.ast_function_call import ASTFunctionCall
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.symbol import SymbolKind
@@ -136,8 +137,8 @@ class ASTUtils(object):
             return ''
 
     @classmethod
-    def deconstruct_assignment(cls, lhs=None, is_plus=False, is_minus=False, is_times=False, is_divide=False,
-                               _rhs=None):
+    def deconstruct_assignment(cls, lhs = None, is_plus = False, is_minus = False, is_times = False, is_divide = False,
+                               _rhs = None):
         """
         From lhs and rhs it constructs a new rhs which corresponds to direct assignment.
         E.g.: a += b*c -> a = a + b*c
@@ -488,3 +489,60 @@ class ASTUtils(object):
                 name += '__d'
             diff_order -= 1
         return ASTNodeFactory.create_ast_variable(name=name, differential_order=diff_order)
+
+    @classmethod
+    def negate_expression(self, ast):
+        from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        if isinstance(ast, ASTExpressionNode):
+            return ASTNodeFactory.create_ast_expression(is_logical_not=True,
+                                                        expression=ast,
+                                                        source_position=ASTSourceLocation.get_added_source_position())
+
+        else:
+            return ast
+
+    @classmethod
+    def append_with_logical_op(cls, left, right, op_and = True, op_or = False):
+        from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        assert isinstance(left, ASTExpressionNode)
+        assert isinstance(right, ASTExpressionNode)
+        op = ASTNodeFactory.create_ast_logical_operator(is_logical_and=op_and, is_logical_or=op_or,
+                                                        source_position=ASTSourceLocation.get_added_source_position())
+        return ASTNodeFactory. \
+            create_ast_compound_expression(lhs=left, rhs=right, binary_operator=op,
+                                           source_position=ASTSourceLocation.get_added_source_position())
+
+    @classmethod
+    def encapsulate_in_brackets(cls, ast):
+        from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        # type: ASTExpressionNode -> ASTExpressionNode
+        return ASTNodeFactory.create_ast_expression(expression=ast, is_encapsulated=True,
+                                                    source_position=ASTSourceLocation.get_added_source_position())
+
+    @classmethod
+    def extract_else_condition(cls, if_stmt):
+        from pynestml.meta_model.ast_if_stmt import ASTIfStmt
+        from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+        # type: ASTIfStmt -> ASTExpressionNode
+        """
+        This function constructs from a given conditional block the explicit else condition, e.g.,
+        if a == b:
+            ...
+        elif b == c:
+            ...
+        else:
+            ...
+        The condition for else with !(a == b) and !(b == c) is derived.
+        """
+        # first the if part
+        ret = ASTUtils.negate_expression(if_stmt.get_if_clause().get_condition())
+        ret = ASTUtils.encapsulate_in_brackets(ret)
+        # now the elif parts
+        for el_if in if_stmt.get_elif_clauses():
+            temp = ASTUtils.negate_expression(el_if.get_condition())
+            temp = ASTUtils.encapsulate_in_brackets(temp)
+            ret = ASTUtils.append_with_logical_op(left=ret, right=temp, op_and=True)
+        return ret

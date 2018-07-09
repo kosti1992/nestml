@@ -25,6 +25,9 @@ from pynestml.visitors.ast_parent_aware_visitor import ASTParentAwareVisitor
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_compound_stmt import ASTCompoundStmt
+from pynestml.meta_model.ast_if_stmt import ASTIfStmt
+from pynestml.utils.ast_utils import ASTUtils
+from pynestml.meta_model.ast_expression import ASTExpression
 from copy import deepcopy
 
 
@@ -103,6 +106,48 @@ class SpiNNakerHelper(object):
         if isinstance(top, ASTCompoundStmt) or isinstance(top, ASTUpdateBlock):
             return top
         raise Exception('spinnaker:not implemented yet')
+
+    @classmethod
+    def get_emit_spike_blocks_from_compound_stmt(cls, ast):
+        assert isinstance(ast, ASTCompoundStmt)
+        if ast.is_if_stmt():
+            node = ast.get_if_stmt()
+        elif ast.is_for_stmt():
+            node = ast.get_for_stmt()
+        else:
+            node = ast.get_while_stmt()
+        return cls.__extract_block_with_emit_spike_from_stmt(node)
+
+    @classmethod
+    def __extract_block_with_emit_spike_from_stmt(cls, ast):
+        from pynestml.meta_model.ast_if_stmt import ASTIfStmt
+        from pynestml.meta_model.ast_while_stmt import ASTWhileStmt
+        from pynestml.meta_model.ast_for_stmt import ASTForStmt
+        """
+        This function extracts all blocks which contain an emit_spike call.
+        """
+        ret = list()
+        if isinstance(ast, ASTIfStmt):
+            visitor = ContainsEmitSpikeVisitor()
+            ast.get_if_clause().accept(visitor)
+            if visitor.contains_emit_spike:
+                ret.append(ast.get_if_clause().get_block())
+            for el_if in ast.get_elif_clauses():
+                visitor = ContainsEmitSpikeVisitor()
+                el_if.accept(visitor)
+                if visitor.contains_emit_spike:
+                    ret.append(el_if.get_block())
+            if ast.has_else_clause():
+                visitor = ContainsEmitSpikeVisitor()
+                ast.get_else_clause().accept(visitor)
+                if visitor.contains_emit_spike:
+                    ret.append(ast.get_else_clause().get_block())
+
+        elif isinstance(ast, ASTWhileStmt):
+            ret.append(ast.get_block())
+        elif isinstance(ast, ASTForStmt):
+            ret.append(ast.get_block())
+        return ret
 
 
 class ContainsEmitSpikeVisitor(ASTParentAwareVisitor):
