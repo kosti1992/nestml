@@ -45,7 +45,7 @@ class SpiNNakerCodeGeneratorTest(unittest.TestCase):
     """
 
     def test_generate_spinnaker(self):
-        from pynestml.frontend.frontend_configuration import Targets,FrontendConfiguration
+        from pynestml.frontend.frontend_configuration import Targets, FrontendConfiguration
         FrontendConfiguration.targets.append(Targets.SpiNNaker)
 
         path = str(os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.join('..', 'models',
