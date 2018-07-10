@@ -10,7 +10,6 @@ void neuron_model_set_global_neuron_params(global_neuron_params_pointer_t params
 }
 
 void neuron_model_integrate(input_t exc_input, input_t inh_input, input_t external_bias, neuron_pointer_t neuron){
-    typedef {{neuronName}}::State_ State_;
   {%- for ode in neuron.get_equations_blocks().get_declarations() -%}
     {%- for function in utils.get_alias_symbols(ode) -%}
       {%- if not function.is_equation() -%}
