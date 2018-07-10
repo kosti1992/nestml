@@ -26,9 +26,7 @@ void neuron_model_integrate(input_t exc_input, input_t inh_input, input_t extern
 }
 
 
-state_t neuron_model_state_update(
-        input_t exc_input, input_t inh_input, input_t external_bias,
-        neuron_pointer_t neuron){
+state_t neuron_model_state_update(input_t exc_input, input_t inh_input, input_t external_bias, neuron_pointer_t neuron){
     {%- set dynamics = neuron.get_update_blocks() -%}
     {%- with ast = dynamics.get_block() -%}
     {% for statement in ast.get_stmts() -%}
