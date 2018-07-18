@@ -55,7 +55,7 @@ neuron expressionType_test:
     end
 
     parameters:
-       
+
     end
 
     update:

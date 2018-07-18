@@ -40,9 +40,9 @@ class ASTOdeEquation(ASTNode):
         """
         Standard constructor.
         :param lhs: an object of type ASTVariable
-        :type lhs: ast_variable
+        :type lhs: ASTVariable
         :param rhs: an object of type ASTExpression.
-        :type rhs: ast_expression or ast_simple_expression
+        :type rhs: ASTExpression or ast_simple_expression
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """

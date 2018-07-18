@@ -37,7 +37,7 @@ class ASTIfClause(ASTNode):
         :param condition: the condition of the block.
         :type condition: ast_expression
         :param block: a block of statements.
-        :type block: ast_block
+        :type block: ASTBlock
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """

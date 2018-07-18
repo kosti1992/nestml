@@ -86,7 +86,7 @@ class ASTAssignment(ASTNode):
         """
         Returns the right-hand side rhs.
         :return: rhs object.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.rhs
 

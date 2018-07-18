@@ -43,7 +43,7 @@ class ASTOdeFunction(ASTNode):
         :param variable_name: the name of the variable.
         :type variable_name: str
         :param data_type: the datatype of the function.
-        :type data_type: ast_data_type
+        :type data_type: ASTDataType
         :param expression: the computation rhs.
         :type expression: ast_expression
         :param source_position: the position of this element in the source file.

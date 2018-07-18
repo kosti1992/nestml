@@ -1,4 +1,4 @@
-# Generated from Tokens.g4 by ANTLR 4.7
+# Generated from Tokens.g4 by ANTLR 4.7.1
 # encoding: utf-8
 from __future__ import print_function
 from antlr4 import *
@@ -98,8 +98,6 @@ class Tokens(Lexer):
 
     decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
 
-    COMMENT = 2
-
     SL_COMMENT = 1
     ML_COMMENT = 2
     NEWLINE = 3
@@ -114,7 +112,7 @@ class Tokens(Lexer):
     DIFFERENTIAL_ORDER = 12
     FLOAT = 13
 
-    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN", u"COMMENT" ]
+    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN" ]
 
     modeNames = [ u"DEFAULT_MODE" ]
 
@@ -136,7 +134,7 @@ class Tokens(Lexer):
 
     def __init__(self, input=None, output=sys.stdout):
         super(Tokens, self).__init__(input, output=output)
-        self.checkVersion("4.7")
+        self.checkVersion("4.7.1")
         self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
         self._actions = None
         self._predicates = None

@@ -1,4 +1,4 @@
-# Generated from PyNestML.g4 by ANTLR 4.7
+# Generated from PyNestML.g4 by ANTLR 4.7.1
 from antlr4 import *
 
 # This class defines a complete generic visitor for a parse tree produced by PyNestMLParser.
@@ -192,6 +192,16 @@ class PyNestMLVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by PyNestMLParser#parameter.
     def visitParameter(self, ctx):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PyNestMLParser#constraintsBlock.
+    def visitConstraintsBlock(self, ctx):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PyNestMLParser#constraint.
+    def visitConstraint(self, ctx):
         return self.visitChildren(ctx)
 
 

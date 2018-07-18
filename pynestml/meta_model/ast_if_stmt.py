@@ -39,7 +39,7 @@ class ASTIfStmt(ASTNode):
         """
         Standard construcotr.
         :param if_clause: the if-clause
-        :type if_clause: ast_if_clause
+        :type if_clause: ASTIfClause
         :param elif_clauses: (optional) list of elif clauses
         :type elif_clauses: ast_elif_clause
         :param else_clause: (optional) else clause

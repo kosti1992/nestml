@@ -58,7 +58,7 @@ class ASTFunction(ASTNode):
         :param return_type: (Optional) Return type.
         :type return_type: ast_data_type
         :param block: a block of declarations.
-        :type block: ast_block
+        :type block: ASTBlock
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """

@@ -181,7 +181,7 @@ class ASTBuilderVisitor(PyNestMLVisitor):
     def visitSimpleExpression(self, ctx):
         function_call = (self.visit(ctx.functionCall()) if ctx.functionCall() is not None else None)
         boolean_literal = ((True if re.match(r'[Tt]rue', str(
-            ctx.BOOLEAN_LITERAL())) else False) if ctx.BOOLEAN_LITERAL() is not None else None)
+                ctx.BOOLEAN_LITERAL())) else False) if ctx.BOOLEAN_LITERAL() is not None else None)
         if ctx.INTEGER() is not None:
             numeric_literal = int(str(ctx.INTEGER()))
         elif ctx.FLOAT() is not None:
@@ -322,7 +322,7 @@ class ASTBuilderVisitor(PyNestMLVisitor):
 
     # Visit a parse tree produced by PyNESTMLParser#assignment.
     def visitAssignment(self, ctx):
-        lhs = self.visit(ctx.lhsVariable) if ctx.lhsVariable is not None else None
+        lhs = self.visit(ctx.lhs_variable) if ctx.lhs_variable is not None else None
         is_direct_assignment = True if ctx.directAssignment is not None else False
         is_compound_sum = True if ctx.compoundSum is not None else False
         is_compound_minus = True if ctx.compoundMinus is not None else False
@@ -473,6 +473,9 @@ class ASTBuilderVisitor(PyNestMLVisitor):
         if ctx.function() is not None:
             for child in ctx.function():
                 body_elements.append(child)
+        if ctx.constraintsBlock() is not None:
+            for child in ctx.constraintsBlock():
+                body_elements.append(child)
         elements = list()
         while len(body_elements) > 0:
             elem = get_next(body_elements)
@@ -612,6 +615,20 @@ class ASTBuilderVisitor(PyNestMLVisitor):
         compound = self.visit(ctx.compoundStmt()) if ctx.compoundStmt() is not None else None
         return ASTNodeFactory.create_ast_stmt(small, compound, create_source_pos(ctx))
 
+    # Visit a parse tree produced by PyNESTMLParser#constraintsBlock
+    def visitConstraintsBlock(self, ctx):
+        constraints = list()
+        for const in ctx.constraint():
+            constraints.append(self.visit(const))
+        return ASTNodeFactory.create_ast_constraint_block(constraints, create_source_pos(ctx))
+
+    # Visit a parse tree produced by PyNESTMLParser#constraint
+    def visitConstraint(self, ctx):
+        left_bound = convert_constrain_bound(ctx.leftBound.text) if ctx.leftBound is not None else None
+        variable = self.visit(ctx.variable()) if ctx.variable() is not None else None
+        right_bound = convert_constrain_bound(ctx.rightBound.text) if ctx.rightBound is not None else None
+        return ASTNodeFactory.create_ast_constraint(left_bound, variable, right_bound, create_source_pos(ctx))
+
 
 def update_node_comments(node, comments):
     node.comment = comments[0]
@@ -620,7 +637,7 @@ def update_node_comments(node, comments):
     node.post_comments = comments[3]
 
 
-def get_next(_elements=list()):
+def get_next(_elements = list()):
     """
     This method is used to get the next element according to its source position.
     :type _elements: a list of elements
@@ -644,3 +661,15 @@ def create_source_pos(ctx):
                                                       start_column=ctx.start.column,
                                                       end_line=ctx.stop.line,
                                                       end_column=ctx.stop.column)
+
+
+def convert_constrain_bound(text):
+    from pynestml.meta_model.ast_constraint import ASTConstraint
+    if text == '<=':
+        return ASTConstraint.Boundary.LESS_EQUAL
+    elif text == '<':
+        return ASTConstraint.Boundary.LESS_THAN
+    elif text == '==':
+        return ASTConstraint.Boundary.EQUAL
+    else:
+        raise Exception('PyNestML: Not defined boundary!')

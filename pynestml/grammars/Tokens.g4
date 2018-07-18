@@ -28,9 +28,6 @@ lexer grammar Tokens;
     NEW_LINE = 3
   }
 
-
-  channels {COMMENT}
-
   SL_COMMENT: ('#' (~('\n' |'\r' ))*) -> channel(2);
 
   ML_COMMENT : ('/*' .*? '*/' | '"""' .*? '"""')-> channel(2);

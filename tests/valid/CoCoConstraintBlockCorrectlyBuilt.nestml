@@ -1,0 +1,53 @@
+#
+# CoCoInvariantBlockCorrectlyBuilt.nestml
+#
+# This file is part of NEST.
+#
+# Copyright (C) 2004 The NEST Initiative
+#
+# NEST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# NEST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+#
+# This test checks whether all boundaries are detected.
+#
+
+neuron CoCoInvariantBlockCorrectlyBuilt:
+    state:
+        V_m mV = 0mV
+        U_m mV = 200mV
+        test boolean = false
+    end
+
+    input:
+        #empty
+    end
+
+    parameters:
+        C_m pF = 200pF
+    end
+
+    output : spike
+
+    update:
+        #empty
+    end
+
+
+    constraints:
+       0mV <= V_m <= 90mV # here, no errors should be detected
+       C_m <= 500pF # correct, lower bound is -inf
+       0mV <= U_m  # correct, upper bound is inf
+       test == false # invariant
+    end
+
+end

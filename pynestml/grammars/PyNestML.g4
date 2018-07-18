@@ -211,7 +211,7 @@ grammar PyNestML;
     @attribute function: A block declaring a used-defined function.
   */
   body: BLOCK_OPEN
-         (NEWLINE | blockWithVariables | equationsBlock | inputBlock | outputBlock | updateBlock | function)*
+         (NEWLINE | blockWithVariables | equationsBlock | inputBlock | outputBlock | updateBlock | function | constraintsBlock)*
          BLOCK_CLOSE;
 
   /** ASTBlockWithVariables Represent a block with variables and constants, e.g.:
@@ -315,3 +315,15 @@ grammar PyNestML;
     @attribute dataType: The corresponding data type.
   */
   parameter : NAME dataType;
+
+  /** ASTConstraintBlock represents a block of invariants which have to apply during the execution of the model.
+    @attribute constraint: A set of constraints which have to apply during the simulation.
+  */
+  constraintsBlock: 'constraints' BLOCK_OPEN constraint* BLOCK_CLOSE;
+
+
+  /** ASTConstraint represents a single constraint which restricts either state vars, initial vars or parameters.
+    @attribute simpleExpression: Represents the bound.
+    @attribute variable: The bounded variable.
+  */
+  constraint: (simpleExpression leftBound=('<'|'<='|'=='))? variable (rightBound=('<'|'<='|'==') simpleExpression)?;
