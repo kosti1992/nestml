@@ -620,14 +620,22 @@ class ASTBuilderVisitor(PyNestMLVisitor):
         constraints = list()
         for const in ctx.constraint():
             constraints.append(self.visit(const))
-        return ASTNodeFactory.create_ast_constraint_block(constraints, create_source_pos(ctx))
+        node = ASTNodeFactory.create_ast_constraint_block(constraints, create_source_pos(ctx))
+        update_node_comments(node, self.__comments.visit(ctx))
+        return node
 
     # Visit a parse tree produced by PyNESTMLParser#constraint
     def visitConstraint(self, ctx):
-        left_bound = convert_constrain_bound(ctx.leftBound.text) if ctx.leftBound is not None else None
+        left_bound = self.visit(ctx.leftBound) if ctx.leftBound is not None else None
+        left_bound_type = convert_constrain_bound(ctx.leftBoundType.text) if ctx.leftBoundType is not None else None
         variable = self.visit(ctx.variable()) if ctx.variable() is not None else None
-        right_bound = convert_constrain_bound(ctx.rightBound.text) if ctx.rightBound is not None else None
-        return ASTNodeFactory.create_ast_constraint(left_bound, variable, right_bound, create_source_pos(ctx))
+        right_bound_type = convert_constrain_bound(ctx.rightBoundType.text) if ctx.rightBoundType is not None else None
+        right_bound = self.visit(ctx.rightBound) if ctx.rightBound is not None else None
+        node = ASTNodeFactory.create_ast_constraint(left_bound, left_bound_type,
+                                                    variable, right_bound_type, right_bound,
+                                                    create_source_pos(ctx))
+        update_node_comments(node, self.__comments.visit(ctx))
+        return node
 
 
 def update_node_comments(node, comments):

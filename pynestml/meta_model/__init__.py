@@ -41,4 +41,6 @@ __all__ = ['ast_arithmetic_operator',
            'ast_unit_type',
            'ast_update_block',
            'ast_variable',
-           'ast_while_stmt']
+           'ast_while_stmt',
+           'ast_constraint',
+           'ast_constraints_block']

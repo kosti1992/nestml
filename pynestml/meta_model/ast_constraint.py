@@ -24,21 +24,24 @@ from pynestml.meta_model.ast_node import ASTNode
 
 class ASTConstraint(ASTNode):
 
-    def __init__(self, left_bound, variable, right_bound, source_position):
+    def __init__(self, left_bound, left_bound_type, variable, right_bound_type, right_bound, source_position):
         super(ASTConstraint, self).__init__(source_position)
         self.left_bound = left_bound
+        self.left_bound_type = left_bound_type
         self.variable = variable
+        self.right_bound_type = right_bound_type
         self.right_bound = right_bound
 
     def get_parent(self, ast):
         # todo
-        pass
+        raise Exception('implement me in constraint')
 
     def equals(self, other):
         if not isinstance(other, ASTConstraint):
             return False
         return (self.left_bound == other.left_bound and self.variable.equals(other.variable) and
-                self.right_bound == other.right_bound and self.sourcePosition.equals(other.sourcePosition))
+                self.right_bound == other.right_bound and self.sourcePosition.equals(other.sourcePosition) and
+                self.left_bound == other.left_bound and self.right_bound == other.right_bound)
 
     class Boundary(Enum):
         LESS_THAN = 1

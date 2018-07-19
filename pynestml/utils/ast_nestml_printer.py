@@ -57,6 +57,8 @@ from pynestml.meta_model.ast_unit_type import ASTUnitType
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.meta_model.ast_while_stmt import ASTWhileStmt
+from pynestml.meta_model.ast_constraint import ASTConstraint
+from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 
 
 class ASTNestMLPrinter(object):
@@ -150,6 +152,10 @@ class ASTNestMLPrinter(object):
             ret = self.print_while_stmt(node)
         if isinstance(node, ASTStmt):
             ret = self.print_stmt(node)
+        if isinstance(node, ASTConstraint):
+            ret = self.print_constraint(node)
+        if isinstance(node, ASTConstraintsBlock):
+            ret = self.print_constraint_block(node)
         ret = filter_subsequent_whitespaces(ret)
         return ret
 
@@ -369,7 +375,7 @@ class ASTNestMLPrinter(object):
             ret += self.print_node(node.get_rhs())
         elif node.is_ternary_operator():
             ret += self.print_node(node.get_condition()) + '?' + self.print_node(
-                node.get_if_true()) + ':' + self.print_node(node.get_if_not())
+                    node.get_if_true()) + ':' + self.print_node(node.get_if_not())
         return ret
 
     def print_for_stmt(self, node):
@@ -636,6 +642,32 @@ class ASTNestMLPrinter(object):
         ret += print_ml_comments(node.post_comments, temp_indent, True)
         return ret
 
+    def print_constraint(self, node):
+        # type: (ASTConstraint) -> str
+        left = ''
+        if node.left_bound is not None:
+            left = self.print_simple_expression(node.left_bound)
+            left += ' ' + print_boundary(node.left_bound_type)
+        var = self.print_variable(node.variable)
+        right = ''
+        if node.right_bound is not None:
+            right = print_boundary(node.right_bound_type)
+            right += ' ' + self.print_simple_expression(node.right_bound)
+        return left + ' ' + var + ' ' + right
+
+    def print_constraint_block(self, node):
+        # type: (ASTConstraintsBlock) -> str
+        temp_indent = self.indent
+        self.inc_indent()
+        ret = print_ml_comments(node.pre_comments, temp_indent, False)
+        ret += (print_n_spaces(temp_indent) + 'constraints:' + '\n')
+        for const in node.constraints:
+            ret += print_n_spaces(self.indent) + self.print_constraint(const) + '\n'
+        ret += (print_n_spaces(temp_indent) + 'end\n')
+        self.dec_indent()
+        ret += print_ml_comments(node.post_comments, temp_indent, True)
+        return ret
+
     def inc_indent(self):
         self.indent += self.tab_size
 
@@ -647,7 +679,7 @@ def print_n_spaces(n):
     return ' ' * n
 
 
-def print_ml_comments(comments, indent=0, is_post=False):
+def print_ml_comments(comments, indent = 0, is_post = False):
     if comments is None or len(list(comments)) == 0:
         return ''
     ret = ''
@@ -664,7 +696,7 @@ def print_ml_comments(comments, indent=0, is_post=False):
             if comment.splitlines(True).index(c_line) != 0:
                 ret += print_n_spaces(indent)
                 ret += ('*  ' if c_line[len(c_line) - len(c_line.lstrip())] != '*' and len(
-                    comment.splitlines(True)) > 1 else '')
+                        comment.splitlines(True)) > 1 else '')
             ret += c_line
         if len(comment.splitlines(True)) > 1:
             ret += print_n_spaces(indent)
@@ -701,3 +733,14 @@ def filter_subsequent_whitespaces(string):
             del s_lines[index + 1]
     ret = ''.join(s_lines)
     return ret
+
+
+def print_boundary(bound):
+    if bound == ASTConstraint.Boundary.EQUAL:
+        return '=='
+    elif bound == ASTConstraint.Boundary.LESS_THAN:
+        return '<'
+    elif bound == ASTConstraint.Boundary.LESS_EQUAL:
+        return '<='
+    else:
+        return '<ERROR>'

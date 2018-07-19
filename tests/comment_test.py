@@ -84,6 +84,11 @@ class CommentTest(unittest.TestCase):
         self.assertEqual(neuron_body_elements[5].get_comment()[0], 'output comment ok')
         # check that update comment is detected
         self.assertEqual(neuron_body_elements[6].get_comment()[0], 'update comment ok')
+        # check that the constraint block comments are detected
+        self.assertEqual(neuron_body_elements[7].get_comment()[0], 'constraints block comment ok')
+        self.assertEqual(neuron_body_elements[7].constraints[0].get_comment()[0], 'constraint pre ok')
+        self.assertEqual(neuron_body_elements[7].constraints[0].get_comment()[1], 'constraint in ok')
+        self.assertEqual(neuron_body_elements[7].constraints[0].get_comment()[2], 'constraint post ok')
 
 
 if __name__ == '__main__':

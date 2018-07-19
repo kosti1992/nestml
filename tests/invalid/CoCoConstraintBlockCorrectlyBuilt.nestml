@@ -46,7 +46,6 @@ neuron CoCoInvariantBlockCorrectlyBuilt:
     constraints:
        90mV <= V_m <= 0mV # this should throw an error, since interval empty
        500pF <= C_m # this should throw an error, since lower bound under
-
     end
 
 end

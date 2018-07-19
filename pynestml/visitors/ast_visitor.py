@@ -57,6 +57,8 @@ from pynestml.meta_model.ast_unit_type import ASTUnitType
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.meta_model.ast_while_stmt import ASTWhileStmt
+from pynestml.meta_model.ast_constraint import ASTConstraint
+from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 
 
 class ASTVisitor(object):
@@ -378,6 +380,27 @@ class ASTVisitor(object):
         return
 
     def visit_stmt(self, node):
+        """
+        Used to visit a single statement.
+        :param node: a single statement.
+        :type node: ASTStmt
+        """
+        return
+
+    def visit_constraint(self, node):
+        """
+        Used to visit a single constraint.
+        :param node: a single constraint.
+        :type node: ASTConstraint
+        """
+        return
+
+    def visit_constraints_block(self, node):
+        """
+        Used to visit a single constraints block.
+        :param node: a single constraints block.
+        :type node: ASTConstraintsBlock
+        """
         return
 
     def endvisit_compilation_unit(self, node):
@@ -692,6 +715,22 @@ class ASTVisitor(object):
         """
         return
 
+    def endvisit_constraint(self, node):
+        """
+        Used to endvisit a single constraint.
+        :param node: a single constraint
+        :return: ASTConstraint
+        """
+        return
+
+    def endvisit_constraints_block(self, node):
+        """
+        Used to endvisit a single constraints block.
+        :param node: a single constraints block
+        :return: ASTConstraintsBlock
+        """
+        return
+
     def set_real_self(self, _visitor):
         assert (_visitor is not None and isinstance(_visitor, ASTVisitor))
         self.real_self = _visitor
@@ -829,6 +868,12 @@ class ASTVisitor(object):
         if isinstance(node, ASTStmt):
             self.visit_stmt(node)
             return
+        if isinstance(node, ASTConstraint):
+            self.visit_constraint(node)
+            return
+        if isinstance(node, ASTConstraintsBlock):
+            self.visit_constraints_block(node)
+            return
         return
 
     def traverse(self, node):
@@ -954,6 +999,12 @@ class ASTVisitor(object):
         if isinstance(node, ASTStmt):
             self.traverse_stmt(node)
             return
+        if isinstance(node, ASTConstraint):
+            self.traverse_constraint(node)
+            return
+        if isinstance(node, ASTConstraintsBlock):
+            self.traverse_constraints_block(node)
+            return
         return
 
     def endvisit(self, node):
@@ -1078,6 +1129,12 @@ class ASTVisitor(object):
             return
         if isinstance(node, ASTStmt):
             self.endvisit_stmt(node)
+            return
+        if isinstance(node, ASTConstraint):
+            self.endvisit_constraint(node)
+            return
+        if isinstance(node, ASTConstraintsBlock):
+            self.endvisit_constraints_block(node)
             return
         return
 
@@ -1335,3 +1392,17 @@ class ASTVisitor(object):
             node.small_stmt.accept(self.get_real_self())
         if node.is_compound_stmt():
             node.compound_stmt.accept(self.get_real_self())
+
+    def traverse_constraint(self, node):
+        if node.left_bound is not None:
+            node.left_bound.accept(self.get_real_self())
+        node.variable.accept(self.get_real_self())
+        if node.right_bound is not None:
+            node.right_bound.accept(self.get_real_self())
+        return
+
+    def traverse_constraints_block(self, node):
+        if node.constraints is not None and len(node.constraints) > 0:
+            for sub_node in node.constraints:
+                sub_node.accept(self.get_real_self())
+        return

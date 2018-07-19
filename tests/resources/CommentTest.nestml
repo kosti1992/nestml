@@ -51,6 +51,7 @@ neuron commentTest:
 
   #internals comment ok
   internals:
+     P_f mV = 10mV
   end
 
   #input comment ok
@@ -70,7 +71,13 @@ neuron commentTest:
     if test == test2:
         test = test2
     end
+  end
 
+  #constraints block comment ok
+  constraints:
+    #constraint pre ok
+    0mV < P_f <= 10mV #constraint in ok
+    #constraint post ok
   end
 
 end

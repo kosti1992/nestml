@@ -3468,8 +3468,10 @@ class PyNestMLParser ( Parser ):
         def __init__(self, parser, parent=None, invokingState=-1):
             super(PyNestMLParser.ConstraintContext, self).__init__(parent, invokingState)
             self.parser = parser
-            self.leftBound = None # Token
-            self.rightBound = None # Token
+            self.leftBound = None # SimpleExpressionContext
+            self.leftBoundType = None # Token
+            self.rightBoundType = None # Token
+            self.rightBound = None # SimpleExpressionContext
 
         def variable(self):
             return self.getTypedRuleContext(PyNestMLParser.VariableContext,0)
@@ -3506,12 +3508,12 @@ class PyNestMLParser ( Parser ):
             la_ = self._interp.adaptivePredict(self._input,59,self._ctx)
             if la_ == 1:
                 self.state = 492
-                self.simpleExpression()
+                localctx.leftBound = self.simpleExpression()
                 self.state = 493
-                localctx.leftBound = self._input.LT(1)
+                localctx.leftBoundType = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << PyNestMLParser.T__22) | (1 << PyNestMLParser.T__23) | (1 << PyNestMLParser.T__24))) != 0)):
-                    localctx.leftBound = self._errHandler.recoverInline(self)
+                    localctx.leftBoundType = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
@@ -3524,15 +3526,15 @@ class PyNestMLParser ( Parser ):
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << PyNestMLParser.T__22) | (1 << PyNestMLParser.T__23) | (1 << PyNestMLParser.T__24))) != 0):
                 self.state = 498
-                localctx.rightBound = self._input.LT(1)
+                localctx.rightBoundType = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << PyNestMLParser.T__22) | (1 << PyNestMLParser.T__23) | (1 << PyNestMLParser.T__24))) != 0)):
-                    localctx.rightBound = self._errHandler.recoverInline(self)
+                    localctx.rightBoundType = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
                 self.state = 499
-                self.simpleExpression()
+                localctx.rightBound = self.simpleExpression()
 
 
         except RecognitionException as re:

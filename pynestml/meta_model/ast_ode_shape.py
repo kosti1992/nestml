@@ -50,7 +50,7 @@ class ASTOdeShape(ASTNode):
         """
         Returns the variable of the left-hand side.
         :return: the variable
-        :rtype: ast_variable
+        :rtype: ASTVariable
         """
         return self.lhs
 
@@ -58,7 +58,7 @@ class ASTOdeShape(ASTNode):
         """
         Returns the right-hand side rhs.
         :return: the rhs
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.rhs
 

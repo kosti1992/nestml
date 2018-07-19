@@ -62,6 +62,8 @@ from pynestml.meta_model.ast_unit_type import ASTUnitType
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.meta_model.ast_while_stmt import ASTWhileStmt
+from pynestml.meta_model.ast_constraint import ASTConstraint
+from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 from pynestml.symbol_table.symbol_table import SymbolTable
 from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.logger import Logger, LoggingLevel
@@ -77,7 +79,7 @@ class ModelParser(object):
     """
 
     @classmethod
-    def parse_model(cls, file_path=None):
+    def parse_model(cls, file_path = None):
         """
         Parses a handed over model and returns the meta_model representation of it.
         :param file_path: the path to the file which shall be parsed.
@@ -437,6 +439,22 @@ class ModelParser(object):
         # type: (str) -> ASTWhileStmt
         (builder, parser) = tokenize(string)
         ret = builder.visit(parser.whileStmt())
+        ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
+        return ret
+
+    @classmethod
+    def parse_constraint(cls, string):
+        # type: (str) -> ASTConstraint
+        (builder, parser) = tokenize(string)
+        ret = builder.visit(parser.constraint())
+        ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
+        return ret
+
+    @classmethod
+    def parse_constraint_block(cls, string):
+        # type: (str) -> ASTConstraintsBlock
+        (builder, parser) = tokenize(string)
+        ret = builder.visit(parser.constraintsBlock())
         ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
         return ret
 

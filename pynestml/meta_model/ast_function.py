@@ -104,7 +104,7 @@ class ASTFunction(ASTNode):
         """
         Returns the return type of function.
         :return: the return type 
-        :rtype: ast_data_type
+        :rtype: ASTDataType
         """
         return self.return_type
 
@@ -112,7 +112,7 @@ class ASTFunction(ASTNode):
         """
         Returns the block containing the definitions.
         :return: the block of the definitions.
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 

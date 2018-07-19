@@ -54,7 +54,7 @@ class ASTOdeEquation(ASTNode):
         """
         Returns the left-hand side of the equation.
         :return: an object of the meta_model-variable class.
-        :rtype: ast_variable
+        :rtype: ASTVariable
         """
         return self.lhs
 
@@ -62,7 +62,7 @@ class ASTOdeEquation(ASTNode):
         """
         Returns the left-hand side of the equation.
         :return: an object of the meta_model-expr class.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.rhs
 

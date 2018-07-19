@@ -367,9 +367,10 @@ class ASTNodeFactory(object):
         return ASTStmt(small_stmt, compound_stmt, source_position)
 
     @classmethod
-    def create_ast_constraint(cls, left_bound = None, variable = None, right_bound = None, source_position = None):
+    def create_ast_constraint(cls, left_bound = None, left_bound_type = None,
+                              variable = None, right_bound_type = None, right_bound = None, source_position = None):
         # type: (ASTConstraint.Boundary, ASTVariable, ASTConstraint.Boundary) -> ASTConstraint
-        return ASTConstraint(left_bound, variable, right_bound, source_position)
+        return ASTConstraint(left_bound, left_bound_type, variable, right_bound_type, right_bound, source_position)
 
     @classmethod
     def create_ast_constraint_block(cls, constraints = list(), source_position = None):
