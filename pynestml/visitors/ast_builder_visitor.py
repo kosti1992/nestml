@@ -627,9 +627,9 @@ class ASTBuilderVisitor(PyNestMLVisitor):
     # Visit a parse tree produced by PyNESTMLParser#constraint
     def visitConstraint(self, ctx):
         left_bound = self.visit(ctx.leftBound) if ctx.leftBound is not None else None
-        left_bound_type = convert_constrain_bound(ctx.leftBoundType.text) if ctx.leftBoundType is not None else None
+        left_bound_type = self.visit(ctx.leftBoundType) if ctx.leftBoundType is not None else None
         variable = self.visit(ctx.variable()) if ctx.variable() is not None else None
-        right_bound_type = convert_constrain_bound(ctx.rightBoundType.text) if ctx.rightBoundType is not None else None
+        right_bound_type = self.visit(ctx.rightBoundType) if ctx.rightBoundType is not None else None
         right_bound = self.visit(ctx.rightBound) if ctx.rightBound is not None else None
         node = ASTNodeFactory.create_ast_constraint(left_bound, left_bound_type,
                                                     variable, right_bound_type, right_bound,
@@ -669,15 +669,3 @@ def create_source_pos(ctx):
                                                       start_column=ctx.start.column,
                                                       end_line=ctx.stop.line,
                                                       end_column=ctx.stop.column)
-
-
-def convert_constrain_bound(text):
-    from pynestml.meta_model.ast_constraint import ASTConstraint
-    if text == '<=':
-        return ASTConstraint.Boundary.LESS_EQUAL
-    elif text == '<':
-        return ASTConstraint.Boundary.LESS_THAN
-    elif text == '==':
-        return ASTConstraint.Boundary.EQUAL
-    else:
-        raise Exception('PyNestML: Not defined boundary!')

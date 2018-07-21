@@ -33,17 +33,20 @@ class ASTConstraint(ASTNode):
         self.right_bound = right_bound
 
     def get_parent(self, ast):
-        # todo
-        raise Exception('implement me in constraint')
+        if self.left_bound is ast:
+            return self
+        if self.left_bound_type is ast:
+            return self
+        if self.variable is ast:
+            return self
+        if self.right_bound_type is ast:
+            return self
+        if self.right_bound is ast:
+            return self
 
     def equals(self, other):
         if not isinstance(other, ASTConstraint):
             return False
-        return (self.left_bound == other.left_bound and self.variable.equals(other.variable) and
-                self.right_bound == other.right_bound and self.sourcePosition.equals(other.sourcePosition) and
-                self.left_bound == other.left_bound and self.right_bound == other.right_bound)
-
-    class Boundary(Enum):
-        LESS_THAN = 1
-        LESS_EQUAL = 2
-        EQUAL = 3
+        return (self.left_bound.equals(other.left_bound) and self.variable.equals(other.variable) and
+                self.right_bound.equals(other.right_bound) and self.sourcePosition.equals(other.sourcePosition) and
+                self.left_bound_type.equals(other.left_bound) and self.right_bound_type.equals(other.right_bound_type))

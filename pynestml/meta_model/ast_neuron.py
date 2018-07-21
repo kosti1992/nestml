@@ -43,7 +43,7 @@ class ASTNeuron(ASTNode):
         artifact_name = None
     """
 
-    def __init__(self, name, body, source_position=None, artifact_name=None):
+    def __init__(self, name, body, source_position = None, artifact_name = None):
         """
         Standard constructor.
         :param name: the name of the neuron.
@@ -432,11 +432,22 @@ class ASTNeuron(ASTNode):
                 else:
                     code, message = Messages.get_could_not_resolve(iBuffer.getSymbolName())
                     Logger.log_message(
-                        message=message,
-                        code=code,
-                        error_position=iBuffer.getSourcePosition(),
-                        log_level=LoggingLevel.ERROR)
+                            message=message,
+                            code=code,
+                            error_position=iBuffer.getSourcePosition(),
+                            log_level=LoggingLevel.ERROR)
         return ret
+
+    def get_constraint_block(self):
+        """
+        Returns the constraint block of the model, if any defined.
+        :return: a single constraint block
+        :rtype: ASTConstraintBlock
+        """
+        from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
+        for block in self.get_body().get_body_elements():
+            if isinstance(block, ASTConstraintsBlock):
+                return block
 
     def get_parameter_non_alias_symbols(self):
         """
@@ -652,7 +663,7 @@ class ASTNeuron(ASTNode):
     parts of the neuron definition.
     """
 
-    def print_dynamics_comment(self, prefix=None):
+    def print_dynamics_comment(self, prefix = None):
         """
         Prints the dynamic block comment.
         :param prefix: a prefix string
@@ -665,7 +676,7 @@ class ASTNeuron(ASTNode):
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
 
-    def print_parameter_comment(self, prefix=None):
+    def print_parameter_comment(self, prefix = None):
         """
         Prints the update block comment.
         :param prefix: a prefix string
@@ -678,7 +689,7 @@ class ASTNeuron(ASTNode):
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
 
-    def print_state_comment(self, prefix=None):
+    def print_state_comment(self, prefix = None):
         """
         Prints the state block comment.
         :param prefix: a prefix string
@@ -691,7 +702,7 @@ class ASTNeuron(ASTNode):
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
 
-    def print_internal_comment(self, prefix=None):
+    def print_internal_comment(self, prefix = None):
         """
         Prints the internal block comment.
         :param prefix: a prefix string
@@ -704,7 +715,7 @@ class ASTNeuron(ASTNode):
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
 
-    def print_comment(self, prefix=None):
+    def print_comment(self, prefix = None):
         """
         Prints the header information of this neuron.
         :param prefix: a prefix string

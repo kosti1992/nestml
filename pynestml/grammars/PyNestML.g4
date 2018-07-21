@@ -326,6 +326,6 @@ grammar PyNestML;
     @attribute simpleExpression: Represents the bound.
     @attribute variable: The bounded variable.
   */
-  constraint: (leftBound=simpleExpression leftBoundType=('<'|'<='|'=='))?
+  constraint: (leftBound=simpleExpression leftBoundType=comparisonOperator)?
                variable
-              (rightBoundType=('<'|'<='|'==') rightBound=simpleExpression)?;
+              (rightBoundType=comparisonOperator rightBound=simpleExpression)?;

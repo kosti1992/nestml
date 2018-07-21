@@ -647,11 +647,11 @@ class ASTNestMLPrinter(object):
         left = ''
         if node.left_bound is not None:
             left = self.print_simple_expression(node.left_bound)
-            left += ' ' + print_boundary(node.left_bound_type)
+            left += ' ' + self.print_comparison_operator(node.left_bound_type)
         var = self.print_variable(node.variable)
         right = ''
         if node.right_bound is not None:
-            right = print_boundary(node.right_bound_type)
+            right = self.print_comparison_operator(node.right_bound_type)
             right += ' ' + self.print_simple_expression(node.right_bound)
         return left + ' ' + var + ' ' + right
 
@@ -733,14 +733,3 @@ def filter_subsequent_whitespaces(string):
             del s_lines[index + 1]
     ret = ''.join(s_lines)
     return ret
-
-
-def print_boundary(bound):
-    if bound == ASTConstraint.Boundary.EQUAL:
-        return '=='
-    elif bound == ASTConstraint.Boundary.LESS_THAN:
-        return '<'
-    elif bound == ASTConstraint.Boundary.LESS_EQUAL:
-        return '<='
-    else:
-        return '<ERROR>'

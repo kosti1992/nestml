@@ -1396,8 +1396,10 @@ class ASTVisitor(object):
     def traverse_constraint(self, node):
         if node.left_bound is not None:
             node.left_bound.accept(self.get_real_self())
+            node.left_bound_type.accept(self.get_real_self())
         node.variable.accept(self.get_real_self())
         if node.right_bound is not None:
+            node.right_bound_type.accept(self.get_real_self())
             node.right_bound.accept(self.get_real_self())
         return
 

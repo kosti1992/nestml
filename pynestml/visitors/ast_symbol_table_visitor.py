@@ -177,7 +177,7 @@ class ASTSymbolTableVisitor(ASTVisitor):
         node.get_block().update_scope(scope)
         return
 
-    def endvisit_update_block(self, node=None):
+    def endvisit_update_block(self, node = None):
         self.block_type_stack.pop()
         return
 
@@ -487,10 +487,10 @@ class ASTSymbolTableVisitor(ASTVisitor):
         :type node: ASTBlockWithVariables
         """
         self.block_type_stack.push(
-            BlockType.STATE if node.is_state else
-            BlockType.INTERNALS if node.is_internals else
-            BlockType.PARAMETERS if node.is_parameters else
-            BlockType.INITIAL_VALUES)
+                BlockType.STATE if node.is_state else
+                BlockType.INTERNALS if node.is_internals else
+                BlockType.PARAMETERS if node.is_parameters else
+                BlockType.INITIAL_VALUES)
         for decl in node.get_declarations():
             decl.update_scope(node.get_scope())
         return
@@ -559,8 +559,34 @@ class ASTSymbolTableVisitor(ASTVisitor):
         if node.is_compound_stmt():
             node.compound_stmt.update_scope(node.get_scope())
 
+    def visit_constraint(self, node):
+        """
+        Visits a constraint and updates its scope.
+        :param node: a single constraint
+        :return: ASTConstraint
+        """
+        from pynestml.visitors.ast_expression_type_visitor import ASTExpressionTypeVisitor
+        if node.left_bound is not None:
+            node.left_bound.update_scope(node.get_scope())
+            node.left_bound_type.update_scope(node.get_scope())
+        node.variable.update_scope(node.get_scope())
+        visitor = ASTExpressionTypeVisitor()
+        node.variable.accept(visitor)
+        if node.right_bound is not None:
+            node.right_bound_type.update_scope(node.get_scope())
+            node.right_bound.update_scope(node.get_scope())
 
-def make_trivial_assignment(var, order, equations_block, is_shape=False):
+    def visit_constraints_block(self, node):
+        """
+        Visits a block of constraints and updates their context.
+        :param node: a single constraint block node
+        :return: ASTConstraintBlock
+        """
+        for const in node.constraints:
+            const.update_scope(node.get_scope())
+
+
+def make_trivial_assignment(var, order, equations_block, is_shape = False):
     from pynestml.meta_model.ast_variable import ASTVariable
     from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
     from pynestml.meta_model.ast_node import ASTNode

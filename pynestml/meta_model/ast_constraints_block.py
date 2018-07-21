@@ -26,7 +26,11 @@ class ASTConstraintsBlock(ASTNode):
         self.constraints = constraints
 
     def get_parent(self, ast):
-        pass
+        for const in self.constraints:
+            if const is ast:
+                return self
+            elif const.get_parent(ast) is not None:
+                return const.get_parent(ast)
 
     def equals(self, other):
         if not isinstance(other, ASTConstraintsBlock):
