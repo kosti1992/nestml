@@ -31,6 +31,9 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
     @classmethod
     def check_co_co(cls, node):
         # type: (ASTNeuron) -> None
+        if node.get_constraint_block() is None:
+            # no constraints, thus nothing to do
+            return
         for const in node.get_constraint_block().constraints:
             # first check whether the types are suitable
             if const.left_bound is not None:
