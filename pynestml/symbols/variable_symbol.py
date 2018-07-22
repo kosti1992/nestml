@@ -244,6 +244,7 @@ class VariableSymbol(Symbol):
         return self.block_type == BlockType.INITIAL_VALUES
 
     def print_symbol(self):
+        # todo: obsolete, should be in __str__ -> refactor
         if self.get_referenced_object() is not None:
             source_position = str(self.get_referenced_object().get_source_position())
         else:
@@ -256,6 +257,9 @@ class VariableSymbol(Symbol):
         return ('VariableSymbol[' + self.get_symbol_name() + ', type=' +
                 typ_e + ', ' + str(self.block_type) + ', ' + recordable + func + conductance_based +
                 'array parameter=' + vector_value + ', @' + source_position + ')')
+
+    def __str__(self):
+        return self.print_symbol()
 
     def get_type_symbol(self):
         """

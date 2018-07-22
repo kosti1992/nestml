@@ -79,7 +79,7 @@ class IntegerTypeSymbol(TypeSymbol):
     def __invert__(self):
         return self
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power, modulo = None):
         from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
         from pynestml.symbols.real_type_symbol import RealTypeSymbol
 
@@ -128,3 +128,6 @@ class IntegerTypeSymbol(TypeSymbol):
             return True
         else:
             return False
+
+    def __str__(self):
+        return 'TypeSymbol: integer'

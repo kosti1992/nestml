@@ -45,7 +45,7 @@ class UnitTypeSymbol(TypeSymbol):
     def print_nest_type(self):
         return 'double'
 
-    def equals(self, other=None):
+    def equals(self, other = None):
         basic_equals = super(UnitTypeSymbol, self).equals(other)
         # defer comparison of units to sympy library
         if basic_equals is True:
@@ -96,7 +96,7 @@ class UnitTypeSymbol(TypeSymbol):
     def __invert__(self):
         return self.unary_operation_not_defined_error('~')
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power, modulo = None):
         from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
         if isinstance(power, ErrorTypeSymbol):
             return power
@@ -166,3 +166,6 @@ class UnitTypeSymbol(TypeSymbol):
             return True
         else:
             return False
+
+    def __str__(self):
+        return 'UnitTypeSymbol: %s' + str(self.unit.get_unit())

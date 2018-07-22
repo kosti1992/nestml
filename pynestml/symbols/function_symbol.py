@@ -71,11 +71,14 @@ class FunctionSymbol(Symbol):
         ret += ']'
         return ret
 
+    def __str__(self):
+        return self.print_symbol()
+
     def get_return_type(self):
         """
         Returns the return type of this function symbol
         :return: a single type symbol.
-        :rtype: type_symbol
+        :rtype: TypeSymbol
         """
         return self.return_type
 

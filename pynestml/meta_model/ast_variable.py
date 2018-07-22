@@ -21,6 +21,10 @@ from copy import copy
 
 from pynestml.meta_model.ast_node import ASTNode
 from pynestml.utils.either import Either
+from pynestml.symbols.symbol import SymbolKind
+from pynestml.utils.logger import Logger, LoggingLevel
+from pynestml.utils.messages import MessageCode
+from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 
 
 class ASTVariable(ASTNode):
@@ -37,7 +41,7 @@ class ASTVariable(ASTNode):
         type_symbol = None
     """
 
-    def __init__(self, name, differential_order=0, source_position=None):
+    def __init__(self, name, differential_order = 0, source_position = None):
         """
         Standard constructor.
         :param name: the name of the variable
@@ -112,6 +116,21 @@ class ASTVariable(ASTNode):
         :return: a single type symbol.
         :rtype: type_symbol
         """
+        if self.type_symbol is None:
+            scope = self.get_scope()
+            var_name = self.get_name()
+            var_resolve = scope.resolve_to_symbol(var_name, SymbolKind.VARIABLE)
+            # update the type of the variable according to its symbol type.
+            if var_resolve is not None:
+                self.type_symbol = var_resolve.get_type_symbol()
+                self.type_symbol.referenced_object = self
+            else:
+                message = 'Variable ' + str(self) + ' could not be resolved!'
+                Logger.log_message(code=MessageCode.SYMBOL_NOT_RESOLVED,
+                                   error_position=self.get_source_position(),
+                                   message=message, log_level=LoggingLevel.ERROR)
+                self.type_symbol = ErrorTypeSymbol()
+
         return copy(self.type_symbol)
 
     def set_type_symbol(self, type_symbol):

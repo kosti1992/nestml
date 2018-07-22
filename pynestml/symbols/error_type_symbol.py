@@ -71,7 +71,7 @@ class ErrorTypeSymbol(TypeSymbol):
     def __invert__(self):
         return self
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power, modulo = None):
         return self
 
     def negate(self):
@@ -85,3 +85,6 @@ class ErrorTypeSymbol(TypeSymbol):
 
     def is_castable_to(self, _other_type):
         return False
+
+    def __str__(self):
+        return 'TypeSymbol: error'

@@ -38,3 +38,6 @@ class VoidTypeSymbol(TypeSymbol):
 
     def is_castable_to(self, _other_type):
         return False
+
+    def __str__(self):
+        return 'TypeSymbol: void'

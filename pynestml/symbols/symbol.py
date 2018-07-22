@@ -124,6 +124,11 @@ class Symbol(object):
         """
         Returns a string representation of this symbol.
         """
+        # TODO: obsolete
+        pass
+
+    @abstractmethod
+    def __str__(self):
         pass
 
 
