@@ -43,7 +43,7 @@ PredefinedFunctions.register_functions()
 
 class ConstraintBlockTest(unittest.TestCase):
     def test_invalid(self):
-        Logger.set_logging_level(LoggingLevel.NO)
+        Logger.set_logging_level(LoggingLevel.INFO)
         model = ModelParser.parse_model(
                 os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'invalid')),
                              'CoCoConstraintBlockCorrectlyBuilt.nestml'))

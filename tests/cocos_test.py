@@ -560,23 +560,5 @@ class ValidExpressionCorrectlyTyped(unittest.TestCase):
                 Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)), 0)
 
 
-class CoCoBlockCorrectlyBuilt(unittest.TestCase):
-    def test_invalid(self):
-        Logger.set_logging_level(LoggingLevel.NO)
-        model = ModelParser.parse_model(
-                os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'invalid')),
-                             'CoCoConstraintBlockCorrectlyBuilt.nestml'))
-        self.assertEqual(len(
-                Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)), 0)
-
-    def test_valid(self):
-        Logger.set_logging_level(LoggingLevel.NO)
-        model = ModelParser.parse_model(
-                os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'valid')),
-                             'CoCoConstraintBlockCorrectlyBuilt.nestml'))
-        self.assertEqual(len(
-                Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)), 0)
-
-
 if __name__ == '__main__':
     unittest.main()

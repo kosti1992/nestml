@@ -136,8 +136,8 @@ class ASTUtils(object):
             return ''
 
     @classmethod
-    def deconstruct_assignment(cls, lhs=None, is_plus=False, is_minus=False, is_times=False, is_divide=False,
-                               _rhs=None):
+    def deconstruct_assignment(cls, lhs = None, is_plus = False, is_minus = False, is_times = False, is_divide = False,
+                               _rhs = None):
         """
         From lhs and rhs it constructs a new rhs which corresponds to direct assignment.
         E.g.: a += b*c -> a = a + b*c
@@ -488,3 +488,41 @@ class ASTUtils(object):
                 name += '__d'
             diff_order -= 1
         return ASTNodeFactory.create_ast_variable(name=name, differential_order=diff_order)
+
+    @classmethod
+    def get_lower_bound_of_constraint(cls, constraint):
+        # type: (ASTConstraint) -> list[(ASTSimpleExpression,ASTComparisonOperator)]
+        from pynestml.meta_model.ast_constraint import ASTConstraint
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        ret = list()
+        r_bound = constraint.right_bound
+        r_bound_type = constraint.right_bound_type
+        # the case of the right bound being > or >=
+        if r_bound is not None and (r_bound_type.is_gt or r_bound_type.is_ge):
+            ret.append(r_bound)
+        # now the other side,e.g., 100mV =< V_m >= 200mV
+        l_bound = constraint.left_bound
+        l_bound_type = constraint.left_bound_type
+        if l_bound is not None and (l_bound_type.is_lt or l_bound_type.is_le):
+            ret.append(l_bound)
+        return ret
+
+    @classmethod
+    def get_upper_bound_of_constraint(cls, constraint):
+        # type: (ASTConstraint) -> list[(ASTSimpleExpression,ASTComparisonOperator)]
+        from pynestml.meta_model.ast_constraint import ASTConstraint
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        ret = list()
+        r_bound = constraint.right_bound
+        r_bound_type = constraint.right_bound_type
+        # the case of the right bound being < or <=
+        if r_bound is not None and (r_bound_type.is_lt or r_bound_type.is_le):
+            ret.append(r_bound)
+        # now the other side,e.g., 100mV >= V_m <= 200mV
+        l_bound = constraint.left_bound
+        l_bound_type = constraint.left_bound_type
+        if l_bound is not None and (l_bound_type.is_gt or l_bound_type.is_ge):
+            ret.append(l_bound)
+        return ret

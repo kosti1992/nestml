@@ -83,7 +83,7 @@ class Messages(object):
         return MessageCode.START_SYMBOL_TABLE_BUILDING, 'Start building symbol table!'
 
     @classmethod
-    def get_function_call_implicit_cast(cls, arg_nr, function_call, expected_type, got_type, castable=False):
+    def get_function_call_implicit_cast(cls, arg_nr, function_call, expected_type, got_type, castable = False):
         """
         Returns a message indicating that an implicit cast has been performed.
         :param arg_nr: the number of the argument which is cast
@@ -897,6 +897,11 @@ class Messages(object):
         message = 'Not convertible unit \'%s\' used, 1 assumed as factor!' % name
         return MessageCode.NOT_NEUROSCIENCE_UNIT, message
 
+    @classmethod
+    def get_not_supported_op_in_constraint(cls, op, type_symbol):
+        message = "'%s' not compatible with OP '%s'!" % (str(type_symbol), str(op))
+        return MessageCode.NOT_COMPATIBLE_OP, message
+
 
 class MessageCode(Enum):
     """
@@ -962,3 +967,4 @@ class MessageCode(Enum):
     INTERNAL_WARNING = 56
     OPERATION_NOT_DEFINED = 57
     CONVOLVE_NEEDS_BUFFER_PARAMETER = 58
+    NOT_COMPATIBLE_OP = 59
