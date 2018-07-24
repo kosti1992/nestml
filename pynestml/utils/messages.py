@@ -902,6 +902,21 @@ class Messages(object):
         message = "'%s' not compatible with OP '%s'!" % (str(type_symbol), str(op))
         return MessageCode.NOT_COMPATIBLE_OP, message
 
+    @classmethod
+    def get_bounds_not_sat(cls, constraint):
+        message = "Constraint '%s' is not satisfiable!" % str(constraint)
+        return MessageCode.CONSTRAINT_NOT_SAT, message
+
+    @classmethod
+    def get_start_value_out_of_bounds(cls, variable, start_value, constraint, is_upper_bound = False):
+        if is_upper_bound:
+            message = "Start '%s' value of '%s' is over upper bound of constraint '%s'!" % (
+                start_value, variable, constraint)
+        else:
+            message = "Start '%s' value of '%s' is under lower bound of constraint '%s'!" % (
+                start_value, variable, constraint)
+        return MessageCode.START_VAL_OUT_OF_BOUNDS, message
+
 
 class MessageCode(Enum):
     """
@@ -968,3 +983,5 @@ class MessageCode(Enum):
     OPERATION_NOT_DEFINED = 57
     CONVOLVE_NEEDS_BUFFER_PARAMETER = 58
     NOT_COMPATIBLE_OP = 59
+    CONSTRAINT_NOT_SAT = 60
+    START_VAL_OUT_OF_BOUNDS = 61

@@ -19,13 +19,16 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_constraint import ASTConstraint
 from pynestml.utils.type_caster import TypeCaster
 from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.type_symbol import TypeSymbol
 from pynestml.symbols.void_type_symbol import VoidTypeSymbol
 from pynestml.symbols.string_type_symbol import StringTypeSymbol
 from pynestml.symbols.integer_type_symbol import IntegerTypeSymbol
 from pynestml.symbols.real_type_symbol import RealTypeSymbol
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.utils.messages import Messages
@@ -59,7 +62,9 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
             if const.right_bound is not None:
                 cls.__bound_typing_check(const.right_bound, const.variable)
                 cls.__operator_valid(const.variable.get_type_symbol(), const.right_bound_type)
-                
+            # finally check whether the bounds are sat
+            cls.__bound_sat_check(const)
+
     @classmethod
     def __bound_typing_check(cls, bound, var):
         # the most simple case: both are equal
@@ -71,7 +76,65 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
 
     @classmethod
     def __bound_sat_check(cls, constraint):
-        pass
+        # type: (ASTConstraint) -> None
+        if constraint.left_bound is not None and constraint.right_bound is not None:
+            lower = ASTUtils.get_lower_bound_of_constraint(constraint)
+            upper = ASTUtils.get_upper_bound_of_constraint(constraint)
+            symbol = constraint.get_scope().resolve_to_symbol(constraint.variable.get_complete_name(),
+                                                              SymbolKind.VARIABLE)
+            # only if it is bound from both sides, we have to check if it is sat
+            if len(lower) == 1 and len(upper) == 1 and lower[0].type.is_numeric() and upper[0].type.is_numeric():
+                lower_val = lower[0].get_numeric_literal()
+                upper_val = upper[0].get_numeric_literal()
+                symbol = constraint.get_scope().resolve_to_symbol(constraint.variable.get_complete_name(),
+                                                                  SymbolKind.VARIABLE)
+                if symbol is None:
+                    return
+                if isinstance(constraint.variable.type_symbol, UnitTypeSymbol):
+                    if lower[0].has_unit() and not constraint.variable.type_symbol.equals(lower[0].type):
+                        lower_val *= lower[0].type.get_conversion_factor(constraint.variable.type_symbol.astropy_unit,
+                                                                         lower[0].type.astropy_unit)
+                if upper[0].has_unit() and not constraint.variable.type_symbol.equals(upper[0].type):
+                    upper_val *= upper[0].type.get_conversion_factor(constraint.variable.type_symbol.astropy_unit,
+                                                                     upper[0].type.astropy_unit)
+                if not (lower_val <= upper_val):
+                    code, message = Messages.get_bounds_not_sat(constraint)
+                    Logger.log_message(neuron=cls.__current_neuron, message=message,
+                                       error_position=constraint.get_source_position(),
+                                       code=code, log_level=LoggingLevel.ERROR)
+                if symbol.declaring_expression is not None and isinstance(symbol.declaring_expression,
+                                                                          ASTSimpleExpression):
+                    if symbol.declaring_expression.get_numeric_literal() < lower_val:
+                        code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
+                                                                               str(symbol.declaring_expression),
+                                                                               str(constraint))
+                        Logger.log_message(neuron=cls.__current_neuron, message=message,
+                                           error_position=constraint.get_source_position(),
+                                           code=code, log_level=LoggingLevel.WARNING)
+                    if symbol.declaring_expression.get_numeric_literal() > upper_val:
+                        code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
+                                                                               str(symbol.declaring_expression),
+                                                                               str(constraint), True)
+                        Logger.log_message(neuron=cls.__current_neuron, message=message,
+                                           error_position=constraint.get_source_position(),
+                                           code=code, log_level=LoggingLevel.WARNING)
+
+                if symbol.initial_value is not None and isinstance(symbol.initial_value,
+                                                                   ASTSimpleExpression):
+                    if symbol.initial_value.get_numeric_literal() < lower_val:
+                        code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
+                                                                               str(symbol.initial_value),
+                                                                               str(constraint))
+                        Logger.log_message(neuron=cls.__current_neuron, message=message,
+                                           error_position=constraint.get_source_position(),
+                                           code=code, log_level=LoggingLevel.WARNING)
+                    if symbol.initial_value.get_numeric_literal() > upper_val:
+                        code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
+                                                                               str(symbol.initial_value),
+                                                                               str(constraint), True)
+                        Logger.log_message(neuron=cls.__current_neuron, message=message,
+                                           error_position=constraint.get_source_position(),
+                                           code=code, log_level=LoggingLevel.WARNING)
 
     @classmethod
     def __operator_valid(cls, type_symbol, operator):
