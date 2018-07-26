@@ -265,7 +265,7 @@ class VariableSymbol(Symbol):
         """
         Returns the corresponding type symbol.
         :return: the current type symbol.
-        :rtype: type_symbol
+        :rtype: TypeSymbol
         """
         return copy(self.type_symbol)
 

@@ -34,8 +34,8 @@ class NestPrinter(object):
     """
     This class contains all methods as required to transform
     """
-    
-    def __init__(self, expression_pretty_printer, reference_convert=None):
+
+    def __init__(self, expression_pretty_printer, reference_convert = None):
         """
         The standard constructor.
         :param reference_convert: a single reference converter
@@ -110,7 +110,7 @@ class NestPrinter(object):
         """
         assert isinstance(variable_symbol, VariableSymbol), \
             '(PyNestML.CodeGenerator.Printer) No or wrong type of variable symbol provided (%s)!' % type(
-                variable_symbol)
+                    variable_symbol)
         if variable_symbol.block_type == BlockType.STATE:
             return 'S_.'
         elif variable_symbol.block_type == BlockType.INITIAL_VALUES:
@@ -249,7 +249,7 @@ class NestPrinter(object):
             return self.print_buffer_getter(ast_buffer, True)
 
     @classmethod
-    def print_buffer_getter(cls, ast_buffer, is_in_struct=False):
+    def print_buffer_getter(cls, ast_buffer, is_in_struct = False):
         """
         Returns a string representation declaring a buffer getter as required in nest.
         :param ast_buffer: a single variable symbol representing a buffer.
@@ -324,3 +324,8 @@ class NestPrinter(object):
         assert isinstance(ast_buffer, VariableSymbol), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of ast_buffer symbol provided (%s)!' % type(ast_buffer)
         return '//!< Buffer incoming ' + ast_buffer.get_type_symbol().get_symbol_name() + 's through delay, as sum'
+
+    def convert_comparison_op(self, op):
+        # type: (ASTComparisonOperator) -> str
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        return self.expression_pretty_printer.reference_converter.convert_comparison_operator(op) % ('', '')

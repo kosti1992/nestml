@@ -50,3 +50,15 @@ class ASTConstraint(ASTNode):
         return (self.left_bound.equals(other.left_bound) and self.variable.equals(other.variable) and
                 self.right_bound.equals(other.right_bound) and self.sourcePosition.equals(other.sourcePosition) and
                 self.left_bound_type.equals(other.left_bound) and self.right_bound_type.equals(other.right_bound_type))
+
+    def get_left_bound(self):
+        return self.left_bound, self.left_bound_type
+
+    def get_right_bound(self):
+        return self.right_bound, self.right_bound_type
+
+    def has_left_bound(self):
+        return self.left_bound is not None and self.left_bound_type is not None
+
+    def has_right_bound(self):
+        return self.right_bound is not None and self.right_bound_type is not None

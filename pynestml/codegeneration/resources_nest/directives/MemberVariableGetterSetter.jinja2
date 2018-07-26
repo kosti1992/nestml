@@ -12,6 +12,20 @@
     return {{printer.print_origin(variable)}}{{names.name(variable)}};
   }
   inline void {{names.setter(variable)}}(const {{declarations.print_variable_type(variable)}} __v) {
+    {%- if utils.has_constraints(variable,neuron) %}
+        {%- for const in utils.get_constraints_of_variable(variable,neuron) %}
+            {% if const.has_left_bound() %}
+    if(!({{printer.print_expression(const.left_bound)}} {{printer.convert_comparison_op(const.left_bound_type)}} {{printer.print_origin(variable)}}{{names.name(variable)}}){
+        throw nest::BadProperty("{{names.name(variable)}} out of constraint bound!");
+    }
+            {%- endif -%}
+            {% if const.has_right_bound() %}
+    if(!({{printer.print_origin(variable)}}{{names.name(variable)}} {{printer.convert_comparison_op(const.right_bound_type)}} {{printer.print_expression(const.right_bound)}}){
+        throw nest::BadProperty("{{names.name(variable)}} out of constraint bound!");
+    }
+            {%- endif -%}
+        {%- endfor -%}
+    {% endif %}
     {{printer.print_origin(variable)}}{{names.name(variable)}} = __v;
   }
 {% endif %}

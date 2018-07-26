@@ -526,3 +526,41 @@ class ASTUtils(object):
         if l_bound is not None and (l_bound_type.is_gt or l_bound_type.is_ge):
             ret.append(l_bound)
         return ret
+
+    @classmethod
+    def has_constraints(cls, variable, neuron):
+        # type: (ASTVariable,ASTNeuron) -> bool
+        from pynestml.meta_model.ast_variable import ASTVariable
+        from pynestml.meta_model.ast_neuron import ASTNeuron
+        if neuron.get_constraint_block() is None:
+            return False
+        for const in neuron.get_constraint_block().constraints:
+            if const.variable.get_complete_name() == variable.name:
+                return True
+
+    @classmethod
+    def get_constraints_of_variable(cls, variable, neuron):
+        # type: (ASTVariable,ASTNeuron) -> list[ASTConstraint]
+        from pynestml.meta_model.ast_variable import ASTVariable
+        from pynestml.meta_model.ast_neuron import ASTNeuron
+        from pynestml.meta_model.ast_constraint import ASTConstraint
+        ret = list()
+        if neuron.get_constraint_block() is None:
+            return ret
+        for const in neuron.get_constraint_block().constraints:
+            if const.variable.get_complete_name() == variable.name:
+                ret.append(const)
+        return ret
+
+    @classmethod
+    def separate_constraint(cls, constraint):
+        # type: (ASTConstraint) -> list[(ASTSimpleExpression,ASTComparisonOperator)]
+        from pynestml.meta_model.ast_constraint import ASTConstraint
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        ret = list()
+        if constraint.left_bound is not None:
+            ret.append((constraint.left_bound, constraint.left_bound_type))
+        if constraint.right_bound is not None:
+            ret.append((constraint.right_bound, constraint.right_bound_type))
+        return ret
