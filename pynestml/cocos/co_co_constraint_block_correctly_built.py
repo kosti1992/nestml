@@ -77,15 +77,40 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
     @classmethod
     def __bound_sat_check(cls, constraint):
         # type: (ASTConstraint) -> None
+        from pynestml.meta_model.ast_expression import ASTExpression
         if constraint.left_bound is not None and constraint.right_bound is not None:
+            # the bound sat checks are only available for simple expression
+            if isinstance(constraint.left_bound, ASTExpression) and not constraint.left_bound.is_unary_operator():
+                # report
+                code, message = Messages.get_sat_check_only_for_simple_expressions(constraint, True)
+                Logger.log_message(code=code, message=message,
+                                   error_position=constraint.left_bound.get_source_position(),
+                                   log_level=LoggingLevel.WARNING, neuron=cls.__current_neuron)
+                return
+            if isinstance(constraint.left_bound, ASTExpression) and not constraint.left_bound.is_unary_operator():
+                code, message = Messages.get_sat_check_only_for_simple_expressions(constraint, False)
+                Logger.log_message(code=code, message=message,
+                                   error_position=constraint.right_bound.get_source_position(),
+                                   log_level=LoggingLevel.WARNING, neuron=cls.__current_neuron)
+                return
+
             lower = ASTUtils.get_lower_bound_of_constraint(constraint)
             upper = ASTUtils.get_upper_bound_of_constraint(constraint)
+            if len(lower) == 0 or len(upper) == 0:
+                # it is not bound in one direction, ignore the next steps
+                return
+            lower[0] = get_simple_expression(lower[0])
+            upper[0] = get_simple_expression(upper[0])
             symbol = constraint.get_scope().resolve_to_symbol(constraint.variable.get_complete_name(),
                                                               SymbolKind.VARIABLE)
+
             # only if it is bound from both sides, we have to check if it is sat
             if len(lower) == 1 and len(upper) == 1 and lower[0].type.is_numeric() and upper[0].type.is_numeric():
-                lower_val = lower[0].get_numeric_literal()
-                upper_val = upper[0].get_numeric_literal()
+
+                lower_val = get_simple_expression(lower[0]).get_numeric_literal() \
+                            * get_signum(ASTUtils.get_lower_bound_of_constraint(constraint)[0])
+                upper_val = get_simple_expression(upper[0]).get_numeric_literal() \
+                            * get_signum(ASTUtils.get_upper_bound_of_constraint(constraint)[0])
                 symbol = constraint.get_scope().resolve_to_symbol(constraint.variable.get_complete_name(),
                                                                   SymbolKind.VARIABLE)
                 if symbol is None:
@@ -104,14 +129,16 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
                                        code=code, log_level=LoggingLevel.ERROR)
                 if symbol.declaring_expression is not None and isinstance(symbol.declaring_expression,
                                                                           ASTSimpleExpression):
-                    if symbol.declaring_expression.get_numeric_literal() < lower_val:
+                    if symbol.declaring_expression.is_numeric_literal() and \
+                            symbol.declaring_expression.get_numeric_literal() < lower_val:
                         code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
                                                                                str(symbol.declaring_expression),
                                                                                str(constraint))
                         Logger.log_message(neuron=cls.__current_neuron, message=message,
                                            error_position=constraint.get_source_position(),
                                            code=code, log_level=LoggingLevel.WARNING)
-                    if symbol.declaring_expression.get_numeric_literal() > upper_val:
+                    if symbol.declaring_expression.is_numeric_literal() and \
+                            symbol.declaring_expression.get_numeric_literal() > upper_val:
                         code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
                                                                                str(symbol.declaring_expression),
                                                                                str(constraint), True)
@@ -121,14 +148,16 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
 
                 if symbol.initial_value is not None and isinstance(symbol.initial_value,
                                                                    ASTSimpleExpression):
-                    if symbol.initial_value.get_numeric_literal() < lower_val:
+                    if symbol.initial_value.is_numeric_literal() and \
+                            symbol.initial_value.get_numeric_literal() < lower_val:
                         code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
                                                                                str(symbol.initial_value),
                                                                                str(constraint))
                         Logger.log_message(neuron=cls.__current_neuron, message=message,
                                            error_position=constraint.get_source_position(),
                                            code=code, log_level=LoggingLevel.WARNING)
-                    if symbol.initial_value.get_numeric_literal() > upper_val:
+                    if symbol.initial_value.is_numeric_literal() and \
+                            symbol.initial_value.get_numeric_literal() > upper_val:
                         code, message = Messages.get_start_value_out_of_bounds(str(constraint.variable),
                                                                                str(symbol.initial_value),
                                                                                str(constraint), True)
@@ -169,3 +198,25 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
                 Logger.log_message(neuron=cls.__current_neuron, message=message,
                                    error_position=operator.get_source_position(),
                                    code=code, log_level=LoggingLevel.ERROR)
+
+
+def get_simple_expression(expr):
+    from pynestml.meta_model.ast_expression import ASTExpression
+    if isinstance(expr, ASTSimpleExpression):
+        return expr
+    elif isinstance(expr, ASTExpression) and expr.is_unary_operator():
+        return expr.get_expression()
+    else:
+        return None
+
+
+def get_signum(node):
+    # type: (ASTExpressionNode) -> int
+    from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+    from pynestml.meta_model.ast_expression import ASTExpression
+    if not isinstance(node, ASTExpression) or (isinstance(node, ASTExpression) and not node.is_unary_operator()):
+        return 1
+    if node.get_unary_operator().is_unary_minus:
+        return -1
+    else:
+        return 1

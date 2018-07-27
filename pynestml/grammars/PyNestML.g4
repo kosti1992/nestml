@@ -82,7 +82,7 @@ grammar PyNestML;
     @attribute isInf: True iff, this expression shall represent the value infinity.
   */
   simpleExpression : functionCall
-                   | BOOLEAN_LITERAL // true & false;
+                   | BOOLEAN_LITERAL // true & false ;
                    | (INTEGER|FLOAT) (variable)?
                    | string=STRING_LITERAL
                    | isInf='inf'
@@ -151,7 +151,7 @@ grammar PyNestML;
     @attribute isFunction: Is true iff. declaration is a function.
     @attribute variable: List with variables.
     @attribute datatype: Obligatory data type, e.g., 'real' or 'mV/s'.
-    @attribute sizeParameter: An optional array parameter, e.g., 'tau_syn ms[n_receptros]'.
+    @attribute sizeParameter: An optional array parameter, e.g., 'tau_syn ms[n_receptors]'.
     @attribute rhs: An optional initial expression, e.g., 'a real = 10+10'
     @attribute invariant: A single, optional invariant expression, e.g., '[a < 21]'
    */
@@ -326,6 +326,6 @@ grammar PyNestML;
     @attribute simpleExpression: Represents the bound.
     @attribute variable: The bounded variable.
   */
-  constraint: (leftBound=simpleExpression leftBoundType=comparisonOperator)?
+  constraint: (leftBound=expression leftBoundType=comparisonOperator)?
                variable
-              (rightBoundType=comparisonOperator rightBound=simpleExpression)?;
+              (rightBoundType=comparisonOperator rightBound=expression)?;

@@ -910,10 +910,10 @@ class Messages(object):
     @classmethod
     def get_start_value_out_of_bounds(cls, variable, start_value, constraint, is_upper_bound = False):
         if is_upper_bound:
-            message = "Start '%s' value of '%s' is over upper bound of constraint '%s'!" % (
+            message = "Start value '%s' of '%s' is over upper bound of constraint '%s'!" % (
                 start_value, variable, constraint)
         else:
-            message = "Start '%s' value of '%s' is under lower bound of constraint '%s'!" % (
+            message = "Start value '%s' of '%s' is under lower bound of constraint '%s'!" % (
                 start_value, variable, constraint)
         return MessageCode.START_VAL_OUT_OF_BOUNDS, message
 
@@ -924,6 +924,14 @@ class Messages(object):
     @classmethod
     def get_syntax_warning_in_model(cls, message):
         return MessageCode.SYNTAX_WARNING, message
+
+    @classmethod
+    def get_sat_check_only_for_simple_expressions(cls, constraint, left_bound=False):
+        if left_bound:
+            message = 'SAT check only available for simple bounds! Left bound of %s not simple.' % constraint
+        else:
+            message = 'SAT check only available for simple bounds! Right bound of %s not simple.' % constraint
+        return MessageCode.SAT_CHECK_NOT_POSSIBLE, message
 
 
 class MessageCode(Enum):
@@ -995,3 +1003,4 @@ class MessageCode(Enum):
     START_VAL_OUT_OF_BOUNDS = 61
     SYNTAX_ERROR = 62
     SYNTAX_WARNING = 63
+    SAT_CHECK_NOT_POSSIBLE = 64

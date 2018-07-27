@@ -646,13 +646,13 @@ class ASTNestMLPrinter(object):
         # type: (ASTConstraint) -> str
         left = ''
         if node.left_bound is not None:
-            left = self.print_simple_expression(node.left_bound)
-            left += ' ' + self.print_comparison_operator(node.left_bound_type)
+            left = self.print_node(node.left_bound)
+            left += ' ' + self.print_node(node.left_bound_type)
         var = self.print_variable(node.variable)
         right = ''
         if node.right_bound is not None:
             right = self.print_comparison_operator(node.right_bound_type)
-            right += ' ' + self.print_simple_expression(node.right_bound)
+            right += ' ' + self.print_node(node.right_bound)
         return left + ' ' + var + ' ' + right
 
     def print_constraint_block(self, node):

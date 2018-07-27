@@ -246,11 +246,11 @@ def serializedATN():
         buf.write(u"\2\2\u01e5\u01e9\7M\2\2\u01e6\u01e8\5P)\2\u01e7\u01e6")
         buf.write(u"\3\2\2\2\u01e8\u01eb\3\2\2\2\u01e9\u01e7\3\2\2\2\u01e9")
         buf.write(u"\u01ea\3\2\2\2\u01ea\u01ec\3\2\2\2\u01eb\u01e9\3\2\2")
-        buf.write(u"\2\u01ec\u01ed\7N\2\2\u01edO\3\2\2\2\u01ee\u01ef\5\b")
-        buf.write(u"\5\2\u01ef\u01f0\5\16\b\2\u01f0\u01f2\3\2\2\2\u01f1\u01ee")
+        buf.write(u"\2\u01ec\u01ed\7N\2\2\u01edO\3\2\2\2\u01ee\u01ef\5\6")
+        buf.write(u"\4\2\u01ef\u01f0\5\16\b\2\u01f0\u01f2\3\2\2\2\u01f1\u01ee")
         buf.write(u"\3\2\2\2\u01f1\u01f2\3\2\2\2\u01f2\u01f3\3\2\2\2\u01f3")
-        buf.write(u"\u01f7\5\22\n\2\u01f4\u01f5\5\16\b\2\u01f5\u01f6\5\b")
-        buf.write(u"\5\2\u01f6\u01f8\3\2\2\2\u01f7\u01f4\3\2\2\2\u01f7\u01f8")
+        buf.write(u"\u01f7\5\22\n\2\u01f4\u01f5\5\16\b\2\u01f5\u01f6\5\6")
+        buf.write(u"\4\2\u01f6\u01f8\3\2\2\2\u01f7\u01f4\3\2\2\2\u01f7\u01f8")
         buf.write(u"\3\2\2\2\u01f8Q\3\2\2\2?Xchnp~\u0087\u008d\u00a2\u00a4")
         buf.write(u"\u00ab\u00b0\u00b5\u00bc\u00c5\u00c9\u00cf\u00d9\u00dc")
         buf.write(u"\u00e1\u00e9\u00ef\u00f6\u00fa\u00fc\u0101\u0106\u010c")
@@ -3446,7 +3446,7 @@ class PyNestMLParser ( Parser ):
             self.state = 487
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==PyNestMLParser.T__15 or ((((_la - 77)) & ~0x3f) == 0 and ((1 << (_la - 77)) & ((1 << (PyNestMLParser.BOOLEAN_LITERAL - 77)) | (1 << (PyNestMLParser.STRING_LITERAL - 77)) | (1 << (PyNestMLParser.NAME - 77)) | (1 << (PyNestMLParser.INTEGER - 77)) | (1 << (PyNestMLParser.FLOAT - 77)))) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << PyNestMLParser.T__5) | (1 << PyNestMLParser.T__11) | (1 << PyNestMLParser.T__12) | (1 << PyNestMLParser.T__13) | (1 << PyNestMLParser.T__15) | (1 << PyNestMLParser.T__16))) != 0) or ((((_la - 77)) & ~0x3f) == 0 and ((1 << (_la - 77)) & ((1 << (PyNestMLParser.BOOLEAN_LITERAL - 77)) | (1 << (PyNestMLParser.STRING_LITERAL - 77)) | (1 << (PyNestMLParser.NAME - 77)) | (1 << (PyNestMLParser.INTEGER - 77)) | (1 << (PyNestMLParser.FLOAT - 77)))) != 0):
                 self.state = 484
                 self.constraint()
                 self.state = 489
@@ -3468,20 +3468,20 @@ class PyNestMLParser ( Parser ):
         def __init__(self, parser, parent=None, invokingState=-1):
             super(PyNestMLParser.ConstraintContext, self).__init__(parent, invokingState)
             self.parser = parser
-            self.leftBound = None # SimpleExpressionContext
+            self.leftBound = None # ExpressionContext
             self.leftBoundType = None # ComparisonOperatorContext
             self.rightBoundType = None # ComparisonOperatorContext
-            self.rightBound = None # SimpleExpressionContext
+            self.rightBound = None # ExpressionContext
 
         def variable(self):
             return self.getTypedRuleContext(PyNestMLParser.VariableContext,0)
 
 
-        def simpleExpression(self, i=None):
+        def expression(self, i=None):
             if i is None:
-                return self.getTypedRuleContexts(PyNestMLParser.SimpleExpressionContext)
+                return self.getTypedRuleContexts(PyNestMLParser.ExpressionContext)
             else:
-                return self.getTypedRuleContext(PyNestMLParser.SimpleExpressionContext,i)
+                return self.getTypedRuleContext(PyNestMLParser.ExpressionContext,i)
 
 
         def comparisonOperator(self, i=None):
@@ -3515,7 +3515,7 @@ class PyNestMLParser ( Parser ):
             la_ = self._interp.adaptivePredict(self._input,59,self._ctx)
             if la_ == 1:
                 self.state = 492
-                localctx.leftBound = self.simpleExpression()
+                localctx.leftBound = self.expression(0)
                 self.state = 493
                 localctx.leftBoundType = self.comparisonOperator()
 
@@ -3529,7 +3529,7 @@ class PyNestMLParser ( Parser ):
                 self.state = 498
                 localctx.rightBoundType = self.comparisonOperator()
                 self.state = 499
-                localctx.rightBound = self.simpleExpression()
+                localctx.rightBound = self.expression(0)
 
 
         except RecognitionException as re:

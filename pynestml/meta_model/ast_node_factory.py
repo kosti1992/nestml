@@ -369,7 +369,7 @@ class ASTNodeFactory(object):
     @classmethod
     def create_ast_constraint(cls, left_bound = None, left_bound_type = None,
                               variable = None, right_bound_type = None, right_bound = None, source_position = None):
-        # type: (ASTConstraint.Boundary, ASTVariable, ASTConstraint.Boundary) -> ASTConstraint
+        # type: (ASTExpression,ASTComparisonOperator, ASTVariable, ASTComparisonOperator,ASTExpression) -> ASTConstraint
         return ASTConstraint(left_bound, left_bound_type, variable, right_bound_type, right_bound, source_position)
 
     @classmethod
