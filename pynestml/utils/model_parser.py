@@ -465,10 +465,12 @@ class ModelParser(object):
 def tokenize(string):
     # type: (str) -> (ASTBuilderVisitor,PyNestMLParser)
     lexer = PyNestMLLexer(InputStream(string))
+    set_up_lexer_error_reporting(lexer)
     # create a token stream
     stream = CommonTokenStream(lexer)
     stream.fill()
     parser = PyNestMLParser(stream)
+    set_up_parser_error_reporting(parser)
     builder = ASTBuilderVisitor(stream.tokens)
     return builder, parser
 
