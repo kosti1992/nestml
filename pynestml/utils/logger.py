@@ -79,12 +79,12 @@ class Logger(object):
         cls.curr_message = counter
 
     @classmethod
-    def log_message(cls, neuron=None, code=None, message=None, error_position=None, log_level=None):
+    def log_message(cls, neuron = None, code = None, message = None, error_position = None, log_level = None):
         """
         Logs the handed over message on the handed over. If the current logging is appropriate, the 
         message is also printed.
         :param neuron: the neuron in which the error occurred
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :param code: a single error code
         :type code: ErrorCode
         :param error_position: the position on which the error occurred.
@@ -98,7 +98,7 @@ class Logger(object):
             cls.init_logger(LoggingLevel.INFO)
         from pynestml.meta_model.ast_neuron import ASTNeuron
         from pynestml.meta_model.ast_source_location import ASTSourceLocation
-        assert (neuron is None or isinstance(neuron, ASTNeuron)), \
+        assert (neuron is None or isinstance(neuron, ASTNeuron) or isinstance(neuron, str)), \
             '(PyNestML.Logger) Wrong type of neuron provided (%s)!' % type(neuron)
         assert (error_position is None or isinstance(error_position, ASTSourceLocation)), \
             '(PyNestML.Logger) Wrong type of error position provided (%s)!' % type(error_position)
@@ -113,8 +113,9 @@ class Logger(object):
             return
         if cls.logging_level.value <= log_level.value:
             to_print = '[' + str(cls.curr_message) + ','
-            to_print = (to_print + (neuron.get_name() + ', ' if neuron is not None else
-                    cls.current_neuron.get_name() + ', ' if cls.current_neuron is not None else 'GLOBAL, '))
+            to_print = (to_print + (neuron.get_name() + ', ' if neuron is not None and isinstance(neuron, ASTNeuron)
+                                    else neuron + ', ' if neuron is not None and isinstance(neuron, str) else
+            cls.current_neuron.get_name() + ', ' if cls.current_neuron is not None else 'GLOBAL, '))
             to_print = to_print + str(log_level.name)
             to_print = to_print + (', ' + str(error_position) if error_position is not None else '') + ']: '
             to_print = to_print + str(message)

@@ -917,6 +917,14 @@ class Messages(object):
                 start_value, variable, constraint)
         return MessageCode.START_VAL_OUT_OF_BOUNDS, message
 
+    @classmethod
+    def get_syntax_error_in_model(cls, message):
+        return MessageCode.SYNTAX_ERROR, message
+
+    @classmethod
+    def get_syntax_warning_in_model(cls, message):
+        return MessageCode.SYNTAX_WARNING, message
+
 
 class MessageCode(Enum):
     """
@@ -985,3 +993,5 @@ class MessageCode(Enum):
     NOT_COMPATIBLE_OP = 59
     CONSTRAINT_NOT_SAT = 60
     START_VAL_OUT_OF_BOUNDS = 61
+    SYNTAX_ERROR = 62
+    SYNTAX_WARNING = 63

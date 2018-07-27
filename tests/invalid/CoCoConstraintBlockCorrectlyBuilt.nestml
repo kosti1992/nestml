@@ -24,6 +24,7 @@
 
 
 neuron CoCoInvariantBlockCorrectlyBuilt:
+
     state:
         V_m mV = 0mV
         b boolean = false

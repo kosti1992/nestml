@@ -71,6 +71,7 @@ from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_builder_visitor import ASTBuilderVisitor
 from pynestml.visitors.ast_higher_order_visitor import ASTHigherOrderVisitor
 from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
+from pynestml.frontend.nestml_error_listener import NestMLErrorListener
 
 
 class ModelParser(object):
@@ -96,11 +97,13 @@ class ModelParser(object):
         Logger.log_message(neuron=None, code=code, message=message, error_position=None, log_level=LoggingLevel.INFO)
         # create a lexer and hand over the input
         lexer = PyNestMLLexer(input_file)
+        set_up_lexer_error_reporting(lexer)
         # create a token stream
         stream = CommonTokenStream(lexer)
         stream.fill()
         # parse the file
         parser = PyNestMLParser(stream)
+        set_up_parser_error_reporting(parser)
         compilation_unit = parser.nestMLCompilationUnit()
         # create a new visitor and return the new AST
         ast_builder_visitor = ASTBuilderVisitor(stream.tokens)
@@ -472,3 +475,12 @@ def tokenize(string):
 
 def log_set_added_source_position(node):
     node.set_source_position(ASTSourceLocation.get_added_source_position())
+
+
+def set_up_lexer_error_reporting(lexer):
+    lexer.removeErrorListeners()
+    lexer._listeners = [NestMLErrorListener()]
+
+
+def set_up_parser_error_reporting(parser):
+    parser._listeners = [NestMLErrorListener()]
