@@ -267,6 +267,19 @@ void {{neuronName}}::calibrate(){
  {{neuron.print_dynamics_comment('*')}}
  */
 void {{neuronName}}::update(nest::Time const & origin,const long from, const long to){
+  {% for const in utils.get_variable_constraints(neuron) %}
+    {% if const.has_left_bound() %}
+  if(!({{printer.print_expression(const.left_bound)}} {{printer.convert_comparison_op(const.left_bound_type)}} {{printer.print_origin(utils.resolve_self_to_symbol(const.variable))}}{{names.name(utils.resolve_self_to_symbol(const.variable))}})){
+    {{printer.print_origin(utils.resolve_self_to_symbol(const.variable))}}{{names.name(utils.resolve_self_to_symbol(const.variable))}} = {{utils.get_next_valid_value(const.left_bound_type,const.left_bound)}};
+  }
+    {%- endif -%}
+    {% if const.has_right_bound() %}
+  if(!({{printer.print_origin(utils.resolve_self_to_symbol(const.variable))}}{{names.name(utils.resolve_self_to_symbol(const.variable))}} {{printer.convert_comparison_op(const.right_bound_type)}} {{printer.print_expression(const.right_bound)}})){
+    {{printer.print_origin(utils.resolve_self_to_symbol(const.variable))}}{{names.name(utils.resolve_self_to_symbol(const.variable))}} = {{utils.get_next_valid_value(const.right_bound_type,const.right_bound)}};
+  }
+    {%- endif -%}
+  {% endfor %}
+
   {% if useGSL -%}
   double __t = 0;
   {%- endif %}

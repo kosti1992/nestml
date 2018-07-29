@@ -27,6 +27,7 @@ class ASTUtils(object):
     """
     A collection of helpful methods.
     """
+    epsilon = 0.0001
 
     @classmethod
     def get_all_neurons(cls, list_of_compilation_units):
@@ -564,3 +565,85 @@ class ASTUtils(object):
         if constraint.right_bound is not None:
             ret.append((constraint.right_bound, constraint.right_bound_type))
         return ret
+
+    @classmethod
+    def get_variable_constraints(cls, neuron):
+        # type: (ASTNeuron) -> list[ASTConstraint]
+        from pynestml.meta_model.ast_neuron import ASTNeuron
+        from pynestml.meta_model.ast_constraint import ASTConstraint
+        from pynestml.symbols.variable_symbol import BlockType
+        ret = list()
+        for const in neuron.get_constraint_block().constraints:
+            symbol = neuron.get_scope().resolve_to_symbol(const.variable.get_complete_name(), SymbolKind.VARIABLE)
+            if symbol is None:
+                # the constrained var is not defined, this should be reported by cocos
+                continue
+            if symbol.block_type == BlockType.STATE or symbol.block_type == BlockType.INITIAL_VALUES:
+                # in this case it is a constraint for a state or a initial values var
+                ret.append(const)
+        return ret
+
+    @classmethod
+    def negate_comparison_op(cls, op):
+        # type: (ASTComparisonOperator) -> ASTComparisonOperator
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        if op.is_gt:
+            return ASTNodeFactory.create_ast_comparison_operator(is_le=True)
+        if op.is_ge:
+            return ASTNodeFactory.create_ast_comparison_operator(is_lt=True)
+        if op.is_ne2:
+            return ASTNodeFactory.create_ast_comparison_operator(is_eq=True)
+        if op.is_ne:
+            return ASTNodeFactory.create_ast_comparison_operator(is_eq=True)
+        if op.is_eq:
+            return ASTNodeFactory.create_ast_comparison_operator(is_ne=True)
+        if op.is_le:
+            return ASTNodeFactory.create_ast_comparison_operator(is_gt=True)
+        if op.is_lt:
+            return ASTNodeFactory.create_ast_comparison_operator(is_ge=True)
+
+    @classmethod
+    def get_next_valid_value(cls, op, expr):
+        # type: (ASTComparisonOperator,ASTExpression) -> ASTExpression
+        """
+        This function returns the next valid value for a constraint. For instance, in cases wherer
+        the constraint is -70mV < V_m, we can not simply set V_m to -70mV, since this would contradict the constraint.
+        We have to set is to -70mV + epsilon where epsilon is a infinitesimal small value. Here ,we instead use 0.0001
+        :param op:
+        :param expr:
+        :return:
+        """
+        from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        from pynestml.meta_model.ast_expression import ASTExpression
+        from pynestml.meta_model.ast_source_location import ASTSourceLocation
+        # in this case we simply set to the bound, since still sat
+        if op.is_ge or op.is_eq or op.is_le:
+            return expr
+
+        epsilon = ASTNodeFactory.create_ast_simple_expression(numeric_literal=cls.epsilon)
+        plus_op = ASTNodeFactory.create_ast_arithmetic_operator(is_plus_op=True)
+        location = ASTSourceLocation.get_added_source_position()
+        if op.is_gt:
+            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=epsilon,
+                                                                 source_position=location)
+        if op.is_lt:
+            prefix = ASTNodeFactory.create_ast_unary_operator(is_unary_minus=True)
+            min_eps = ASTNodeFactory.create_ast_expression(unary_operator=prefix, expression=epsilon)
+            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=min_eps,
+                                                                 source_position=location)
+
+        if op.is_ne2 or op.is_ne:
+            prefix = ASTNodeFactory.create_ast_unary_operator(is_unary_minus=True)
+            min_eps = ASTNodeFactory.create_ast_expression(unary_operator=prefix, expression=epsilon)
+            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=min_eps,
+                                                                 source_position=location)
+
+    @classmethod
+    def resolve_self_to_symbol(cls, ast):
+        # type: (ASTVariable) -> VariableSymbol
+        from pynestml.meta_model.ast_variable import ASTVariable
+        from pynestml.symbols.variable_symbol import VariableSymbol
+        if isinstance(ast, ASTVariable):
+            return ast.get_scope().resolve_to_symbol(ast.get_complete_name(), SymbolKind.VARIABLE)

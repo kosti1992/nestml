@@ -111,8 +111,6 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
                             * get_signum(ASTUtils.get_lower_bound_of_constraint(constraint)[0])
                 upper_val = get_simple_expression(upper[0]).get_numeric_literal() \
                             * get_signum(ASTUtils.get_upper_bound_of_constraint(constraint)[0])
-                symbol = constraint.get_scope().resolve_to_symbol(constraint.variable.get_complete_name(),
-                                                                  SymbolKind.VARIABLE)
                 if symbol is None:
                     return
                 if isinstance(constraint.variable.type_symbol, UnitTypeSymbol):
