@@ -67,7 +67,7 @@ class ASTExpression(ASTExpressionNode):
         :param is_encapsulated: is encapsulated in brackets.
         :type is_encapsulated: bool
         :param unary_operator: combined by unary operator, e.g., ~.
-        :type unary_operator: ast_unary_operator
+        :type unary_operator: ASTUnaryOperator
         :param is_logical_not: is a negated rhs.
         :type is_logical_not: bool
         :param expression: the rhs either encapsulated in brackets or negated or with a with a unary op, or

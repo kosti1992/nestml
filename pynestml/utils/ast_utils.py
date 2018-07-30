@@ -573,6 +573,9 @@ class ASTUtils(object):
         from pynestml.meta_model.ast_constraint import ASTConstraint
         from pynestml.symbols.variable_symbol import BlockType
         ret = list()
+        if neuron.get_constraint_block() is None:
+            return ret
+
         for const in neuron.get_constraint_block().constraints:
             symbol = neuron.get_scope().resolve_to_symbol(const.variable.get_complete_name(), SymbolKind.VARIABLE)
             if symbol is None:
@@ -623,21 +626,19 @@ class ASTUtils(object):
             return expr
 
         epsilon = ASTNodeFactory.create_ast_simple_expression(numeric_literal=cls.epsilon)
-        plus_op = ASTNodeFactory.create_ast_arithmetic_operator(is_plus_op=True)
         location = ASTSourceLocation.get_added_source_position()
         if op.is_gt:
+            plus_op = ASTNodeFactory.create_ast_arithmetic_operator(is_plus_op=True, source_position=location)
             return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=epsilon,
                                                                  source_position=location)
         if op.is_lt:
-            prefix = ASTNodeFactory.create_ast_unary_operator(is_unary_minus=True)
-            min_eps = ASTNodeFactory.create_ast_expression(unary_operator=prefix, expression=epsilon)
-            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=min_eps,
+            minus_op = ASTNodeFactory.create_ast_arithmetic_operator(is_minus_op=True, source_position=location)
+            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=minus_op, rhs=epsilon,
                                                                  source_position=location)
 
         if op.is_ne2 or op.is_ne:
-            prefix = ASTNodeFactory.create_ast_unary_operator(is_unary_minus=True)
-            min_eps = ASTNodeFactory.create_ast_expression(unary_operator=prefix, expression=epsilon)
-            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=plus_op, rhs=min_eps,
+            minus_op = ASTNodeFactory.create_ast_assignment(is_compound_minus=True, source_position=location)
+            return ASTNodeFactory.create_ast_compound_expression(lhs=expr, binary_operator=minus_op, rhs=epsilon,
                                                                  source_position=location)
 
     @classmethod
