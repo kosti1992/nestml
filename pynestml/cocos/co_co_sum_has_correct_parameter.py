@@ -17,12 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.cocos.co_co import CoCo
 from pynestml.symbols.predefined_functions import PredefinedFunctions
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_function_call import ASTFunctionCall
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 
 
 class CoCoSumHasCorrectParameter(CoCo):
@@ -32,16 +34,17 @@ class CoCoSumHasCorrectParameter(CoCo):
      V mV = convolve(g_in+g_ex,Buffer)
     """
 
-    @classmethod
-    def check_co_co(cls, neuron):
+    def __init__(self):
+        self.neuronName = None
+
+    def check_co_co(self, neuron):
         """
         Ensures the coco for the handed over neuron.
         :param neuron: a single neuron instance.
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         """
-        cls.neuronName = neuron.get_name()
-        visitor = SumIsCorrectVisitor()
-        neuron.accept(visitor)
+        self.neuronName = neuron.get_name()
+        neuron.accept(SumIsCorrectVisitor())
         return
 
 
@@ -54,7 +57,7 @@ class SumIsCorrectVisitor(ASTVisitor):
         """
         Checks the coco on the current function call.
         :param node: a single function call.
-        :type node: ast_function_call
+        :type node: ASTFunctionCall
         """
         f_name = node.get_name()
         if f_name == PredefinedFunctions.CURR_SUM or \

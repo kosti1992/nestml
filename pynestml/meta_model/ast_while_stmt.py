@@ -49,7 +49,7 @@ class ASTWhileStmt(ASTNode):
         """
         Returns the condition of the block.
         :return: the condition.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.condition
 
@@ -57,7 +57,7 @@ class ASTWhileStmt(ASTNode):
         """
         Returns the block of statements.
         :return: the block of statements.
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 

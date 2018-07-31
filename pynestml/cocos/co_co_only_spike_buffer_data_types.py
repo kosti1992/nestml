@@ -21,6 +21,8 @@ from pynestml.cocos.co_co import CoCo
 from pynestml.utils.logger import LoggingLevel, Logger
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_input_line import ASTInputLine
 
 
 class CoCoOnlySpikeBufferDataTypes(CoCo):
@@ -37,12 +39,11 @@ class CoCoOnlySpikeBufferDataTypes(CoCo):
         end
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         node.accept(BufferDatatypeVisitor())
 
@@ -56,7 +57,7 @@ class BufferDatatypeVisitor(ASTVisitor):
         """
         Checks the coco on the current node.
         :param node: a single input line node.
-        :type node: ast_input_line
+        :type node: ASTInputLine
         """
         if node.is_spike() and not node.has_datatype():
             code, message = Messages.get_data_type_not_specified(node.get_name())

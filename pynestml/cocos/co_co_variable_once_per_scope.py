@@ -18,8 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -28,22 +29,20 @@ class CoCoVariableOncePerScope(CoCo):
     This coco ensures that each variables is defined at most once per scope, thus no redeclaration occurs.
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Checks if each variable is defined at most once per scope. Obviously, this test does not check if a declaration
         is shadowed by an embedded scope.
         :param node: a single neuron
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
-        cls.__check_scope(node, node.get_scope())
+        self.__check_scope(node, node.get_scope())
 
-    @classmethod
-    def __check_scope(cls, neuron, scope):
+    def __check_scope(self, neuron, scope):
         """
         Checks a single scope and proceeds recursively.
         :param neuron: a single neuron object, required for correct printing of messages.
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :param scope: a single scope to check.
         :type scope: Scope
         """
@@ -69,5 +68,5 @@ class CoCoVariableOncePerScope(CoCo):
                                            neuron=neuron, log_level=LoggingLevel.ERROR, code=code, message=message)
             checked.append(sym1)
         for scope in scope.get_scopes():
-            cls.__check_scope(neuron, scope)
+            self.__check_scope(neuron, scope)
         return

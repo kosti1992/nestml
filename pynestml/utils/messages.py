@@ -115,7 +115,7 @@ class Messages(object):
         """
         Returns a message indicating that the type of the rhs rhs could not be derived.
         :param rhs: an rhs
-        :type rhs: ast_expression or ast_simple_expression
+        :type rhs: ASTExpressionNode
         :return: a message
         :rtype: (MessageCode,str)
 

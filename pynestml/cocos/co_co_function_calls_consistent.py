@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_function_call import ASTFunctionCall
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
@@ -34,12 +36,11 @@ class CoCoFunctionCallsConsistent(CoCo):
         maximum integer = max(1,2,3)
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Checks the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         node.accept(FunctionCallConsistencyVisitor())
 
@@ -53,7 +54,7 @@ class FunctionCallConsistencyVisitor(ASTVisitor):
         """
         Checks the coco.
         :param node: a single function call.
-        :type node: ast_function_call
+        :type node: ASTFunctionCall
         """
         func_name = node.get_name()
         if func_name == 'convolve' or func_name == 'cond_sum' or func_name == 'curr_sum':

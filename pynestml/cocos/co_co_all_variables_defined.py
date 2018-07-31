@@ -37,13 +37,12 @@ class CoCoAllVariablesDefined(CoCo):
         end
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Checks if this coco applies for the handed over neuron. Models which use not defined elements are not
         correct.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         # for each variable in all expressions, check if the variable has been defined previously
         expression_collector_visitor = ASTExpressionCollectorVisitor()

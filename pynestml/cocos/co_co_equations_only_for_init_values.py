@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_ode_equation import ASTOdeEquation
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
@@ -44,12 +46,11 @@ class CoCoEquationsOnlyForInitValues(CoCo):
         end
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         node.accept(EquationsOnlyForInitValues())
 
@@ -63,7 +64,7 @@ class EquationsOnlyForInitValues(ASTVisitor):
         """
         Ensures the coco.
         :param node: a single equation object.
-        :type node: ast_ode_equation
+        :type node: ASTOdeEquation
         """
         symbol = node.get_scope().resolve_to_symbol(node.get_lhs().get_name_of_lhs(), SymbolKind.VARIABLE)
         if symbol is not None and not symbol.is_init_values():

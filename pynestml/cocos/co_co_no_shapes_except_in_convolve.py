@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_function_call import ASTFunctionCall
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
@@ -40,12 +41,11 @@ class CoCoNoShapesExceptInConvolve(CoCo):
 
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         shape_collector_visitor = ShapeCollectingVisitor()
         shape_names = shape_collector_visitor.collect_shapes(neuron=node)
@@ -55,7 +55,7 @@ class CoCoNoShapesExceptInConvolve(CoCo):
 
 class ShapeUsageVisitor(ASTVisitor):
 
-    def __init__(self, _shapes=None):
+    def __init__(self, _shapes = list()):
         """
         Standard constructor.
         :param _shapes: a list of shapes.
@@ -115,7 +115,7 @@ class ShapeCollectingVisitor(ASTVisitor):
         """
         Collects all shapes in the model.
         :param neuron: a single neuron instance
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :return: a list of shapes.
         :rtype: list(str)
         """

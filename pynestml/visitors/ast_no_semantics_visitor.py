@@ -21,6 +21,7 @@
 """
 Placeholder for rhs productions that are not implemented
 """
+from pynestml.meta_model.ast_expression_node import ASTExpressionNode
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.utils.error_strings import ErrorStrings
 from pynestml.utils.logger import Logger, LoggingLevel
@@ -38,7 +39,7 @@ class ASTNoSemanticsVisitor(ASTVisitor):
         Visits a single rhs but does not execute any steps besides printing a message. This
         visitor indicates that no functionality has been implemented for this type of nodes.
         :param node: a single rhs
-        :type node: ast_expression or ast_simple_expression
+        :type node: ASTExpressionNode
         """
         error_msg = ErrorStrings.message_no_semantics(self, str(node), node.get_source_position())
         node.type = ErrorTypeSymbol()

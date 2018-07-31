@@ -24,7 +24,7 @@ simpleExpression : variable
 from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import MessageCode
 from pynestml.visitors.ast_visitor import ASTVisitor
 

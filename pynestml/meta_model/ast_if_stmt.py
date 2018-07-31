@@ -91,7 +91,7 @@ class ASTIfStmt(ASTNode):
         """
         Returns the else-clause.
         :return: the else-clause.
-        :rtype: ast_else_clause
+        :rtype: ASTElseClause
         """
         return self.else_clause
 

@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_cos_manager import CoCosManager
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_node_factory import ASTNodeFactory
 from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.symbol_table.scope import Scope, ScopeType
@@ -26,7 +27,7 @@ from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.predefined_variables import PredefinedVariables
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.symbols.variable_symbol import VariableSymbol, BlockType, VariableType
+from pynestml.symbols.variable_symbol import BlockType, VariableSymbol, VariableType
 from pynestml.utils.either import Either
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
@@ -50,7 +51,7 @@ class ASTSymbolTableVisitor(ASTVisitor):
         """
         Private method: Used to visit a single neuron and create the corresponding global as well as local scopes.
         :return: a single neuron.
-        :rtype: ast_neuron
+        :rtype: ASTNeuron
         """
         # set current processed neuron
         Logger.set_current_neuron(node)
@@ -168,7 +169,7 @@ class ASTSymbolTableVisitor(ASTVisitor):
         """
         Private method: Used to visit a single update block and create the corresponding scope.
         :param node: an update block object.
-        :type node: ASTDynamics
+        :type node: ASTUpdateBlock
         """
         self.block_type_stack.push(BlockType.LOCAL)
         scope = Scope(scope_type=ScopeType.UPDATE, enclosing_scope=node.get_scope(),
@@ -237,7 +238,7 @@ class ASTSymbolTableVisitor(ASTVisitor):
         """
         Private method: Used to visit a single function call and update its corresponding scope.
         :param node: a function call object.
-        :type node: AstFunctionCall
+        :type node: ASTFunctionCall
         :return: no return value, since neither scope nor symbol is created
         :rtype: void
         """

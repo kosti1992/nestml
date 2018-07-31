@@ -25,7 +25,7 @@ from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.void_type_symbol import VoidTypeSymbol
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -38,10 +38,13 @@ class ASTFunctionCallVisitor(ASTVisitor):
     def visit_simple_expression(self, node):
         """
         Visits a single function call as stored in a simple expression and derives the correct type of all its
-        parameters. :param node: a simple expression :type node: ASTSimpleExpression :rtype void
+        parameters.
+        :param node: a simple expression
+        :type node: ASTSimpleExpression
+        :rtype void
         """
         assert isinstance(node, ASTSimpleExpression), \
-            '(PyNestML.Visitor.FunctionCallVisitor) No or wrong type of simple expression provided (%s)!' % tuple(node)
+            '(PyNestML.Visitor.FunctionCallVisitor) No or wrong type of simple expression provided (%s)!' % type(node)
         assert (node.get_scope() is not None), \
             "(PyNestML.Visitor.FunctionCallVisitor) No scope found, run symboltable creator!"
         scope = node.get_scope()

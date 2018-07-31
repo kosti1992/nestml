@@ -93,7 +93,7 @@ class ASTDataType(ASTNode):
         """
         Returns the corresponding type symbol.
         :return: a single type symbol element.
-        :rtype: type_symbol
+        :rtype: TypeSymbol
         """
         return self.type_symbol
 

@@ -18,8 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_declaration import ASTDeclaration
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
@@ -48,8 +49,7 @@ class CoCoInitVarsWithOdesProvided(CoCo):
         end
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Checks this coco on the handed over neuron.
         :param node: a single neuron instance.
@@ -58,7 +58,6 @@ class CoCoInitVarsWithOdesProvided(CoCo):
         assert (node is not None and isinstance(node, ASTNeuron)), \
             '(PyNestML.CoCo.VariablesDefined) No or wrong type of neuron provided (%s)!' % type(node)
         node.accept(InitVarsVisitor())
-        return
 
 
 class InitVarsVisitor(ASTVisitor):
@@ -70,7 +69,7 @@ class InitVarsVisitor(ASTVisitor):
         """
         Checks the coco on the current node.
         :param node: a single declaration.
-        :type node: ast_declaration
+        :type node: ASTDeclaration
         """
         for var in node.get_variables():
             symbol = node.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)

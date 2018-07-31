@@ -17,13 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
-from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_declaration import ASTDeclaration
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.logging_helper import LoggingHelper
 from pynestml.utils.messages import Messages
 from pynestml.utils.type_caster import TypeCaster
@@ -35,8 +35,7 @@ class CoCoIllegalExpression(CoCo):
     This coco checks that all expressions are correctly typed.
     """
 
-    @classmethod
-    def check_co_co(cls, neuron):
+    def check_co_co(self, neuron):
         """
         Ensures the coco for the handed over neuron.
         :param neuron: a single neuron instance.
@@ -208,7 +207,7 @@ class CorrectExpressionVisitor(ASTVisitor):
                                log_level=LoggingLevel.ERROR)
         elif not (from_type.equals(PredefinedTypes.get_integer_type())
                   or from_type.equals(
-                    PredefinedTypes.get_real_type())):
+                        PredefinedTypes.get_real_type())):
             code, message = Messages.get_type_different_from_expected(PredefinedTypes.get_integer_type(),
                                                                       from_type)
             Logger.log_message(code=code, message=message, error_position=node.get_start_from().get_source_position(),

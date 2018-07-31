@@ -21,6 +21,7 @@
 """
 simpleExpression : isInf='inf'
 """
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -34,7 +35,7 @@ class ASTInfVisitor(ASTVisitor):
         """
         Visits a single simple rhs containing an inf literal and updates its type.
         :param node: a simple rhs
-        :type node: ast_simple_expression
+        :type node: ASTSimpleExpression
         """
         node.type = PredefinedTypes.get_real_type()
         node.type.referenced_object = node

@@ -18,7 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.meta_model.ast_input_line import ASTInputLine
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -32,14 +34,16 @@ class CoCoTypeOfBufferUnique(CoCo):
         spike <- inhibitory inhibitory spike
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def __init__(self):
+        self.neuronName = None
+
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
-        cls.neuronName = node.get_name()
+        self.neuronName = node.get_name()
         node.accept(TypeOfBufferUniqueVisitor())
 
 
@@ -52,7 +56,7 @@ class TypeOfBufferUniqueVisitor(ASTVisitor):
         """
         Checks the coco on the current node.
         :param node: a single input line.
-        :type node: ast_input_line
+        :type node: ASTInputLine
         """
         if node.is_spike():
             if node.has_input_types() and len(node.get_input_types()) > 1:

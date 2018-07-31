@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_declaration import ASTDeclaration
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
-from pynestml.utils.logger import Logger
-from pynestml.utils.logger import LoggingLevel
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -34,15 +34,13 @@ class CoCoInvariantIsBoolean(CoCo):
 
     """
 
-    @classmethod
-    def check_co_co(cls, neuron):
+    def check_co_co(self, neuron):
         """
         Ensures the coco for the handed over neuron.
         :param neuron: a single neuron instance.
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         """
-        visitor = InvariantTypeVisitor()
-        neuron.accept(visitor)
+        neuron.accept(InvariantTypeVisitor())
 
 
 class InvariantTypeVisitor(ASTVisitor):
@@ -60,7 +58,7 @@ class InvariantTypeVisitor(ASTVisitor):
         if node.has_invariant():
             invariant_type = node.get_invariant().type
             if invariant_type is None or isinstance(invariant_type, ErrorTypeSymbol):
-                code, message = Messages.get_type_could_not_be_derived(str(node.get_invariant()))
+                code, message = Messages.get_type_could_not_be_derived(node.get_invariant())
                 Logger.log_message(error_position=node.get_invariant().get_source_position(), code=code,
                                    message=message, log_level=LoggingLevel.ERROR)
             elif not invariant_type.equals(PredefinedTypes.get_boolean_type()):

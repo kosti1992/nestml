@@ -21,14 +21,15 @@
 """
 rhs : left=rhs comparisonOperator right=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
+from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
+from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.utils.error_strings import ErrorStrings
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import MessageCode
 from pynestml.visitors.ast_visitor import ASTVisitor
-from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
-from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 
 
 class ASTComparisonOperatorVisitor(ASTVisitor):
@@ -40,7 +41,7 @@ class ASTComparisonOperatorVisitor(ASTVisitor):
         """
         Visits a single comparison operator expression and updates the type.
         :param expr: an expression
-        :type expr: ast_expression
+        :type expr: ASTExpression
         """
         lhs_type = expr.get_lhs().type
         rhs_type = expr.get_rhs().type

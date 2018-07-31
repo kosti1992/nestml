@@ -21,6 +21,7 @@
 """
 rhs : left=rhs (plusOp='+'  | minusOp='-') right=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -33,7 +34,7 @@ class ASTLineOperatorVisitor(ASTVisitor):
         """
         Visits a single expression containing a plus or minus operator and updates its type.
         :param node: a single expression
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         lhs_type = node.get_lhs().type
         rhs_type = node.get_rhs().type

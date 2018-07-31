@@ -21,6 +21,7 @@
 """
 rhs : leftParentheses='(' term=rhs rightParentheses=')'
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -33,7 +34,7 @@ class ASTParenthesesVisitor(ASTVisitor):
         """
         Visits a single rhs encapsulated in parenthesis and updates its type.
         :param node: a single rhs
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         inner_type = node.get_expression().type
         inner_type.referenced_object = node.get_expression()

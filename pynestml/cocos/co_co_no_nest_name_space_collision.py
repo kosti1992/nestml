@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -42,15 +43,14 @@ class CoCoNoNestNameSpaceCollision(CoCo):
     nest_name_space = ['update', 'calibrate', 'handle', 'connect_sender', 'check_connection', 'get_status',
                        'set_status', 'init_state_', 'init_buffers_']
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         for func in node.get_functions():
-            if func.get_name() in cls.nest_name_space:
+            if func.get_name() in self.nest_name_space:
                 code, message = Messages.get_nest_collision(func.get_name())
                 Logger.log_message(error_position=func.get_source_position(),
                                    code=code, message=message,

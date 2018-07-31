@@ -21,6 +21,7 @@
 """
 rhs : left=rhs (timesOp='*' | divOp='/' | moduloOp='%') right=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -33,7 +34,7 @@ class ASTDotOperatorVisitor(ASTVisitor):
         """
         Visits a single rhs and updates the type.
         :param node: a single rhs
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         lhs_type = node.get_lhs().type
         rhs_type = node.get_rhs().type

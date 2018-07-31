@@ -21,6 +21,7 @@
 """
 rhs: left=rhs logicalOperator right=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
@@ -38,7 +39,7 @@ class ASTBinaryLogicVisitor(ASTVisitor):
         """
         Visits an expression which uses a binary logic operator and updates the type.
         :param node: a single expression.
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         lhs_type = node.get_lhs().type
         rhs_type = node.get_rhs().type

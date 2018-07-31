@@ -69,7 +69,7 @@ class ASTSmallStmt(ASTNode):
         """
         Returns the assignment.
         :return: the assignment statement.
-        :rtype: ast_assignment
+        :rtype: ASTAssignment
         """
         return self.assignment
 
@@ -85,7 +85,7 @@ class ASTSmallStmt(ASTNode):
         """
         Returns the function call.
         :return: the function call statement.
-        :rtype: ast_function_call
+        :rtype: ASTFunctionCall
         """
         return self.function_call
 
@@ -101,7 +101,7 @@ class ASTSmallStmt(ASTNode):
         """
         Returns the assignment.
         :return: the declaration statement.
-        :rtype: ast_declaration
+        :rtype: ASTDeclaration
         """
         return self.declaration
 
@@ -117,7 +117,7 @@ class ASTSmallStmt(ASTNode):
         """
         Returns the return statement.
         :return: the return statement.
-        :rtype: ast_return_stmt
+        :rtype: ASTReturnStmt
         """
         return self.return_stmt
 

@@ -47,22 +47,24 @@ class ASTExpressionTypeVisitor(ASTVisitor):
     real-self it is possible to adapt to different types of sub-expressions.
     """
 
-    unary_visitor = ASTUnaryVisitor()
-    pow_visitor = ASTPowerVisitor()
-    parentheses_visitor = ASTParenthesesVisitor()
-    logical_not_visitor = ASTLogicalNotVisitor()
-    dot_operator_visitor = ASTDotOperatorVisitor()
-    line_operator_visitor = ASTLineOperatorVisitor()
-    no_semantics = ASTNoSemanticsVisitor()
-    comparison_operator_visitor = ASTComparisonOperatorVisitor()
-    binary_logic_visitor = ASTBinaryLogicVisitor()
-    condition_visitor = ASTConditionVisitor()
-    function_call_visitor = ASTFunctionCallVisitor()
-    boolean_literal_visitor = ASTBooleanLiteralVisitor()
-    numeric_literal_visitor = ASTNumericLiteralVisitor()
-    string_literal_visitor = ASTStringLiteralVisitor()
-    variable_visitor = ASTVariableVisitor()
-    inf_visitor = ASTInfVisitor()
+    def __init__(self):
+        super(ASTExpressionTypeVisitor, self).__init__()
+        self.unary_visitor = ASTUnaryVisitor()
+        self.pow_visitor = ASTPowerVisitor()
+        self.parentheses_visitor = ASTParenthesesVisitor()
+        self.logical_not_visitor = ASTLogicalNotVisitor()
+        self.dot_operator_visitor = ASTDotOperatorVisitor()
+        self.line_operator_visitor = ASTLineOperatorVisitor()
+        self.no_semantics = ASTNoSemanticsVisitor()
+        self.comparison_operator_visitor = ASTComparisonOperatorVisitor()
+        self.binary_logic_visitor = ASTBinaryLogicVisitor()
+        self.condition_visitor = ASTConditionVisitor()
+        self.function_call_visitor = ASTFunctionCallVisitor()
+        self.boolean_literal_visitor = ASTBooleanLiteralVisitor()
+        self.numeric_literal_visitor = ASTNumericLiteralVisitor()
+        self.string_literal_visitor = ASTStringLiteralVisitor()
+        self.variable_visitor = ASTVariableVisitor()
+        self.inf_visitor = ASTInfVisitor()
 
     def handle(self, _node):
         """

@@ -159,7 +159,7 @@ class Logger(object):
         Sets the handed over neuron as the currently processed one. This enables a retrieval of messages for a
         specific neuron.
         :param neuron:  a single neuron instance
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         """
         cls.current_neuron = neuron
 

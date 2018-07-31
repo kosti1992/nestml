@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co_all_variables_defined import CoCoAllVariablesDefined
 from pynestml.cocos.co_co_buffer_not_assigned import CoCoBufferNotAssigned
+from pynestml.cocos.co_co_constraint_block_correctly_built import CoCoConstraintBlockCorrectlyBuilt
 from pynestml.cocos.co_co_convolve_cond_correctly_built import CoCoConvolveCondCorrectlyBuilt
 from pynestml.cocos.co_co_correct_numerator_of_unit import CoCoCorrectNumeratorOfUnit
 from pynestml.cocos.co_co_correct_order_in_equation import CoCoCorrectOrderInEquation
@@ -44,7 +45,6 @@ from pynestml.cocos.co_co_type_of_buffer_unique import CoCoTypeOfBufferUnique
 from pynestml.cocos.co_co_user_defined_function_correctly_defined import CoCoUserDefinedFunctionCorrectlyDefined
 from pynestml.cocos.co_co_variable_once_per_scope import CoCoVariableOncePerScope
 from pynestml.cocos.co_co_vector_variable_in_non_vector_declaration import CoCoVectorVariableInNonVectorDeclaration
-from pynestml.cocos.co_co_constraint_block_correctly_built import CoCoConstraintBlockCorrectlyBuilt
 
 
 class CoCosManager(object):
@@ -58,7 +58,7 @@ class CoCosManager(object):
         """
         Checks for the handed over neuron that each used function it is defined.
         """
-        CoCoFunctionUnique.check_co_co(neuron)
+        CoCoFunctionUnique().check_co_co(neuron)
 
     @classmethod
     def check_each_block_unique_and_defined(cls, neuron):
@@ -67,7 +67,7 @@ class CoCosManager(object):
         :param neuron: a single neuron instance
         :type neuron: ASTNeuron
         """
-        CoCoEachBlockUniqueAndDefined.check_co_co(neuron)
+        CoCoEachBlockUniqueAndDefined().check_co_co(neuron)
 
     @classmethod
     def check_function_declared_and_correctly_typed(cls, neuron):
@@ -77,7 +77,7 @@ class CoCosManager(object):
         :param neuron: a single neuron instance
         :type neuron: ASTNeuron
         """
-        CoCoFunctionCallsConsistent.check_co_co(neuron)
+        CoCoFunctionCallsConsistent().check_co_co(neuron)
 
     @classmethod
     def check_variables_unique_in_scope(cls, neuron):
@@ -86,7 +86,7 @@ class CoCosManager(object):
         :param neuron: a single neuron instance
         :type neuron: ASTNeuron
         """
-        CoCoVariableOncePerScope.check_co_co(neuron)
+        CoCoVariableOncePerScope().check_co_co(neuron)
 
     @classmethod
     def check_variables_defined_before_usage(cls, neuron):
@@ -95,7 +95,7 @@ class CoCosManager(object):
         :param neuron: a single neuron.
         :type neuron: ASTNeuron
         """
-        CoCoAllVariablesDefined.check_co_co(neuron)
+        CoCoAllVariablesDefined().check_co_co(neuron)
 
     @classmethod
     def check_functions_have_rhs(cls, neuron):
@@ -104,7 +104,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object
         :type neuron: ASTNeuron
         """
-        CoCoFunctionHaveRhs.check_co_co(neuron)
+        CoCoFunctionHaveRhs().check_co_co(neuron)
 
     @classmethod
     def check_function_has_max_one_lhs(cls, neuron):
@@ -113,7 +113,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoFunctionMaxOneLhs.check_co_co(neuron)
+        CoCoFunctionMaxOneLhs().check_co_co(neuron)
 
     @classmethod
     def check_no_values_assigned_to_buffers(cls, neuron):
@@ -122,7 +122,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoBufferNotAssigned.check_co_co(neuron)
+        CoCoBufferNotAssigned().check_co_co(neuron)
 
     @classmethod
     def check_order_of_equations_correct(cls, neuron):
@@ -131,7 +131,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoCorrectOrderInEquation.check_co_co(neuron)
+        CoCoCorrectOrderInEquation().check_co_co(neuron)
 
     @classmethod
     def check_numerator_of_unit_is_one_if_numeric(cls, neuron):
@@ -140,7 +140,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoCorrectNumeratorOfUnit.check_co_co(neuron)
+        CoCoCorrectNumeratorOfUnit().check_co_co(neuron)
 
     @classmethod
     def check_neuron_names_unique(cls, compilation_unit):
@@ -149,7 +149,7 @@ class CoCosManager(object):
         :param compilation_unit: a single compilation unit.
         :type compilation_unit: ASTCompilationUnit
         """
-        CoCoNeuronNameUnique.check_co_co(compilation_unit)
+        CoCoNeuronNameUnique().check_co_co(compilation_unit)
 
     @classmethod
     def check_no_nest_namespace_collisions(cls, neuron):
@@ -158,7 +158,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoNoNestNameSpaceCollision.check_co_co(neuron)
+        CoCoNoNestNameSpaceCollision().check_co_co(neuron)
 
     @classmethod
     def check_type_of_buffer_unique(cls, neuron):
@@ -167,7 +167,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoTypeOfBufferUnique.check_co_co(neuron)
+        CoCoTypeOfBufferUnique().check_co_co(neuron)
 
     @classmethod
     def check_parameters_not_assigned_outside_parameters_block(cls, neuron):
@@ -176,7 +176,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoParametersAssignedOnlyInParameterBlock.check_co_co(neuron)
+        CoCoParametersAssignedOnlyInParameterBlock().check_co_co(neuron)
 
     @classmethod
     def check_current_buffers_no_keywords(cls, neuron):
@@ -185,7 +185,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoCurrentBuffersNotSpecified.check_co_co(neuron)
+        CoCoCurrentBuffersNotSpecified().check_co_co(neuron)
 
     @classmethod
     def check_buffer_types_are_correct(cls, neuron):
@@ -194,7 +194,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoOnlySpikeBufferDataTypes.check_co_co(neuron)
+        CoCoOnlySpikeBufferDataTypes().check_co_co(neuron)
 
     @classmethod
     def check_init_vars_with_odes_provided(cls, neuron):
@@ -203,7 +203,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoInitVarsWithOdesProvided.check_co_co(neuron)
+        CoCoInitVarsWithOdesProvided().check_co_co(neuron)
 
     @classmethod
     def check_user_defined_function_correctly_built(cls, neuron):
@@ -213,7 +213,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoUserDefinedFunctionCorrectlyDefined.check_co_co(neuron)
+        CoCoUserDefinedFunctionCorrectlyDefined().check_co_co(neuron)
 
     @classmethod
     def check_initial_ode_initial_values(cls, neuron):
@@ -222,7 +222,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoEquationsOnlyForInitValues.check_co_co(neuron)
+        CoCoEquationsOnlyForInitValues().check_co_co(neuron)
 
     @classmethod
     def check_convolve_cond_curr_is_correct(cls, neuron):
@@ -231,7 +231,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoConvolveCondCorrectlyBuilt.check_co_co(neuron)
+        CoCoConvolveCondCorrectlyBuilt().check_co_co(neuron)
 
     @classmethod
     def check_correct_usage_of_shapes(cls, neuron):
@@ -240,7 +240,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoNoShapesExceptInConvolve.check_co_co(neuron)
+        CoCoNoShapesExceptInConvolve().check_co_co(neuron)
 
     @classmethod
     def check_not_two_neurons_across_units(cls, compilation_units):
@@ -249,7 +249,7 @@ class CoCosManager(object):
         :param compilation_units: a  list of compilation units
         :type compilation_units: list(ASTNestMLCompilationUnit)
         """
-        CoCoNoTwoNeuronsInSetOfCompilationUnits.check_co_co(compilation_units)
+        CoCoNoTwoNeuronsInSetOfCompilationUnits().check_co_co(compilation_units)
 
     @classmethod
     def check_invariant_type_correct(cls, neuron):
@@ -258,7 +258,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoInvariantIsBoolean.check_co_co(neuron)
+        CoCoInvariantIsBoolean().check_co_co(neuron)
 
     @classmethod
     def check_vector_in_non_vector_declaration_detected(cls, neuron):
@@ -267,7 +267,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoVectorVariableInNonVectorDeclaration.check_co_co(neuron)
+        CoCoVectorVariableInNonVectorDeclaration().check_co_co(neuron)
 
     @classmethod
     def check_sum_has_correct_parameter(cls, neuron):
@@ -276,7 +276,7 @@ class CoCosManager(object):
         :param neuron: a single neuron object.
         :type neuron: ASTNeuron
         """
-        CoCoSumHasCorrectParameter.check_co_co(neuron)
+        CoCoSumHasCorrectParameter().check_co_co(neuron)
 
     @classmethod
     def check_expression_correct(cls, neuron):
@@ -285,7 +285,7 @@ class CoCosManager(object):
         :param neuron: a single neuron
         :type neuron: ASTNeuron
         """
-        CoCoIllegalExpression.check_co_co(neuron)
+        CoCoIllegalExpression().check_co_co(neuron)
 
     @classmethod
     def check_constraint_block_correctly_built(cls, neuron):
@@ -294,7 +294,7 @@ class CoCosManager(object):
         :param neuron: a single neuron ast.
         :return: ASTNeuron
         """
-        CoCoConstraintBlockCorrectlyBuilt.check_co_co(neuron)
+        CoCoConstraintBlockCorrectlyBuilt().check_co_co(neuron)
 
     @classmethod
     def post_symbol_table_builder_checks(cls, neuron):

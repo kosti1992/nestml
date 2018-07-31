@@ -29,7 +29,6 @@ class CoCo:
                                 are checked by this coco.
     """
     __metaclass__ = ABCMeta
-    description = None
 
     @abstractmethod
     def check_co_co(self, node):

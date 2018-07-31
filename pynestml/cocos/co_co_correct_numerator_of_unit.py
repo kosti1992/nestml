@@ -18,7 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_unit_type import ASTUnitType
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -33,12 +35,11 @@ class CoCoCorrectNumeratorOfUnit(CoCo):
         V_m 2/mV = ...
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         node.accept(NumericNumeratorVisitor())
 
@@ -52,7 +53,7 @@ class NumericNumeratorVisitor(ASTVisitor):
         """
         Check if the coco applies,
         :param node: a single unit type object.
-        :type node: ast_unit_type
+        :type node: ASTUnitType
         """
         if node.is_div and isinstance(node.lhs, int) and node.lhs != 1:
             code, message = Messages.get_wrong_numerator(str(node))

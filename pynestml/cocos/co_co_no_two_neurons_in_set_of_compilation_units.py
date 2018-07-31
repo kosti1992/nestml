@@ -19,7 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
 from pynestml.utils.ast_utils import ASTUtils
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -28,8 +28,7 @@ class CoCoNoTwoNeuronsInSetOfCompilationUnits(CoCo):
     This Coco checks that for a handed over list of compilation units, not two neurons have the same name.
     """
 
-    @classmethod
-    def check_co_co(cls, list_of_compilation_units):
+    def check_co_co(self, list_of_compilation_units):
         """
         Checks the coco.
         :param list_of_compilation_units: a list of compilation units.

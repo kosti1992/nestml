@@ -43,12 +43,14 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
             return
         end
     Attributes:
-        __processedFunction (ast_function): A reference to the currently processed function.
+        processed_function (ast_function): A reference to the currently processed function.
     """
-    processed_function = None
 
-    @classmethod
-    def check_co_co(cls, _neuron=None):
+    def __init__(self):
+        self.processed_function = None
+        self.neuron_name = None
+
+    def check_co_co(self, _neuron):
         """
         Checks the coco for the handed over neuron.
         :param _neuron: a single neuron instance.
@@ -56,16 +58,16 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
         """
         assert (_neuron is not None and isinstance(_neuron, ASTNeuron)), \
             '(PyNestML.CoCo.FunctionCallsConsistent) No or wrong type of neuron provided (%s)!' % type(_neuron)
-        cls.__neuronName = _neuron.get_name()
+        self.neuron_name = _neuron.get_name()
         for userDefinedFunction in _neuron.get_functions():
-            cls.processed_function = userDefinedFunction
+            self.processed_function = userDefinedFunction
             symbol = userDefinedFunction.get_scope().resolve_to_symbol(userDefinedFunction.get_name(),
                                                                        SymbolKind.FUNCTION)
             # first ensure that the block contains at least one statement
             if symbol is not None and len(userDefinedFunction.get_block().get_stmts()) > 0:
                 # now check that the last statement is a return
-                cls.__check_return_recursively(symbol.get_return_type(),
-                                               userDefinedFunction.get_block().get_stmts(), False)
+                self.__check_return_recursively(symbol.get_return_type(),
+                                                userDefinedFunction.get_block().get_stmts(), False)
             # now if it does not have a statement, but uses a return type, it is an error
             elif symbol is not None and userDefinedFunction.has_return_type() and \
                     not symbol.get_return_type().equals(PredefinedTypes.get_void_type()):
@@ -75,13 +77,12 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
                                    log_level=LoggingLevel.ERROR)
         return
 
-    @classmethod
-    def __check_return_recursively(cls, type_symbol=None, stmts=None, ret_defined=False):
+    def __check_return_recursively(self, type_symbol = None, stmts = None, ret_defined = False):
         """
         For a handed over statement, it checks if the statement is a return statement and if it is typed according
         to the handed over type symbol.
         :param type_symbol: a single type symbol
-        :type type_symbol: type_symbol
+        :type type_symbol: TypeSymbol
         :param stmts: a list of statements, either simple or compound
         :type stmts: list(ASTSmallStmt,ASTCompoundStmt)
         :param ret_defined: indicates whether a ret has already beef defined after this block of stmt, thus is not
@@ -126,7 +127,7 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
                 if stmt.get_return_stmt().has_expression():
                     type_of_return = stmt.get_return_stmt().get_expression().type
                     if isinstance(type_of_return, ErrorTypeSymbol):
-                        code, message = Messages.get_type_could_not_be_derived(cls.processed_function.get_name())
+                        code, message = Messages.get_type_could_not_be_derived(self.processed_function.get_name())
                         Logger.log_message(error_position=stmt.get_source_position(),
                                            code=code, message=message, log_level=LoggingLevel.ERROR)
                     elif not type_of_return.equals(type_symbol):
@@ -135,21 +136,21 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
             elif isinstance(stmt, ASTCompoundStmt):
                 # otherwise it is a compound stmt, thus check recursively
                 if stmt.is_if_stmt():
-                    cls.__check_return_recursively(type_symbol,
-                                                   stmt.get_if_stmt().get_if_clause().get_block().get_stmts(),
-                                                   ret_defined)
+                    self.__check_return_recursively(type_symbol,
+                                                    stmt.get_if_stmt().get_if_clause().get_block().get_stmts(),
+                                                    ret_defined)
                     for else_ifs in stmt.get_if_stmt().get_elif_clauses():
-                        cls.__check_return_recursively(type_symbol, else_ifs.get_block().get_stmt(), ret_defined)
+                        self.__check_return_recursively(type_symbol, else_ifs.get_block().get_stmt(), ret_defined)
                     if stmt.get_if_stmt().has_else_clause():
-                        cls.__check_return_recursively(type_symbol,
-                                                       stmt.get_if_stmt().get_else_clause().get_block().get_stmts(),
-                                                       ret_defined)
+                        self.__check_return_recursively(type_symbol,
+                                                        stmt.get_if_stmt().get_else_clause().get_block().get_stmts(),
+                                                        ret_defined)
                 elif stmt.is_while_stmt():
-                    cls.__check_return_recursively(type_symbol, stmt.get_while_stmt().get_block().get_stmts(),
-                                                   ret_defined)
+                    self.__check_return_recursively(type_symbol, stmt.get_while_stmt().get_block().get_stmts(),
+                                                    ret_defined)
                 elif stmt.is_for_stmt():
-                    cls.__check_return_recursively(type_symbol, stmt.get_for_stmt().get_block().get_stmts(),
-                                                   ret_defined)
+                    self.__check_return_recursively(type_symbol, stmt.get_for_stmt().get_block().get_stmts(),
+                                                    ret_defined)
             # now, if a return statement has not been defined in the corresponding higher level block, we have
             # to ensure that it is defined here
             elif not ret_defined and stmts.index(c_stmt) == (len(stmts) - 1):

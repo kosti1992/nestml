@@ -20,6 +20,7 @@
 
 from astropy import units
 
+from pynestml.meta_model.ast_data_type import ASTDataType
 from pynestml.meta_model.ast_unit_type import ASTUnitType
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.predefined_units import PredefinedUnits
@@ -45,7 +46,7 @@ class ASTDataTypeVisitor(ASTVisitor):
         Visits a single data type meta_model node and updates, checks correctness and updates its type symbol.
         This visitor can also be used to derive the original name of the unit.
         :param node: a single datatype node.
-        :type node: ast_data_type
+        :type node: ASTDataType
         """
         if node.is_integer:
             self.symbol = PredefinedTypes.get_integer_type()

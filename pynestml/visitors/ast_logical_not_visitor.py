@@ -21,6 +21,7 @@
 """
 rhs: logicalNot='not' term=rhs
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -33,7 +34,7 @@ class ASTLogicalNotVisitor(ASTVisitor):
         """
         Visits a single rhs with a logical operator and updates the type.
         :param node: a single rhs
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         expr_type = node.get_expression().type
         expr_type.referenced_object = node.get_expression()

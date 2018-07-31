@@ -17,8 +17,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_declaration import ASTDeclaration
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
@@ -33,8 +34,7 @@ class CoCoVectorVariableInNonVectorDeclaration(CoCo):
         threePlusFour integer = three + 4 <- error: threePlusFour is not a vector
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
@@ -43,7 +43,6 @@ class CoCoVectorVariableInNonVectorDeclaration(CoCo):
         assert (node is not None and isinstance(node, ASTNeuron)), \
             '(PyNestML.CoCo.BufferNotAssigned) No or wrong type of neuron provided (%s)!' % type(node)
         node.accept(VectorInDeclarationVisitor())
-        return
 
 
 class VectorInDeclarationVisitor(ASTVisitor):
@@ -55,7 +54,7 @@ class VectorInDeclarationVisitor(ASTVisitor):
         """
         Checks the coco.
         :param node: a single declaration.
-        :type node: ast_declaration
+        :type node: ASTDeclaration
         """
         if node.has_expression():
             variables = node.get_expression().get_variables()

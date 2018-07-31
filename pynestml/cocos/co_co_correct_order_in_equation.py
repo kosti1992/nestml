@@ -18,7 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_ode_equation import ASTOdeEquation
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -42,7 +44,7 @@ class CoCoCorrectOrderInEquation(CoCo):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         node.accept(OrderOfEquationVisitor())
 
@@ -56,7 +58,7 @@ class OrderOfEquationVisitor(ASTVisitor):
         """
         Checks the coco.
         :param node: A single ode equation.
-        :type node: ast_ode_equation
+        :type node: ASTOdeEquation
         """
         if node.get_lhs().get_differential_order() == 0:
             code, message = Messages.get_order_not_declared(node.get_lhs().get_name())

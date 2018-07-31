@@ -22,6 +22,7 @@
 Expr = unaryOperator term=rhs
 unaryOperator : (unaryPlus='+' | unaryMinus='-' | unaryTilde='~');
 """
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -34,7 +35,7 @@ class ASTUnaryVisitor(ASTVisitor):
         """
         Visits a single unary operator and updates the type of the corresponding expression.
         :param node: a single expression
-        :type node: ast_expression
+        :type node: ASTExpression
         """
         term_type = node.get_expression().type
 

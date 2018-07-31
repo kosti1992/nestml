@@ -21,6 +21,7 @@
 """
 simpleExpression : (INTEGER|FLOAT) (variable)?
 """
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.visitors.ast_visitor import ASTVisitor
@@ -35,7 +36,7 @@ class ASTNumericLiteralVisitor(ASTVisitor):
         """
         Visit a simple rhs and update the type of a numeric literal.
         :param node: a single meta_model node
-        :type node: ASTNode
+        :type node: ASTSimpleExpression
         :return: no value returned, the type is updated in-place
         :rtype: void
         """

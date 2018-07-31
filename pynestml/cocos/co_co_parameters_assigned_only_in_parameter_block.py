@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.meta_model.ast_assignment import ASTAssignment
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.cocos.co_co import CoCo
 from pynestml.symbol_table.scope import ScopeType
@@ -44,8 +45,7 @@ class CoCoParametersAssignedOnlyInParameterBlock(CoCo):
         end    
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.
         :param node: a single neuron instance.
@@ -66,7 +66,7 @@ class ParametersAssignmentVisitor(ASTVisitor):
         """
         Checks the coco on the current node.
         :param node: a single node.
-        :type node: ast_assignment
+        :type node: ASTAssignment
         """
         symbol = node.get_scope().resolve_to_symbol(node.get_variable().get_name(), SymbolKind.VARIABLE)
         if (symbol is not None and symbol.block_type == BlockType.PARAMETERS and

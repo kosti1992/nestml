@@ -17,8 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.meta_model.ast_node import ASTNode
 from pynestml.meta_model.ast_expression import ASTExpression
+from pynestml.meta_model.ast_node import ASTNode
 
 
 class ASTForStmt(ASTNode):
@@ -70,7 +70,7 @@ class ASTForStmt(ASTNode):
         """
         Returns the from-statement.
         :return: the rhs indicating the start value.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.start_from
 
@@ -78,7 +78,7 @@ class ASTForStmt(ASTNode):
         """
         Returns the to-statement.
         :return: the rhs indicating the finish value.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.end_at
 
@@ -94,7 +94,7 @@ class ASTForStmt(ASTNode):
         """
         Returns the block of statements.
         :return: the block of statements.
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 

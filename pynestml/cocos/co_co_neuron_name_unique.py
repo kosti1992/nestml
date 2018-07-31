@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -44,8 +44,7 @@ class CoCoNeuronNameUnique(CoCo):
         end
     """
 
-    @classmethod
-    def check_co_co(cls, compilation_unit):
+    def check_co_co(self, compilation_unit):
         """
         Checks the coco for the handed over compilation unit.
         :param compilation_unit: a single compilation unit.

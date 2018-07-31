@@ -21,6 +21,7 @@
 """
 simpleExpression : string=STRING_LITERAL
 """
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.visitors.ast_visitor import ASTVisitor
 
@@ -34,7 +35,7 @@ class ASTStringLiteralVisitor(ASTVisitor):
         """
         Visits a singe simple rhs which consists of a string literal and updates the type.
         :param node: a simple rhs containing a string literal
-        :type node: ast_simple_expression
+        :type node: ASTSimpleExpression
         """
         node.type = PredefinedTypes.get_string_type()
         node.type.referenced_object = node

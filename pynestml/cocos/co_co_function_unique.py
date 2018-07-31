@@ -18,8 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -28,12 +29,11 @@ class CoCoFunctionUnique(CoCo):
     This Coco ensures that each function is defined exactly once (thus no redeclaration occurs).
     """
 
-    @classmethod
-    def check_co_co(cls, node):
+    def check_co_co(self, node):
         """
         Checks if each function is defined uniquely.
         :param node: a single neuron
-        :type node: ast_neuron
+        :type node: ASTNeuron
         """
         checked_funcs_names = list()
         for func in node.get_functions():
@@ -47,21 +47,21 @@ class CoCoFunctionUnique(CoCo):
                                 if funcA.is_predefined:
                                     code, message = Messages.get_function_redeclared(funcA.get_symbol_name(), True)
                                     Logger.log_message(
-                                        error_position=funcB.get_referenced_object().get_source_position(),
-                                        log_level=LoggingLevel.ERROR,
-                                        message=message, code=code)
+                                            error_position=funcB.get_referenced_object().get_source_position(),
+                                            log_level=LoggingLevel.ERROR,
+                                            message=message, code=code)
                                 elif funcB.is_predefined:
                                     code, message = Messages.get_function_redeclared(funcA.get_symbol_name(), True)
                                     Logger.log_message(
-                                        error_position=funcA.get_referenced_object().get_source_position(),
-                                        log_level=LoggingLevel.ERROR,
-                                        message=message, code=code)
+                                            error_position=funcA.get_referenced_object().get_source_position(),
+                                            log_level=LoggingLevel.ERROR,
+                                            message=message, code=code)
                                 else:
                                     code, message = Messages.get_function_redeclared(funcA.get_symbol_name(), False)
                                     Logger.log_message(
-                                        error_position=funcB.get_referenced_object().get_source_position(),
-                                        log_level=LoggingLevel.ERROR,
-                                        message=message, code=code)
+                                            error_position=funcB.get_referenced_object().get_source_position(),
+                                            log_level=LoggingLevel.ERROR,
+                                            message=message, code=code)
                         checked.append(funcA)
             checked_funcs_names.append(func.get_name())
         return
