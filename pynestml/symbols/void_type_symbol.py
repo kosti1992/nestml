@@ -36,8 +36,8 @@ class VoidTypeSymbol(TypeSymbol):
     def print_nest_type(self):
         return 'void'
 
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         return False
 
     def __str__(self):
-        return 'TypeSymbol: void'
+        return 'TypeSymbol[void]'

@@ -46,8 +46,8 @@ class StringTypeSymbol(TypeSymbol):
             return self
         return self.binary_operation_not_defined_error('+', other)
 
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         return False
 
     def __str__(self):
-        return 'TypeSymbol: string'
+        return 'TypeSymbol[string]'

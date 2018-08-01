@@ -68,9 +68,7 @@ class Messages(object):
     @classmethod
     def get_implicit_magnitude_conversion(cls, lhs, rhs, conversion_factor):
         message = 'Non-matching unit types at %s +/- %s! ' \
-                  'Implicitly replaced by %s +/- %s * %s.' % (
-                      lhs.print_symbol(), rhs.print_symbol(), lhs.print_symbol(), conversion_factor,
-                      rhs.print_symbol())
+                  'Implicitly replaced by %s +/- %s * %s.' % (lhs, rhs, lhs, conversion_factor, rhs)
         return MessageCode.IMPLICIT_CAST, message
 
     @classmethod
@@ -89,9 +87,9 @@ class Messages(object):
         :param arg_nr: the number of the argument which is cast
         :type arg_nr: int
         :param function_call: a single function call
-        :type function_call: ast_function_call
+        :type function_call: ASTFunctionCall
         :param expected_type: the expected type
-        :type expected_type: type_symbol
+        :type expected_type: TypeSymbol
         :param got_type: the got-type
         :type got_type: TypeSymbol
         :param castable: is the type castable
@@ -101,12 +99,12 @@ class Messages(object):
         """
         if not castable:
             message = str(arg_nr) + '. argument of function-call \'%s\' at is wrongly typed! Expected \'%s\',' \
-                                    ' found \'%s\'!' % (function_call.get_name(), got_type.print_symbol(),
+                                    ' found \'%s\'!' % (function_call.get_name(), got_type,
                                                         expected_type.print_symbol())
         else:
             message = str(arg_nr) + '. argument of function-call \'%s\' is wrongly typed! ' \
                                     'Implicit cast from \'%s\' to \'%s\'.' % (function_call.get_name(),
-                                                                              got_type.print_symbol(),
+                                                                              got_type,
                                                                               expected_type.print_symbol())
         return MessageCode.FUNCTION_CALL_TYPE_ERROR, message
 
@@ -157,8 +155,8 @@ class Messages(object):
         message = 'Type of lhs \'%s\' does not correspond to rhs \'%s\'! LHS: \'%s\', RHS: \'%s\'!' % (
             lhs_expression,
             rhs_expression,
-            lhs_type.print_symbol(),
-            rhs_type.print_symbol())
+            lhs_type,
+            rhs_type)
         return MessageCode.CAST_NOT_POSSIBLE, message
 
     @classmethod
@@ -926,7 +924,7 @@ class Messages(object):
         return MessageCode.SYNTAX_WARNING, message
 
     @classmethod
-    def get_sat_check_only_for_simple_expressions(cls, constraint, left_bound=False):
+    def get_sat_check_only_for_simple_expressions(cls, constraint, left_bound = False):
         if left_bound:
             message = 'SAT check only available for simple bounds! Left bound of %s not simple.' % constraint
         else:

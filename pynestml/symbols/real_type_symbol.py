@@ -107,15 +107,15 @@ class RealTypeSymbol(TypeSymbol):
             return self.warn_implicit_cast_from_to(self, other)
         return self.binary_operation_not_defined_error('-', other)
 
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
         from pynestml.symbols.integer_type_symbol import IntegerTypeSymbol
-        if _other_type.is_instance_of(BooleanTypeSymbol):
+        if other_type.is_instance_of(BooleanTypeSymbol):
             return True
-        elif _other_type.is_instance_of(IntegerTypeSymbol):
+        elif other_type.is_instance_of(IntegerTypeSymbol):
             return True
         else:
             return False
 
     def __str__(self):
-        return 'TypeSymbol: real'
+        return 'TypeSymbol[real]'

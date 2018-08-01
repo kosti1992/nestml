@@ -243,23 +243,19 @@ class VariableSymbol(Symbol):
         """
         return self.block_type == BlockType.INITIAL_VALUES
 
-    def print_symbol(self):
-        # todo: obsolete, should be in __str__ -> refactor
+    def __str__(self):
         if self.get_referenced_object() is not None:
             source_position = str(self.get_referenced_object().get_source_position())
         else:
             source_position = 'predefined'
         vector_value = self.get_vector_parameter() if self.has_vector_parameter() else 'none'
-        typ_e = self.get_type_symbol().print_symbol()
+        typ_e = str(self.get_type_symbol())
         recordable = 'recordable, ' if self.is_recordable else ''
         func = 'function, ' if self.is_function else ''
         conductance_based = 'conductance based, ' if self.is_conductance_based else ''
         return ('VariableSymbol[' + self.get_symbol_name() + ', type=' +
                 typ_e + ', ' + str(self.block_type) + ', ' + recordable + func + conductance_based +
-                'array parameter=' + vector_value + ', @' + source_position + ')')
-
-    def __str__(self):
-        return self.print_symbol()
+                'array parameter=' + vector_value + ', @' + source_position + ']')
 
     def get_type_symbol(self):
         """

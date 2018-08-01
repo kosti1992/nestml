@@ -52,17 +52,17 @@ class FunctionSymbol(Symbol):
         self.return_type = return_type
         self.is_predefined = is_predefined
 
-    def print_symbol(self):
+    def __str__(self):
         """
         Returns a string representation of this symbol.
         """
         ret = 'FunctionSymbol[' + self.get_symbol_name() + ', Parameters = {'
         for arg in self.param_types:
-            ret += arg.print_symbol()
+            ret += str(arg)
             if self.param_types.index(arg) < len(
                     self.param_types) - 1:  # in the case that it is not the last arg, print also a comma
                 ret += ','
-        ret += '}, return type = ' + (self.get_return_type().print_symbol())
+        ret += '}, return type = ' + (str(self.get_return_type()))
         ret += ', @['
         if self.get_referenced_object() is not None:
             ret += str(self.get_referenced_object().get_source_position())
@@ -70,9 +70,6 @@ class FunctionSymbol(Symbol):
             ret += 'predefined'
         ret += ']'
         return ret
-
-    def __str__(self):
-        return self.print_symbol()
 
     def get_return_type(self):
         """
@@ -106,23 +103,23 @@ class FunctionSymbol(Symbol):
         """
         self.param_types.append(new_type)
 
-    def equals(self, _other=None):
+    def equals(self, other):
         """
         Compares the handed over instance of function symbol to this one and returns true, if the they are equal.
-        :param _other: a different function symbol
-        :type _other: FunctionSymbol
+        :param other: a different function symbol
+        :type other: FunctionSymbol
         :return: True if equal, otherwise False.
         :rtype: bool
         """
-        if not isinstance(_other, FunctionSymbol):
+        if not isinstance(other, FunctionSymbol):
             return False
-        if not self.name == _other.get_symbol_name():
+        if not self.name == other.get_symbol_name():
             return False
-        if not self.return_type.equals(_other.return_type):
+        if not self.return_type.equals(other.return_type):
             return False
-        if len(self.param_types) != len(_other.get_parameter_types()):
+        if len(self.param_types) != len(other.get_parameter_types()):
             return False
-        other_args = _other.get_parameter_types()
+        other_args = other.get_parameter_types()
         for i in range(0, len(self.param_types)):
             if not self.param_types[i].equals(other_args[i]):
                 return False

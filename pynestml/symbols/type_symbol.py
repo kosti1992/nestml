@@ -32,7 +32,7 @@ class TypeSymbol(Symbol):
     """
     __metaclass__ = ABCMeta
 
-    def is_instance_of(self, _other):
+    def is_instance_of(self, other):
         """
         wrapper around isinstance to make things more readable/intuitive.
         instance checks abound for all members of the TypeSymbol hierarchy,
@@ -40,7 +40,7 @@ class TypeSymbol(Symbol):
         limit them to situations that would otherwise have been covered
         by function overloading in e.g. Java -ptraeder
         """
-        return isinstance(self, _other)
+        return isinstance(self, other)
 
     @abstractmethod
     def __init__(self, name):
@@ -195,7 +195,7 @@ class TypeSymbol(Symbol):
         return False
 
     @abstractmethod
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         """
         Indicates whether typeA can be casted to type b. E.g., in Nest, a unit is always casted down to real, thus
         a unit where unit is expected is allowed.
@@ -204,18 +204,18 @@ class TypeSymbol(Symbol):
         """
         pass
 
-    def binary_operation_not_defined_error(self, _operator, _other):
+    def binary_operation_not_defined_error(self, operator, other):
         from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
         result = ErrorTypeSymbol()
-        code, message = Messages.get_binary_operation_not_defined(lhs=self, operator=_operator, rhs=_other)
+        code, message = Messages.get_binary_operation_not_defined(lhs=self, operator=operator, rhs=other)
         Logger.log_message(code=code, message=message, error_position=self.referenced_object.get_source_position(),
                            log_level=LoggingLevel.ERROR)
         return result
 
-    def unary_operation_not_defined_error(self, _operator):
+    def unary_operation_not_defined_error(self, operator):
         from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
         result = ErrorTypeSymbol()
-        code, message = Messages.get_unary_operation_not_defined(_operator,
+        code, message = Messages.get_unary_operation_not_defined(operator,
                                                                  self.print_symbol())
         Logger.log_message(code=code, message=message, error_position=self.referenced_object.get_source_position(),
                            log_level=LoggingLevel.ERROR)
@@ -225,7 +225,7 @@ class TypeSymbol(Symbol):
     def inverse_of_unit(cls, other):
         """
         :param other: the unit to invert
-        :type other: unit_type_symbol
+        :type other: UnitTypeSymbol
         :return: UnitTypeSymbol
         """
         from pynestml.symbols.predefined_types import PredefinedTypes
@@ -233,7 +233,7 @@ class TypeSymbol(Symbol):
         return result
 
     def warn_implicit_cast_from_to(self, _from, _to):
-        code, message = Messages.get_implicit_cast_rhs_to_lhs(_to.print_symbol(), _from.print_symbol())
+        code, message = Messages.get_implicit_cast_rhs_to_lhs(str(_to), str(_from))
         Logger.log_message(code=code, message=message,
                            error_position=self.get_referenced_object().get_source_position(),
                            log_level=LoggingLevel.WARNING)

@@ -122,12 +122,12 @@ class IntegerTypeSymbol(TypeSymbol):
             return self.warn_implicit_cast_from_to(self, other)
         return self.binary_operation_not_defined_error('-', other)
 
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         from pynestml.symbols.real_type_symbol import RealTypeSymbol
-        if _other_type.is_instance_of(RealTypeSymbol):
+        if other_type.is_instance_of(RealTypeSymbol):
             return True
         else:
             return False
 
     def __str__(self):
-        return 'TypeSymbol: integer'
+        return 'TypeSymbol[integer]'

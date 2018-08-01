@@ -168,4 +168,4 @@ class UnitTypeSymbol(TypeSymbol):
             return False
 
     def __str__(self):
-        return 'UnitTypeSymbol: %s' + str(self.unit.get_unit())
+        return 'UnitTypeSymbol[%s]' + str(self.unit.get_unit())

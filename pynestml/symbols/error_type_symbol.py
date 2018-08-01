@@ -83,8 +83,8 @@ class ErrorTypeSymbol(TypeSymbol):
     def __sub__(self, other):
         return self
 
-    def is_castable_to(self, _other_type):
+    def is_castable_to(self, other_type):
         return False
 
     def __str__(self):
-        return 'TypeSymbol: error'
+        return 'TypeSymbol[error]'
