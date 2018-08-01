@@ -38,7 +38,7 @@ class OdeTransformer(object):
         """
         Replaces all self.function in the handed over node.
         :param _ast: a single meta_model node.
-        :type _ast: AST_
+        :type _ast: ASTNode
         """
         working_copy = copy(_ast)
         function_calls = cls.get_function_calls(working_copy, cls.functions)
@@ -47,16 +47,16 @@ class OdeTransformer(object):
         return working_copy
 
     @classmethod
-    def refactor_convolve_call(cls, _ast):
+    def refactor_convolve_call(cls, ast):
         """
         Replaces all `convolve` calls in the handed over node.
-        :param _ast: a single node
-        :type _ast: AST_
+        :param ast: a single node
+        :type ast: ASTNode
         """
 
-        function_calls = cls.get_sum_function_calls(_ast)
+        function_calls = cls.get_sum_function_calls(ast)
         for call in function_calls:
-            cls.replace_function_call_through_first_argument(_ast, call)
+            cls.replace_function_call_through_first_argument(ast, call)
 
     @classmethod
     def replace_function_call_through_first_argument(cls, ast, function_name_to_replace):

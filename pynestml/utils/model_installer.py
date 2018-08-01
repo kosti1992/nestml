@@ -46,9 +46,9 @@ def install_nest(models_path, nest_path):
 
     # first call cmake with all the arguments
     try:
-        result = subprocess.check_call(cmake_cmd, stderr=subprocess.STDOUT, shell=shell,
-                                       cwd=str(os.path.join(models_path)))
-    except subprocess.CalledProcessError as e:
+        subprocess.check_call(cmake_cmd, stderr=subprocess.STDOUT, shell=shell,
+                              cwd=str(os.path.join(models_path)))
+    except subprocess.CalledProcessError:
         print('PyNestML: Something went wrong in \'cmake\', see error above!')
         print('abort installation...')
         return
@@ -57,7 +57,7 @@ def install_nest(models_path, nest_path):
     try:
         subprocess.check_call(make_all_cmd, stderr=subprocess.STDOUT, shell=shell,
                               cwd=str(os.path.join(models_path)))
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print('PyNestML: Something went wrong in \'make all\', see error above!')
         print('abort installation...')
         return
@@ -66,7 +66,7 @@ def install_nest(models_path, nest_path):
     try:
         subprocess.check_call(make_install_cmd, stderr=subprocess.STDOUT, shell=shell,
                               cwd=str(os.path.join(models_path)))
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print('PyNestML: Something went wrong in \'make install\', see error above!')
         print('abort installation...')
         return

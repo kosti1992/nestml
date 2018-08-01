@@ -180,17 +180,17 @@ class Messages(object):
         return MessageCode.TYPE_DIFFERENT_FROM_EXPECTED, message
 
     @classmethod
-    def get_buffer_set_to_conductance_based(cls, buffer):
+    def get_buffer_set_to_conductance_based(cls, _buffer):
         """
         Returns a message indicating that a buffer has been set to conductance based.
-        :param buffer: the name of the buffer
-        :type buffer: str
+        :param _buffer: the name of the buffer
+        :type _buffer: str
         :return: a message
         :rtype: (MessageCode,str)
         """
-        assert (buffer is not None and isinstance(buffer, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(buffer)
-        message = 'Buffer \'%s\' set to conductance based!' % buffer
+        assert (_buffer is not None and isinstance(_buffer, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_buffer)
+        message = 'Buffer \'%s\' set to conductance based!' % _buffer
         return MessageCode.BUFFER_SET_TO_CONDUCTANCE_BASED, message
 
     @classmethod

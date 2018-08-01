@@ -21,6 +21,7 @@ import copy
 
 from antlr4 import *
 
+from pynestml.frontend.nestml_error_listener import NestMLErrorListener
 from pynestml.generated.PyNestMLLexer import PyNestMLLexer
 from pynestml.generated.PyNestMLParser import PyNestMLParser
 from pynestml.meta_model.ast_arithmetic_operator import ASTArithmeticOperator
@@ -30,6 +31,8 @@ from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
 from pynestml.meta_model.ast_body import ASTBody
 from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
 from pynestml.meta_model.ast_compound_stmt import ASTCompoundStmt
+from pynestml.meta_model.ast_constraint import ASTConstraint
+from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 from pynestml.meta_model.ast_data_type import ASTDataType
 from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.meta_model.ast_elif_clause import ASTElifClause
@@ -62,8 +65,6 @@ from pynestml.meta_model.ast_unit_type import ASTUnitType
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.meta_model.ast_while_stmt import ASTWhileStmt
-from pynestml.meta_model.ast_constraint import ASTConstraint
-from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 from pynestml.symbol_table.symbol_table import SymbolTable
 from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.logger import Logger, LoggingLevel
@@ -71,7 +72,6 @@ from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_builder_visitor import ASTBuilderVisitor
 from pynestml.visitors.ast_higher_order_visitor import ASTHigherOrderVisitor
 from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
-from pynestml.frontend.nestml_error_listener import NestMLErrorListener
 
 
 class ModelParser(object):

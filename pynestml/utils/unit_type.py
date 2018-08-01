@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from astropy.units.core import PrefixUnit, Unit, IrreducibleUnit, CompositeUnit
+from astropy.units.core import CompositeUnit, IrreducibleUnit, PrefixUnit, Unit
 from astropy.units.quantity import Quantity
 
 
@@ -74,14 +74,14 @@ class UnitType(object):
         """
         return str(self.get_unit())
 
-    def equals(self, _obj=None):
+    def equals(self, other):
         """
         Compares this to the handed object and checks if their semantically equal.
-        :param _obj: a single object
-        :type _obj: object
+        :param other: a single object
+        :type other: object
         :return: True if equal, otherwise false.
         :rtype: bool
         """
-        if not isinstance(_obj, UnitType):
+        if not isinstance(other, UnitType):
             return False
-        return self.get_name() == _obj.get_name() and self.get_unit() is _obj.get_unit()
+        return self.get_name() == other.get_name() and self.get_unit() is other.get_unit()

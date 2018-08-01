@@ -20,7 +20,7 @@
 from pynestml.meta_model.ast_function_call import ASTFunctionCall
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 
 
 class ASTUtils(object):
@@ -85,7 +85,7 @@ class ASTUtils(object):
         """
         Checks if the handed over neuron contains a spike input buffer.
         :param body: a single body element.
-        :type body: ast_body
+        :type body: ASTBody
         :return: True if spike buffer is contained, otherwise false.
         :rtype: bool
         """
@@ -101,7 +101,7 @@ class ASTUtils(object):
         """
         Checks if the handed over neuron contains a current input buffer.
         :param body: a single body element.
-        :type body: ast_body
+        :type body: ASTBody
         :return: True if current buffer is contained, otherwise false.
         :rtype: bool
         """
@@ -116,7 +116,7 @@ class ASTUtils(object):
         """
         Computes the representation of the data type.
         :param data_type: a single data type.
-        :type data_type: ast_data_type
+        :type data_type: ASTDataType
         :return: the corresponding representation.
         :rtype: str
         """
@@ -143,7 +143,7 @@ class ASTUtils(object):
         From lhs and rhs it constructs a new rhs which corresponds to direct assignment.
         E.g.: a += b*c -> a = a + b*c
         :param lhs: a lhs rhs
-        :type lhs: ast_expression or ast_simple_expression
+        :type lhs: ASTExpression or ASTSimpleExpression
         :param is_plus: is plus assignment
         :type is_plus: bool
         :param is_minus: is minus assignment
@@ -220,7 +220,7 @@ class ASTUtils(object):
         Indicates whether typeA can be casted to type b. E.g., in Nest, a unit is always casted down to real, thus
         a unit where unit is expected is allowed.
         :param type_a: a single TypeSymbol
-        :type type_a: type_symbol
+        :type type_a: TypeSymbol
         :param type_b: a single TypeSymbol
         :type type_b: TypeSymbol
         :return: True if castable, otherwise False
@@ -248,7 +248,7 @@ class ASTUtils(object):
         :param type_a: a type
         :type type_a:  TypeSymbol
         :param type_b: a type
-        :type type_b: type_symbol
+        :type type_b: TypeSymbol
         :return: True if both elements equal or differ in magnitude, otherwise False.
         :rtype: bool
         """
@@ -316,7 +316,7 @@ class ASTUtils(object):
         """
         Collects for a given name all function calls in a given meta_model node.
         :param ast: a single node
-        :type ast: ast_node
+        :type ast: ASTNode
         :param function_name: the name of the function
         :type function_name: str
         :return: a list of all function calls contained in _ast
@@ -367,9 +367,9 @@ class ASTUtils(object):
         """
         Creates a single internal block in the handed over neuron.
         :param neuron: a single neuron
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :return: the modified neuron
-        :rtype: ast_neuron
+        :rtype: ASTNeuron
         """
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
         if neuron.get_internals_blocks() is None:
@@ -383,9 +383,9 @@ class ASTUtils(object):
         """
         Creates a single internal block in the handed over neuron.
         :param neuron: a single neuron
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :return: the modified neuron
-        :rtype: ast_neuron
+        :rtype: ASTNeuron
         """
         # local import since otherwise circular dependency
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
@@ -400,9 +400,9 @@ class ASTUtils(object):
         """
         Creates a single initial values block in the handed over neuron.
         :param neuron: a single neuron
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :return: the modified neuron
-        :rtype: ast_neuron
+        :rtype: ASTNeuron
         """
         # local import since otherwise circular dependency
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
@@ -435,9 +435,9 @@ class ASTUtils(object):
         """
         Adds the handed over declaration the state block
         :param neuron: a single neuron instance
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :param declaration: a single declaration
-        :type declaration: ast_declaration
+        :type declaration: ASTDeclaration
         """
         if neuron.get_state_blocks() is None:
             ASTUtils.create_state_block(neuron)
@@ -610,12 +610,16 @@ class ASTUtils(object):
     def get_next_valid_value(cls, op, expr):
         # type: (ASTComparisonOperator,ASTExpression) -> ASTExpression
         """
-        This function returns the next valid value for a constraint. For instance, in cases wherer
+        This function returns the next valid value for a constraint. For instance, in cases where
         the constraint is -70mV < V_m, we can not simply set V_m to -70mV, since this would contradict the constraint.
-        We have to set is to -70mV + epsilon where epsilon is a infinitesimal small value. Here ,we instead use 0.0001
-        :param op:
-        :param expr:
-        :return:
+        We have to set is to -70mV + epsilon where epsilon is a infinitesimal small value. For epsilon ,we
+        use 0.0001.
+        :param op: a single operator
+        :type op: ASTComparisonOperator
+        :param expr: a single expression
+        :type expr: ASTExpression
+        :return: a modified expression
+        :rtype: ASTExpression
         """
         from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory

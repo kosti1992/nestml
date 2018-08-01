@@ -207,7 +207,7 @@ class Logger(object):
         """
         Returns all messages which have been reported for a certain neuron.
         :param neuron: a single neuron instance
-        :type neuron: ASTNeron
+        :type neuron: ASTNeuron
         :return: a list of messages with their levels.
         :rtype: list((str,Logging_Level)
         """
@@ -225,7 +225,7 @@ class Logger(object):
         """
         Indicates whether the handed over neuron, thus the corresponding model, has errors.
         :param neuron: a single neuron instance.
-        :type neuron: ast_neuron
+        :type neuron: ASTNeuron
         :return: True if errors detected, otherwise False
         :rtype: bool
         """
