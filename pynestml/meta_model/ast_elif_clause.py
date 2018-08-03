@@ -34,9 +34,9 @@ class ASTElifClause(ASTNode):
         """
         Standard constructor.
         :param condition: the condition of the block.
-        :type condition: ast_expression
+        :type condition: ASTExpression
         :param block: a block of statements.
-        :type block: ast_block
+        :type block: ASTBlock
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """
@@ -48,7 +48,7 @@ class ASTElifClause(ASTNode):
         """
         Returns the condition of the block.
         :return: the condition.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.condition
 
@@ -56,7 +56,7 @@ class ASTElifClause(ASTNode):
         """
         Returns the block of statements.
         :return: the block of statements.
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 
@@ -64,9 +64,9 @@ class ASTElifClause(ASTNode):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
-        :type ast: AST_
+        :type ast: ASTNode
         :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
+        :rtype: ASTNode or None
         """
         if self.get_condition() is ast:
             return self

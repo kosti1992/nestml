@@ -21,6 +21,7 @@ from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.variable_symbol import BlockType
+from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
@@ -52,7 +53,8 @@ class CoCoAllVariablesDefined(CoCo):
             for var in expr.get_variables():
                 symbol = var.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
                 # this part is required to check that we handle invariants differently
-                expr_par = node.get_parent(expr)
+                # expr_par = node.get_parent(expr)
+                expr_par = ASTUtils.get_parent(node, expr)
 
                 # first test if the symbol has been defined at least
                 if symbol is None:

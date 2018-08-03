@@ -41,7 +41,7 @@ class Scope(object):
         :param enclosing_scope: the parent scope of this scope, as used for resolution of symbols.
         :type enclosing_scope: Scope
         :param source_position: the start and end of the scope in the source file
-        :type source_position: ast_source_location
+        :type source_position: ASTSourceLocation
         """
         self.declared_elements = list()
         self.scope_type = scope_type
@@ -249,7 +249,7 @@ class Scope(object):
         :param kind: the type of the symbol, i.e., Variable,function or type.
         :type kind: SymbolType
         :return: the first matching symbol.
-        :rtype: variable_symbol or function_symbol
+        :rtype: VariableSymbol or FunctionSymbol
         """
         for sim in self.get_symbols_in_this_scope():
             if sim.get_symbol_name() == name and sim.get_symbol_kind() == kind:
@@ -333,7 +333,7 @@ class Scope(object):
             depth += 1 + self.get_enclosing_scope().get_depth_of_scope()
         return depth
 
-    def print_scope(self):
+    def __str__(self):
         """
         Returns a string representation of symbol table as used for debug purpose.
         :return: a string representation of the scope and its sub-scope.
@@ -343,9 +343,9 @@ class Scope(object):
         ret += '<' + self.get_scope_type().name + ',' + str(self.get_source_position()) + '>' + '\n'
         for elem in self.declared_elements:
             if isinstance(elem, Symbol):
-                ret += ('-' * 2 * (self.get_depth_of_scope() + 1)) + elem.print_symbol() + '\n'
+                ret += ('-' * 2 * (self.get_depth_of_scope() + 1)) + str(elem) + '\n'
             else:
-                ret += elem.print_scope()
+                ret += str(elem)
         return ret
 
 

@@ -63,7 +63,7 @@ class ASTDeclaration(ASTNode):
         :param _variables: a list of variables.
         :type _variables: list(ASTVariable)
         :param data_type: the data type.
-        :type data_type: ast_data_type
+        :type data_type: ASTDataType
         :param size_parameter: an optional size parameter.
         :type size_parameter: str
         :param expression: an optional right-hand side rhs.
@@ -115,15 +115,15 @@ class ASTDeclaration(ASTNode):
         """
         return self.size_parameter
 
-    def set_size_parameter(self, _parameter):
+    def set_size_parameter(self, parameter):
         """
         Updates the current size parameter to a new value.
-        :param _parameter: the size parameter
-        :type _parameter: str
+        :param parameter: the size parameter
+        :type parameter: str
         """
-        assert (_parameter is not None and isinstance(_parameter, str)), \
-            '(PyNestML.AST.Declaration) No or wrong type of size parameter provided (%s)!' % type(_parameter)
-        self.size_parameter = _parameter
+        assert (parameter is not None and isinstance(parameter, str)), \
+            '(PyNestML.AST.Declaration) No or wrong type of size parameter provided (%s)!' % type(parameter)
+        self.size_parameter = parameter
         return
 
     def has_expression(self):

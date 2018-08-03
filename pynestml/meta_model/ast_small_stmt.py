@@ -41,13 +41,13 @@ class ASTSmallStmt(ASTNode):
         """
         Standard constructor.
         :param assignment: an meta_model-assignment object.
-        :type assignment: ast_assignment
+        :type assignment: ASTAssignment
         :param function_call: an meta_model-function call object.
-        :type function_call: ast_function_call
+        :type function_call: ASTFunctionCall
         :param declaration: an meta_model-declaration object.
-        :type declaration: ast_declaration
+        :type declaration: ASTDeclaration
         :param return_stmt: an meta_model-return statement object.
-        :type return_stmt: ast_return_stmt
+        :type return_stmt: ASTReturnStmt
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """

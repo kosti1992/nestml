@@ -62,7 +62,7 @@ class ASTInputBlock(ASTNode):
         """
         Returns the list of input lines.
         :return: a list of input lines
-        :rtype: list(ASTInputLine)
+        :rtype: list[ASTInputLine]
         """
         return self.input_definitions
 

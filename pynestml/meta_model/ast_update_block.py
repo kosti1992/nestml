@@ -58,7 +58,7 @@ class ASTUpdateBlock(ASTNode):
         """
         Returns the block of definitions.
         :return: the block
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 
@@ -66,14 +66,14 @@ class ASTUpdateBlock(ASTNode):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
-        :type ast: AST_
+        :type ast: ASTNode
         :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
+        :rtype: ASTNode or None
         """
-        if self.get_block() is ast:
+        if self.block is ast:
             return self
-        elif self.get_block().get_parent(ast) is not None:
-            return self.get_block().get_parent(ast)
+        elif self.block.get_parent(ast) is not None:
+            return self.block.get_parent(ast)
         return None
 
     def equals(self, other):
@@ -86,4 +86,4 @@ class ASTUpdateBlock(ASTNode):
         """
         if not isinstance(other, ASTUpdateBlock):
             return False
-        return self.get_block().equals(other.get_block())
+        return self.block.equals(other.block)

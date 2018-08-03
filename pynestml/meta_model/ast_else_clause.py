@@ -33,7 +33,7 @@ class ASTElseClause(ASTNode):
         """
         Standard constructor.
         :param block: a block of statements.
-        :type block: ast_block
+        :type block: ASTBlock
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """
@@ -44,7 +44,7 @@ class ASTElseClause(ASTNode):
         """
         Returns the block of statements.
         :return: the block of statements.
-        :rtype: ast_block
+        :rtype: ASTBlock
         """
         return self.block
 
@@ -52,9 +52,9 @@ class ASTElseClause(ASTNode):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
-        :type ast: AST_
+        :type ast: ASTNode
         :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
+        :rtype: ASTNode or None
         """
         if self.get_block() is ast:
             return self
@@ -66,7 +66,7 @@ class ASTElseClause(ASTNode):
         """
         The equals method.
         :param other: a different object.
-        :type other: object
+        :type other: obj
         :return: True if equal, otherwise False.
         :rtype: bool
         """

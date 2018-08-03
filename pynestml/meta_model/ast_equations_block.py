@@ -46,7 +46,7 @@ class ASTEquationsBlock(ASTNode):
         """
         Standard constructor.
         :param declarations: a block of definitions.
-        :type declarations: ast_block
+        :type declarations: ASTBlock
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """
@@ -64,7 +64,7 @@ class ASTEquationsBlock(ASTNode):
         """
         Returns the block of definitions.
         :return: the block
-        :rtype: list(ASTOdeFunction|ASTOdeEquation|ASTOdeShape)
+        :rtype: list[ASTOdeFunction|ASTOdeEquation|ASTOdeShape]
         """
         return self.declarations
 
@@ -72,9 +72,9 @@ class ASTEquationsBlock(ASTNode):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
-        :type ast: AST_
+        :type ast: ASTNode
         :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
+        :rtype: ASTNode or None
         """
         for decl in self.get_declarations():
             if decl is ast:
@@ -84,6 +84,7 @@ class ASTEquationsBlock(ASTNode):
         return None
 
     def get_ode_equations(self):
+        # todo: factor out
         """
         Returns a list of all ode equations in this block.
         :return: a list of all ode equations.
@@ -96,6 +97,7 @@ class ASTEquationsBlock(ASTNode):
         return ret
 
     def get_ode_shapes(self):
+        # todo: factor out
         """
         Returns a list of all ode shapes in this block.
         :return: a list of all ode shapes.
@@ -108,6 +110,7 @@ class ASTEquationsBlock(ASTNode):
         return ret
 
     def get_ode_functions(self):
+        # todo: factor out
         """
         Returns a list of all ode functions in this block.
         :return: a list of all ode shapes.
@@ -120,6 +123,7 @@ class ASTEquationsBlock(ASTNode):
         return ret
 
     def clear(self):
+        # todo: factor out
         """
         Deletes all declarations as stored in this block.
         """

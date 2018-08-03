@@ -207,7 +207,7 @@ class ASTExpression(ASTExpressionNode):
         :return: a list of variables.
         :rtype: list(ASTVariable)
         """
-        # TODO: extract this to utils
+        # todo: factor out
         ret = list()
         if self.is_expression():
             ret.extend(self.get_expression().get_variables())
@@ -258,7 +258,7 @@ class ASTExpression(ASTExpressionNode):
             ret.extend(self.get_if_not().get_function_calls())
         return ret
 
-    def get_parent(self, ast=None):
+    def get_parent(self, ast):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.

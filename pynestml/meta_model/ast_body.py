@@ -52,6 +52,7 @@ class ASTBody(ASTNode):
         return self.bodyElements
 
     def get_functions(self):
+        # todo: factor out all these get_... functions
         """
         Returns a list of all function block declarations in this body.
         :return: a list of function declarations.

@@ -19,14 +19,14 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import re
 
-from sympy import simplify, diff, Symbol, exp
+from sympy import Symbol, diff, exp, simplify
 from sympy.parsing.sympy_parser import parse_expr
 
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
-from pynestml.solver.transformer_base import add_declarations_to_internals, \
-    compute_state_shape_variables_declarations, add_declarations_to_initial_values, \
-    compute_state_shape_variables_updates, replace_integrate_call, add_state_updates
+from pynestml.solver.transformer_base import add_declarations_to_initial_values, add_declarations_to_internals, \
+    add_state_updates, compute_state_shape_variables_declarations, compute_state_shape_variables_updates, \
+    replace_integrate_call
 from pynestml.utils.model_parser import ModelParser
 
 
@@ -52,9 +52,9 @@ def integrate_delta_solution(equations_block, neuron, shape, shape_to_buffers):
         # Check coefficients
         dvar = diff(ode_definition_sp, ode_symbol_sp)
 
-        for shape in shapes:
+        for l_shape in shapes:
             for symbol in dvar.free_symbols:
-                if shape == str(symbol):
+                if l_shape == str(symbol):
                     return False
         return True
 

@@ -67,7 +67,7 @@ class ASTOdeFunction(ASTNode):
         """
         Returns the data type as an object of ASTDatatype.
         :return: the type as an object of ASTDatatype.
-        :rtype: ast_data_type
+        :rtype: ASTDataType
         """
         return self.data_type
 
@@ -75,7 +75,7 @@ class ASTOdeFunction(ASTNode):
         """
         Returns the rhs as an object of ASTExpression.
         :return: the rhs as an object of ASTExpression.
-        :rtype: ast_expression
+        :rtype: ASTExpression
         """
         return self.expression
 
@@ -83,9 +83,9 @@ class ASTOdeFunction(ASTNode):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
-        :type ast: AST_
+        :type ast: ASTNode
         :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
+        :rtype: ASTNode or None
         """
         if self.get_data_type() is ast:
             return self

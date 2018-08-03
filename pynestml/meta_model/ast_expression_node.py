@@ -28,6 +28,7 @@ class ASTExpressionNode(ASTNode):
     This class is not a part of the grammar but is used to store commonalities of all possible meta_model classes, e.g.,
     the source position. This class is abstract, thus no instances can be created.
     """
+    # TODO: change the signature, this seems rather bad
     __type = None
     __typeEither = None
     __metaclass__ = ABCMeta

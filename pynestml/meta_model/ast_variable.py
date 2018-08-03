@@ -63,6 +63,7 @@ class ASTVariable(ASTNode):
         self.type_symbol = None
 
     def resolve_in_own_scope(self):
+        # todo: factor me out
         from pynestml.symbols.symbol import SymbolKind
         assert self.get_scope() is not None
         return self.get_scope().resolve_to_symbol(self.get_complete_name(), SymbolKind.VARIABLE)
@@ -111,6 +112,7 @@ class ASTVariable(ASTNode):
             return self.get_name()
 
     def get_type_symbol(self):
+        # todo: factor me out
         """
         Returns the type symbol of this rhs.
         :return: a single type symbol.
@@ -134,6 +136,7 @@ class ASTVariable(ASTNode):
         return copy(self.type_symbol)
 
     def set_type_symbol(self, type_symbol):
+        # todo: factor me out
         """
         Updates the current type symbol to the handed over one.
         :param type_symbol: a single type symbol object.
@@ -155,6 +158,7 @@ class ASTVariable(ASTNode):
         return None
 
     def is_unit_variable(self):
+        # todo:factor me out
         """
         Provided on-the-fly information whether this variable represents a unit-variable, e.g., nS.
         Caution: It assumes that the symbol table has already been constructed.

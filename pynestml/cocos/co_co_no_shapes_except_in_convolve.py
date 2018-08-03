@@ -22,6 +22,7 @@ from pynestml.meta_model.ast_function_call import ASTFunctionCall
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.symbols.symbol import SymbolKind
+from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
@@ -88,11 +89,13 @@ class ShapeUsageVisitor(ASTVisitor):
             if not symbol.is_shape():
                 continue
             if node.get_complete_name() == shapeName:
-                parent = self.__neuron_node.get_parent(node)
+                parent = ASTUtils.get_parent(self.__neuron_node, node)
+                # TODO:remove me: p_parent = self.__neuron_node.get_parent(node)
                 if parent is not None:
                     if isinstance(parent, ASTOdeShape):
                         continue
-                    grandparent = self.__neuron_node.get_parent(parent)
+                    grandparent = ASTUtils.get_parent(self.__neuron_node, parent)
+                    # TODO:remove me: p_grandparent = self.__neuron_node.get_parent(parent)
                     if grandparent is not None and isinstance(grandparent, ASTFunctionCall):
                         grandparent_func_name = grandparent.get_name()
                         if grandparent_func_name == 'curr_sum' or grandparent_func_name == 'cond_sum' or \

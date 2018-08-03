@@ -63,6 +63,7 @@ class ASTNestMLCompilationUnit(ASTNode):
         return
 
     def delete_neuron(self, neuron):
+        # todo: rename to: remove_neuron
         """
         Expects an instance of neuron element which is deleted from the collection.
         :param neuron: an instance of a ASTNeuron

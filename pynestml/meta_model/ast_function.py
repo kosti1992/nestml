@@ -117,6 +117,7 @@ class ASTFunction(ASTNode):
         return self.block
 
     def get_type_symbol(self):
+        # todo: this should not be here
         """
         Returns the type symbol of this rhs.
         :return: a single type symbol.
@@ -125,6 +126,7 @@ class ASTFunction(ASTNode):
         return copy(self.type_symbol)
 
     def set_type_symbol(self, type_symbol):
+        # todo: this should not be here
         """
         Updates the current type symbol to the handed over one.
         :param type_symbol: a single type symbol object.

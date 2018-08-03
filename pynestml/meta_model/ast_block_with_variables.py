@@ -95,7 +95,7 @@ class ASTBlockWithVariables(ASTNode):
         self.declarations = list()
         return
 
-    def get_parent(self, ast=None):
+    def get_parent(self, ast):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
@@ -110,7 +110,7 @@ class ASTBlockWithVariables(ASTNode):
                 return stmt.get_parent(ast)
         return None
 
-    def equals(self, other=None):
+    def equals(self, other):
         """
         The equals method.
         :param other: a different object.

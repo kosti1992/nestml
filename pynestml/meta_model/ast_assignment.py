@@ -127,6 +127,7 @@ class ASTAssignment(ASTNode):
                 self.get_expression().equals(other.get_expression()))
 
     def deconstruct_compound_assignment(self):
+        # todo: factor out
         """
         From lhs and rhs it constructs a new expression which corresponds to direct assignment.
         E.g.: a += b*c -> a = a + b*c
@@ -147,6 +148,7 @@ class ASTAssignment(ASTNode):
         return result
 
     def get_lhs_variable_as_expression(self):
+        # todo: factor out
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
         # TODO: maybe calculate new source positions exactly?
         result = ASTNodeFactory.create_ast_simple_expression(variable=self.get_variable(),
@@ -155,6 +157,7 @@ class ASTAssignment(ASTNode):
         return result
 
     def extract_operator_from_compound_assignment(self):
+        # todo: factor out
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
         assert not self.is_direct_assignment
         # TODO: maybe calculate new source positions exactly?
@@ -177,6 +180,7 @@ class ASTAssignment(ASTNode):
         return result
 
     def get_bracketed_rhs_expression(self):
+        # todo: factor out
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
         # TODO: maybe calculate new source positions exactly?
         result = ASTNodeFactory.create_ast_expression(is_encapsulated=True,

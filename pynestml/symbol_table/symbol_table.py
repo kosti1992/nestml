@@ -84,5 +84,5 @@ class SymbolTable(object):
         for _name in cls.name2neuron_scope.keys():
             ret += '--------------------------------------------------\n'
             ret += _name + ':\n'
-            ret += cls.name2neuron_scope[_name].print_scope()
+            ret += str(cls.name2neuron_scope[_name])
         return ret

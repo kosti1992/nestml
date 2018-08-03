@@ -30,23 +30,23 @@ class ASTBlock(ASTNode):
         stmts = None
     """
 
-    def __init__(self, _stmts=list(), source_position=None):
+    def __init__(self, stmts=list(), source_position=None):
         """
         Standard constructor.
-        :param _stmts: a list of statements 
-        :type _stmts: list(ASTSmallStmt/ASTCompoundStmt)
+        :param stmts: a list of statements 
+        :type stmts: list(ASTSmallStmt/ASTCompoundStmt)
         :param source_position: the position of this element
         :type source_position: ASTSourceLocation
         """
         from pynestml.meta_model.ast_stmt import ASTStmt
-        assert (_stmts is not None and isinstance(_stmts, list)), \
-            '(PyNestML.AST.Bloc) No or wrong type of statements provided (%s)!' % type(_stmts)
-        for stmt in _stmts:
+        assert (stmts is not None and isinstance(stmts, list)), \
+            '(PyNestML.AST.Bloc) No or wrong type of statements provided (%s)!' % type(stmts)
+        for stmt in stmts:
             assert (stmt is not None and isinstance(stmt, ASTStmt)), \
                 '(PyNestML.AST.Bloc) No or wrong type of statement provided (%s)!' % type(stmt)
 
         super(ASTBlock, self).__init__(source_position)
-        self.stmts = _stmts
+        self.stmts = stmts
 
     def get_stmts(self):
         """

@@ -35,9 +35,9 @@ class ASTOdeShape(ASTNode):
         """
         Standard constructor of ASTOdeShape.
         :param lhs: the variable corresponding to the shape
-        :type lhs: ast_variable
+        :type lhs: ASTVariable
         :param rhs: the right-hand side rhs
-        :type rhs: ast_expression or ast_simple_expression
+        :type rhs: ASTExpressionNode
         :param source_position: the position of this element in the source file.
         :type source_position: ASTSourceLocation.
         """

@@ -30,6 +30,7 @@ from pynestml.utils.messages import Messages
 
 
 class ASTNeuron(ASTNode):
+    # TODO: This class is too large and god-like, refactor it,KP
     """
     This class is used to store instances of neurons.
     ASTNeuron represents neuron.
@@ -630,7 +631,7 @@ class ASTNeuron(ASTNode):
         """
         Adds the handed over declaration the internal block
         :param declaration: a single declaration
-        :type declaration: ast_declaration
+        :type declaration: ASTDeclaration
         """
         if self.get_internals_blocks() is None:
             ASTUtils.create_internal_block(self)
@@ -642,7 +643,7 @@ class ASTNeuron(ASTNode):
         """
         Adds the handed over declaration to the initial values block.
         :param declaration: a single declaration.
-        :type declaration: ast_declaration
+        :type declaration: ASTDeclaration
         """
         if self.get_initial_blocks() is None:
             ASTUtils.create_initial_values_block(self)

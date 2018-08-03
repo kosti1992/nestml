@@ -274,11 +274,11 @@ class ASTUtils(object):
         Finds all meta_model which are part of the tree as spanned by the handed over meta_model.
         The type has to be specified.
         :param ast: a single meta_model node
-        :type ast: AST_
+        :type ast: ASTNode
         :param node_type: the type
-        :type node_type: AST_
+        :type node_type: ASTNode
         :return: a list of all meta_model of the specified type
-        :rtype: list(AST_)
+        :rtype: list[ASTNode]
         """
         from pynestml.visitors.ast_higher_order_visitor import ASTHigherOrderVisitor
         ret = list()
@@ -295,11 +295,11 @@ class ASTUtils(object):
         """
         Returns all variable symbols which are contained in the scope and have a size parameter.
         :param ast: a single meta_model
-        :type ast: AST_
+        :type ast: ASTNode
         :param scope: a scope object
         :type scope: Scope
         :return: the first element with the size parameter
-        :rtype: variable_symbol
+        :rtype: VariableSymbol
         """
         from pynestml.meta_model.ast_variable import ASTVariable
         from pynestml.symbols.symbol import SymbolKind
@@ -652,3 +652,19 @@ class ASTUtils(object):
         from pynestml.symbols.variable_symbol import VariableSymbol
         if isinstance(ast, ASTVariable):
             return ast.get_scope().resolve_to_symbol(ast.get_complete_name(), SymbolKind.VARIABLE)
+
+    @classmethod
+    def get_parent(cls, root, child_node):
+        """
+        Returns the parent of child_node. Here, the root has to be the node object, to start a traversal of the ast
+        correctly. Preferably the neuron root, i.e., ASTNeuron.
+        :param root: a single neuron instance
+        :type root: ASTNode
+        :param child_node: a single child node
+        :type child_node: ASTNode
+        :return: ASTNode
+        """
+        from pynestml.visitors.ast_parent_collector_visitor import ASTParentCollectorVisitor
+        visitor = ASTParentCollectorVisitor(to_find=child_node)
+        root.accept(visitor)
+        return visitor.parent

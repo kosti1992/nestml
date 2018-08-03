@@ -36,7 +36,7 @@ class ASTOdeEquation(ASTNode):
         rhs = None
     """
 
-    def __init__(self, lhs, rhs, source_position=None):
+    def __init__(self, lhs, rhs, source_position = None):
         """
         Standard constructor.
         :param lhs: an object of type ASTVariable
@@ -66,7 +66,7 @@ class ASTOdeEquation(ASTNode):
         """
         return self.rhs
 
-    def get_parent(self, ast=None):
+    def get_parent(self, ast):
         """
         Indicates whether a this node contains the handed over node.
         :param ast: an arbitrary meta_model node.
@@ -84,7 +84,7 @@ class ASTOdeEquation(ASTNode):
             return self.get_rhs().get_parent(ast)
         return None
 
-    def equals(self, other=None):
+    def equals(self, other):
         """
         The equals method.
         :param other: a different object.
