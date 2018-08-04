@@ -731,20 +731,6 @@ class ASTNeuron(ASTNode):
             ret += (prefix if prefix is not None else '') + comment + '\n'
         return ret
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.get_body() is ast:
-            return self
-        elif self.get_body().get_parent(ast) is not None:
-            return self.get_body().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

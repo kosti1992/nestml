@@ -146,6 +146,7 @@ class ASTNode(object):
         return self.comment is not None and len(self.comment) > 0
 
     def print_comment(self, prefix):
+        # todo: check if this method is still required
         """
         Prints the comment of this meta_model element.
         :param prefix: a prefix string
@@ -162,18 +163,6 @@ class ASTNode(object):
             ret += (prefix + ' ' if prefix is not None else '') + comment + \
                    ('\n' if self.get_comment().index(comment) < len(self.get_comment()) - 1 else '')
         return ret
-
-    # todo: we can do this with a visitor instead of hard coding grammar traversals all over the place
-    @abstractmethod
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        pass
 
     def accept(self, visitor):
         """

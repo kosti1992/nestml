@@ -62,8 +62,7 @@ class ASTNestMLCompilationUnit(ASTNode):
         self.neuron_list.append(neuron)
         return
 
-    def delete_neuron(self, neuron):
-        # todo: rename to: remove_neuron
+    def remove_neuron(self, neuron):
         """
         Expects an instance of neuron element which is deleted from the collection.
         :param neuron: an instance of a ASTNeuron
@@ -83,21 +82,6 @@ class ASTNestMLCompilationUnit(ASTNode):
         :rtype: list(ASTNeuron)
         """
         return self.neuron_list
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        for neuron in self.get_neuron_list():
-            if neuron is ast:
-                return self
-            elif neuron.get_parent(ast) is not None:
-                return neuron.get_parent(ast)
-        return None
 
     def equals(self, other):
         """

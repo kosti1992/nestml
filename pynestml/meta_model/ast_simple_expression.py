@@ -196,26 +196,6 @@ class ASTSimpleExpression(ASTExpressionNode):
         """
         return self.string
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.is_function_call():
-            if self.get_function_call() is ast:
-                return self
-            elif self.get_function_call().get_parent(ast) is not None:
-                return self.get_function_call().get_parent(ast)
-        if self.variable is not None:
-            if self.variable is ast:
-                return self
-            elif self.variable.get_parent(ast) is not None:
-                return self.variable.get_parent(ast)
-        return None
-
     def set_variable(self, variable):
         """
         Updates the variable of this node.

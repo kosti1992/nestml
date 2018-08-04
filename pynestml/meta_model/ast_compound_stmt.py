@@ -109,31 +109,6 @@ class ASTCompoundStmt(ASTNode):
         """
         return self.for_stmt
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.is_if_stmt():
-            if self.get_if_stmt() is ast:
-                return self
-            elif self.get_if_stmt().get_parent(ast) is not None:
-                return self.get_if_stmt().get_parent(ast)
-        if self.is_while_stmt():
-            if self.get_while_stmt() is ast:
-                return self
-            elif self.get_while_stmt().get_parent(ast) is not None:
-                return self.get_while_stmt().get_parent(ast)
-        if self.is_for_stmt():
-            if self.is_for_stmt() is ast:
-                return self
-            elif self.get_for_stmt().get_parent(ast) is not None:
-                return self.get_for_stmt().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

@@ -70,20 +70,6 @@ class ASTParameter(ASTNode):
         """
         return self.data_type
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.get_data_type() is ast:
-            return self
-        elif self.get_data_type().get_parent(ast) is not None:
-            return self.get_data_type().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

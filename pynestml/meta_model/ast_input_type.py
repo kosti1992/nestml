@@ -35,7 +35,7 @@ class ASTInputType(ASTNode):
         is_excitatory = False
     """
 
-    def __init__(self, is_inhibitory=False, is_excitatory=False, source_position=None):
+    def __init__(self, is_inhibitory = False, is_excitatory = False, source_position = None):
         """
         Standard constructor.
         :param is_inhibitory: is inhibitory buffer.
@@ -48,16 +48,6 @@ class ASTInputType(ASTNode):
         super(ASTInputType, self).__init__(source_position)
         self.is_excitatory = is_excitatory
         self.is_inhibitory = is_inhibitory
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        return None
 
     def equals(self, other):
         """

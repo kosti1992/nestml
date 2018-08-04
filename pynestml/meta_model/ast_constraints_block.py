@@ -21,16 +21,15 @@ from pynestml.meta_model.ast_node import ASTNode
 
 
 class ASTConstraintsBlock(ASTNode):
+    """
+    This class represents a constraints block, i.e., a set of constraints which have to apply during runtime.
+    Grammar:
+        constraintsBlock: 'constraints' BLOCK_OPEN constraint* BLOCK_CLOSE;
+    """
+
     def __init__(self, constraints, source_position):
         super(ASTConstraintsBlock, self).__init__(source_position)
         self.constraints = constraints
-
-    def get_parent(self, ast):
-        for const in self.constraints:
-            if const is ast:
-                return self
-            elif const.get_parent(ast) is not None:
-                return const.get_parent(ast)
 
     def equals(self, other):
         if not isinstance(other, ASTConstraintsBlock):

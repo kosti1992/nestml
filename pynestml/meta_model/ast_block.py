@@ -30,7 +30,7 @@ class ASTBlock(ASTNode):
         stmts = None
     """
 
-    def __init__(self, stmts=list(), source_position=None):
+    def __init__(self, stmts, source_position=None):
         """
         Standard constructor.
         :param stmts: a list of statements 
@@ -73,21 +73,6 @@ class ASTBlock(ASTNode):
         :rtype: bool
         """
         self.stmts.remove(stmt)
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        for stmt in self.get_stmts():
-            if stmt is ast:
-                return self
-            if stmt.get_parent(ast) is not None:
-                return stmt.get_parent(ast)
-        return None
 
     def equals(self, other):
         """

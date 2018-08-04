@@ -167,14 +167,14 @@ def replace_integrate_call(neuron, update_instructions):
     if isinstance(integrate_call, list):
         integrate_call = integrate_call[0]
     if integrate_call is not None:
-        small_statement = neuron.get_parent(integrate_call)
+        small_statement = ASTUtils.get_parent(neuron, integrate_call)
         assert (small_statement is not None and isinstance(small_statement, ASTSmallStmt))
 
-        block = neuron.get_parent(neuron.get_parent(small_statement))
+        block = ASTUtils.get_parent(neuron, (ASTUtils.get_parent(neuron, small_statement)))
         assert (block is not None and isinstance(block, ASTBlock))
 
         for i in range(0, len(block.get_stmts())):
-            if block.get_stmts()[i].equals(neuron.get_parent(small_statement)):
+            if block.get_stmts()[i].equals(ASTUtils.get_parent(neuron, small_statement)):
                 del block.get_stmts()[i]
                 block.get_stmts()[i:i] = list((ModelParser.parse_stmt(prop) for prop in update_instructions))
                 break
@@ -198,14 +198,15 @@ def apply_incoming_spikes(neuron):
         shape = convCall.get_args()[0].get_variable().get_complete_name()
         buffer = convCall.get_args()[1].get_variable().get_complete_name()
         initial_values = (
-            neuron.get_initial_values_blocks().get_declarations() if neuron.get_initial_values_blocks() is not None else list())
+            neuron.get_initial_values_blocks().get_declarations() if neuron.get_initial_values_blocks() is not None
+            else list())
         for astDeclaration in initial_values:
             for variable in astDeclaration.get_variables():
                 if re.match(shape + "[\']*", variable.get_complete_name()) or re.match(shape + '__[\\d]+$',
                                                                                        variable.get_complete_name()):
                     spikes_updates.append(ModelParser.parse_assignment(
-                        variable.get_complete_name() + " += " + buffer + " * " + printer.print_expression(
-                            astDeclaration.get_expression())))
+                            variable.get_complete_name() + " += " + buffer + " * " + printer.print_expression(
+                                    astDeclaration.get_expression())))
     for update in spikes_updates:
         add_assignment_to_update_block(update, neuron)
     return neuron

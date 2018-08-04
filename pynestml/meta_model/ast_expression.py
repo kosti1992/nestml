@@ -59,9 +59,9 @@ class ASTExpression(ASTExpressionNode):
         simple_expression = None
     """
 
-    def __init__(self, is_encapsulated=False, unary_operator=None, is_logical_not=False,
-                 expression=None, lhs=None, binary_operator=None, rhs=None, condition=None, if_true=None,
-                 if_not=None, source_position=None):
+    def __init__(self, is_encapsulated = False, unary_operator = None, is_logical_not = False,
+                 expression = None, lhs = None, binary_operator = None, rhs = None, condition = None, if_true = None,
+                 if_not = None, source_position = None):
         """
         Standard constructor.
         :param is_encapsulated: is encapsulated in brackets.
@@ -257,52 +257,6 @@ class ASTExpression(ASTExpressionNode):
             ret.extend(self.get_if_true().get_function_calls())
             ret.extend(self.get_if_not().get_function_calls())
         return ret
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.is_expression():
-            if self.get_expression() is ast:
-                return self
-            elif self.get_expression().get_parent(ast) is not None:
-                return self.get_expression().get_parent(ast)
-        if self.is_unary_operator():
-            if self.get_unary_operator() is ast:
-                return self
-            elif self.get_unary_operator().get_parent(ast) is not None:
-                return self.get_unary_operator().get_parent(ast)
-        if self.is_compound_expression():
-            if self.get_lhs() is ast:
-                return self
-            elif self.get_lhs().get_parent(ast) is not None:
-                return self.get_lhs().get_parent(ast)
-            if self.get_binary_operator() is ast:
-                return self
-            elif self.get_binary_operator().get_parent(ast) is not None:
-                return self.get_binary_operator().get_parent(ast)
-            if self.get_rhs() is ast:
-                return self
-            elif self.get_rhs().get_parent(ast) is not None:
-                return self.get_rhs().get_parent(ast)
-        if self.is_ternary_operator():
-            if self.get_condition() is ast:
-                return self
-            elif self.get_condition().get_parent(ast) is not None:
-                return self.get_condition().get_parent(ast)
-            if self.get_if_true() is ast:
-                return self
-            elif self.get_if_true().get_parent(ast) is not None:
-                return self.get_if_true().get_parent(ast)
-            if self.get_if_not() is ast:
-                return self
-            elif self.get_if_not().get_parent(ast) is not None:
-                return self.get_if_not().get_parent(ast)
-        return None
 
     def equals(self, other):
         """

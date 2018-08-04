@@ -32,7 +32,7 @@ class ASTUnaryOperator(ASTNode):
         is_unary_tilde = False
     """
 
-    def __init__(self, is_unary_plus=False, is_unary_minus=False, is_unary_tilde=False, source_position=None):
+    def __init__(self, is_unary_plus = False, is_unary_minus = False, is_unary_tilde = False, source_position = None):
         """
         Standard constructor.
         :param is_unary_plus: is a unary plus.
@@ -51,16 +51,6 @@ class ASTUnaryOperator(ASTNode):
         self.is_unary_minus = is_unary_minus
         self.is_unary_tilde = is_unary_tilde
         return
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        return None
 
     def equals(self, other):
         """

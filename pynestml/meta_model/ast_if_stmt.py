@@ -95,30 +95,6 @@ class ASTIfStmt(ASTNode):
         """
         return self.else_clause
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.get_if_clause() is ast:
-            return self
-        elif self.get_if_clause().get_parent(ast) is not None:
-            return self.get_if_clause().get_parent(ast)
-        for elifClause in self.get_elif_clauses():
-            if elifClause is ast:
-                return self
-            elif elifClause.get_parent(ast) is not None:
-                return elifClause.get_parent(ast)
-        if self.has_else_clause():
-            if self.get_else_clause() is ast:
-                return self
-            elif self.get_else_clause().get_parent(ast) is not None:
-                return self.get_else_clause().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

@@ -49,16 +49,6 @@ class ASTArithmeticOperator(ASTNode):
         self.is_pow_op = is_pow_op
         return
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        return None
-
     def equals(self, other):
         # type: (ASTNode) -> bool
         """

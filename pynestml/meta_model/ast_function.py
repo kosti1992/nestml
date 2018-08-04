@@ -134,30 +134,6 @@ class ASTFunction(ASTNode):
         """
         self.type_symbol = type_symbol
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        for param in self.get_parameters():
-            if param is ast:
-                return self
-            elif param.get_parent(ast) is not None:
-                return param.get_parent(ast)
-        if self.has_return_type():
-            if self.get_return_type() is ast:
-                return self
-            elif self.get_return_type().get_parent(ast) is not None:
-                return self.get_return_type().get_parent(ast)
-        if self.get_block() is ast:
-            return self
-        elif self.get_block().get_parent(ast) is not None:
-            return self.get_block().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

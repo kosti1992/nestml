@@ -147,16 +147,6 @@ class ASTVariable(ASTNode):
         self.type_symbol = type_symbol
         return
 
-    def get_parent(self, node):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param node: an arbitrary meta_model node.
-        :type node: ASTNode
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: ASTNode or None
-        """
-        return None
-
     def is_unit_variable(self):
         # todo:factor me out
         """

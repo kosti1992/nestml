@@ -20,6 +20,7 @@
 
 
 from pynestml.meta_model.ast_node import ASTNode
+from pynestml.symbols.type_symbol import TypeSymbol
 
 
 class ASTUnitType(ASTNode):
@@ -52,8 +53,9 @@ class ASTUnitType(ASTNode):
         type_symbol = None
     """
 
-    def __init__(self, is_encapsulated=False, compound_unit=None, base=None, is_pow=False,
-                 exponent=None, lhs=None, rhs=None, is_div=False, is_times=False, _unit=None, source_position=None):
+    def __init__(self, is_encapsulated = False, compound_unit = None, base = None, is_pow = False,
+                 exponent = None, lhs = None, rhs = None, is_div = False, is_times = False, _unit = None,
+                 source_position = None):
         """
         Standard constructor of ASTUnitType.
         :param compound_unit: a unit encapsulated in brackets
@@ -122,41 +124,14 @@ class ASTUnitType(ASTNode):
         return self.rhs
 
     def get_type_symbol(self):
+        # type: (None) -> TypeSymbol
+        # todo: this should not be here
         return self.type_symbol
 
     def set_type_symbol(self, type_symbol):
+        # type: (TypeSymbol) -> None
+        # todo: this should not be here
         self.type_symbol = type_symbol
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.is_encapsulated:
-            if self.compound_unit is ast:
-                return self
-            elif self.compound_unit.get_parent(ast) is not None:
-                return self.compound_unit.get_parent(ast)
-
-        if self.is_pow:
-            if self.base is ast:
-                return self
-            elif self.base.get_parent(ast) is not None:
-                return self.base.get_parent(ast)
-        if self.is_arithmetic_expression():
-            if isinstance(self.get_lhs(), ASTUnitType):
-                if self.get_lhs() is ast:
-                    return self
-                elif self.get_lhs().get_parent(ast) is not None:
-                    return self.get_lhs().get_parent(ast)
-            if self.get_rhs() is ast:
-                return self
-            elif self.get_rhs().get_parent(ast) is not None:
-                return self.get_rhs().get_parent(ast)
-        return None
 
     def equals(self, other):
         """

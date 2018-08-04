@@ -48,8 +48,5 @@ class ASTExpressionNode(ASTNode):
         self.__type = _value
         return
 
-    def get_parent(self, ast):
-        pass
-
     def equals(self, other):
         pass

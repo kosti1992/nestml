@@ -45,8 +45,8 @@ class ASTDataType(ASTNode):
         type_symbol = None  # the corresponding type symbol
     """
 
-    def __init__(self, is_integer=False, is_real=False, is_string=False, is_boolean=False, is_void=False,
-                 unit_type=None, source_position=None):
+    def __init__(self, is_integer = False, is_real = False, is_string = False, is_boolean = False, is_void = False,
+                 unit_type = None, source_position = None):
         """
         :param is_integer: is an integer data type
         :type is_integer: boolean
@@ -108,21 +108,6 @@ class ASTDataType(ASTNode):
             '(PyNestML.AST.DataType) No or wrong type of type symbol provided (%s)!' % (type(type_symbol))
         self.type_symbol = type_symbol
         return
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.is_unit_type():
-            if self.get_unit_type() is ast:
-                return self
-            elif self.get_unit_type().get_parent(ast) is not None:
-                return self.get_unit_type().get_parent(ast)
-        return None
 
     def equals(self, other):
         """

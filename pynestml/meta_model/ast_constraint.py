@@ -23,6 +23,20 @@ from pynestml.meta_model.ast_node import ASTNode
 
 
 class ASTConstraint(ASTNode):
+    """
+    This class represents a single constraint which has to apply at runtime.
+    Grammar:
+        constraint: (leftBound=expression leftBoundType=comparisonOperator)?
+               variable
+              (rightBoundType=comparisonOperator rightBound=expression)?;
+
+    Attributes:
+        left_bound: the ASTExpression representing the left bound, e.g., -55mV
+        left_bound_type: the comparison operator at the left side, e.g., <
+        variable: the constrained variable, e.g., V_m
+        right_bound: the ASTExpression representing the right bound, e.g., 60mV
+        right_bound_type: the comparison operator at the right side, e.g., <=
+    """
 
     def __init__(self, left_bound, left_bound_type, variable, right_bound_type, right_bound, source_position):
         super(ASTConstraint, self).__init__(source_position)
@@ -31,18 +45,6 @@ class ASTConstraint(ASTNode):
         self.variable = variable
         self.right_bound_type = right_bound_type
         self.right_bound = right_bound
-
-    def get_parent(self, ast):
-        if self.left_bound is ast:
-            return self
-        if self.left_bound_type is ast:
-            return self
-        if self.variable is ast:
-            return self
-        if self.right_bound_type is ast:
-            return self
-        if self.right_bound is ast:
-            return self
 
     def equals(self, other):
         if not isinstance(other, ASTConstraint):

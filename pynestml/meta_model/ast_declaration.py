@@ -162,35 +162,6 @@ class ASTDeclaration(ASTNode):
         """
         return self.invariant
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        for var in self.get_variables():
-            if var is ast:
-                return self
-            elif var.get_parent(ast) is not None:
-                return var.get_parent(ast)
-        if self.get_data_type() is ast:
-            return self
-        elif self.get_data_type().get_parent(ast) is not None:
-            return self.get_data_type().get_parent(ast)
-        if self.has_expression():
-            if self.get_expression() is ast:
-                return self
-            elif self.get_expression().get_parent(ast) is not None:
-                return self.get_expression().get_parent(ast)
-        if self.has_invariant():
-            if self.get_invariant() is ast:
-                return self
-            elif self.get_invariant().get_parent(ast) is not None:
-                return self.get_invariant().get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

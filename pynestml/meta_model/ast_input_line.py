@@ -186,26 +186,6 @@ class ASTInputLine(ASTNode):
         """
         return self.data_type
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        if self.has_datatype():
-            if self.get_datatype() is ast:
-                return self
-            elif self.get_datatype().get_parent(ast) is not None:
-                return self.get_datatype().get_parent(ast)
-        for line in self.get_input_types():
-            if line is ast:
-                return self
-            elif line.get_parent(ast) is not None:
-                return line.get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

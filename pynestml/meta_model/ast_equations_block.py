@@ -68,21 +68,6 @@ class ASTEquationsBlock(ASTNode):
         """
         return self.declarations
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: ASTNode
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: ASTNode or None
-        """
-        for decl in self.get_declarations():
-            if decl is ast:
-                return self
-            elif decl.get_parent(ast) is not None:
-                return decl.get_parent(ast)
-        return None
-
     def get_ode_equations(self):
         # todo: factor out
         """

@@ -62,20 +62,6 @@ class ASTUpdateBlock(ASTNode):
         """
         return self.block
 
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: ASTNode
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: ASTNode or None
-        """
-        if self.block is ast:
-            return self
-        elif self.block.get_parent(ast) is not None:
-            return self.block.get_parent(ast)
-        return None
-
     def equals(self, other):
         """
         The equals method.

@@ -91,24 +91,10 @@ class ASTBlockWithVariables(ASTNode):
         """
         Clears the list of declarations in this block.
         """
+        # todo: factor me out
         del self.declarations
         self.declarations = list()
         return
-
-    def get_parent(self, ast):
-        """
-        Indicates whether a this node contains the handed over node.
-        :param ast: an arbitrary meta_model node.
-        :type ast: AST_
-        :return: AST if this or one of the child nodes contains the handed over element.
-        :rtype: AST_ or None
-        """
-        for stmt in self.get_declarations():
-            if stmt is ast:
-                return self
-            if stmt.get_parent(ast) is not None:
-                return stmt.get_parent(ast)
-        return None
 
     def equals(self, other):
         """
