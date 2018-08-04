@@ -50,7 +50,6 @@ from pynestml.cocos.co_co_vector_variable_in_non_vector_declaration import CoCoV
 class CoCosManager(object):
     """
     This class provides a set of context conditions which have to hold for each neuron instance.
-    TODO: we should use coco objects instead of classes.
     """
 
     @classmethod

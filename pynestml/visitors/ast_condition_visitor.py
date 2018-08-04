@@ -25,9 +25,8 @@ from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
-from pynestml.utils.error_strings import ErrorStrings
 from pynestml.utils.logger import Logger, LoggingLevel
-from pynestml.utils.messages import MessageCode
+from pynestml.utils.messages import MessageCode, Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -52,10 +51,10 @@ class ASTConditionVisitor(ASTVisitor):
 
         # Condition must be a bool
         if not condition.equals(PredefinedTypes.get_boolean_type()):
-            error_msg = ErrorStrings.message_ternary(self, node.get_source_position())
+            code, error_msg = Messages.get_ternary(self, node.get_source_position())
             node.type = ErrorTypeSymbol()
             Logger.log_message(message=error_msg, error_position=node.get_source_position(),
-                               code=MessageCode.TYPE_DIFFERENT_FROM_EXPECTED,
+                               code=code,
                                log_level=LoggingLevel.ERROR)
             return
 
@@ -66,11 +65,11 @@ class ASTConditionVisitor(ASTVisitor):
 
         # Both are units but not matching-> real WARN
         if isinstance(if_true, UnitTypeSymbol) and isinstance(if_not, UnitTypeSymbol):
-            error_msg = ErrorStrings.message_ternary_mismatch(self, if_true.print_symbol(), if_not.print_symbol(),
-                                                              node.get_source_position())
+            code, error_msg = Messages.get_ternary_mismatch(self, if_true.print_symbol(), if_not.print_symbol(),
+                                                            node.get_source_position())
             node.type = PredefinedTypes.get_real_type()
             Logger.log_message(message=error_msg,
-                               code=MessageCode.TYPE_DIFFERENT_FROM_EXPECTED,
+                               code=MessageCode.code,
                                error_position=if_true.referenced_object.get_source_position(),
                                log_level=LoggingLevel.WARNING)
             return
@@ -82,11 +81,11 @@ class ASTConditionVisitor(ASTVisitor):
                 unit_type = if_true
             else:
                 unit_type = if_not
-            error_msg = ErrorStrings.message_ternary_mismatch(self, str(if_true), str(if_not),
-                                                              node.get_source_position())
+            code, error_msg = Messages.get_ternary_mismatch(self, str(if_true), str(if_not),
+                                                            node.get_source_position())
             node.type = unit_type
             Logger.log_message(message=error_msg,
-                               code=MessageCode.TYPE_DIFFERENT_FROM_EXPECTED,
+                               code=code,
                                error_position=if_true.referenced_object.get_source_position(),
                                log_level=LoggingLevel.WARNING)
             return
@@ -97,10 +96,10 @@ class ASTConditionVisitor(ASTVisitor):
             return
 
         # if we get here it is an error
-        error_msg = ErrorStrings.message_ternary_mismatch(self, str(if_true), str(if_not),
-                                                          node.get_source_position())
+        code, error_msg = Messages.get_ternary_mismatch(self, str(if_true), str(if_not),
+                                                        node.get_source_position())
         node.type = ErrorTypeSymbol()
         Logger.log_message(message=error_msg,
                            error_position=node.get_source_position(),
-                           code=MessageCode.TYPE_DIFFERENT_FROM_EXPECTED,
+                           code=code,
                            log_level=LoggingLevel.ERROR)

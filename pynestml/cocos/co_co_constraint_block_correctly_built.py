@@ -115,11 +115,13 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
                     return
                 if isinstance(constraint.variable.type_symbol, UnitTypeSymbol):
                     if lower[0].has_unit() and not constraint.variable.type_symbol.equals(lower[0].type):
-                        lower_val *= lower[0].type.get_conversion_factor(constraint.variable.type_symbol.astropy_unit,
-                                                                         lower[0].type.astropy_unit)
+                        lower_val *= lower[0].type.get_conversion_factor_from_to(lower[0].type.astropy_unit,
+                                                                                 constraint.variable.type_symbol
+                                                                                 .astropy_unit)
                 if upper[0].has_unit() and not constraint.variable.type_symbol.equals(upper[0].type):
-                    upper_val *= upper[0].type.get_conversion_factor(constraint.variable.type_symbol.astropy_unit,
-                                                                     upper[0].type.astropy_unit)
+                    upper_val *= upper[0].type.get_conversion_factor_from_to(upper[0].type.astropy_unit,
+                                                                             constraint.variable.type_symbol
+                                                                             .astropy_unit)
                 if not (lower_val <= upper_val):
                     code, message = Messages.get_bounds_not_sat(constraint)
                     Logger.log_message(neuron=self.__current_neuron, message=message,

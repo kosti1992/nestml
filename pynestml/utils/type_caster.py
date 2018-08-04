@@ -31,8 +31,8 @@ class TypeCaster(object):
         determine conversion factor from rhs to lhs, register it with the relevant expression, drop warning
         """
         _containing_expression.set_implicit_conversion_factor(
-                UnitTypeSymbol.get_conversion_factor(_lhs_type_symbol.astropy_unit,
-                                                     _rhs_type_symbol.astropy_unit))
+                UnitTypeSymbol.get_conversion_factor_from_to(_rhs_type_symbol.astropy_unit,
+                                                             _lhs_type_symbol.astropy_unit))
         _containing_expression.type = _lhs_type_symbol
 
         code, message = Messages.get_implicit_magnitude_conversion(_lhs_type_symbol, _rhs_type_symbol,

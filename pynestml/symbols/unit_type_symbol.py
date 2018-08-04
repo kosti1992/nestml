@@ -139,7 +139,7 @@ class UnitTypeSymbol(TypeSymbol):
 
     def attempt_magnitude_cast(self, other):
         if self.differs_only_in_magnitude_or_is_equal_to(other):
-            factor = UnitTypeSymbol.get_conversion_factor(self.astropy_unit, other.astropy_unit)
+            factor = UnitTypeSymbol.get_conversion_factor_from_to(other.astropy_unit,self.astropy_unit)
             other.referenced_object.set_implicit_conversion_factor(factor)
             code, message = Messages.get_implicit_magnitude_conversion(self, other, factor)
             Logger.log_message(code=code, message=message,
@@ -149,10 +149,8 @@ class UnitTypeSymbol(TypeSymbol):
         else:
             return self.binary_operation_not_defined_error('+/-', other)
 
-    # TODO: change order of parameters to conform with the from_to scheme.
-    # TODO: Also rename to reflect that, i.e. get_conversion_factor_from_to
     @classmethod
-    def get_conversion_factor(cls, to, _from):
+    def get_conversion_factor_from_to(cls, _from, to):
         """
         Calculates the conversion factor from _convertee_unit to target_unit.
         Behaviour is only well-defined if both units have the same physical base type

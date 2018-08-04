@@ -26,9 +26,8 @@ from pynestml.symbols.boolean_type_symbol import BooleanTypeSymbol
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
-from pynestml.utils.error_strings import ErrorStrings
 from pynestml.utils.logger import Logger, LoggingLevel
-from pynestml.utils.messages import MessageCode
+from pynestml.utils.messages import MessageCode, Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -59,7 +58,7 @@ class ASTComparisonOperatorVisitor(ASTVisitor):
         if (isinstance(lhs_type, UnitTypeSymbol) and rhs_type.is_numeric()) or (
                 isinstance(rhs_type, UnitTypeSymbol) and lhs_type.is_numeric()):
             # if the incompatibility exists between a unit and a numeric, the c++ will still be fine, just WARN
-            error_msg = ErrorStrings.message_comparison(self, expr.get_source_position())
+            error_msg = Messages.get_comparison(self, expr.get_source_position())
             expr.type = PredefinedTypes.get_boolean_type()
             Logger.log_message(message=error_msg, code=MessageCode.SOFT_INCOMPATIBILITY,
                                error_position=expr.get_source_position(),
@@ -67,7 +66,7 @@ class ASTComparisonOperatorVisitor(ASTVisitor):
             return
         else:
             # hard incompatibility, cannot recover in c++, ERROR
-            error_msg = ErrorStrings.message_comparison(self, expr.get_source_position())
+            error_msg = Messages.get_comparison(self, expr.get_source_position())
             expr.type = ErrorTypeSymbol()
             Logger.log_message(code=MessageCode.HARD_INCOMPATIBILITY,
                                error_position=expr.get_source_position(),

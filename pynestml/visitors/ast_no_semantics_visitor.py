@@ -23,9 +23,8 @@ Placeholder for rhs productions that are not implemented
 """
 from pynestml.meta_model.ast_expression_node import ASTExpressionNode
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
-from pynestml.utils.error_strings import ErrorStrings
 from pynestml.utils.logger import Logger, LoggingLevel
-from pynestml.utils.messages import MessageCode
+from pynestml.utils.messages import Messages, MessageCode
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -41,11 +40,11 @@ class ASTNoSemanticsVisitor(ASTVisitor):
         :param node: a single rhs
         :type node: ASTExpressionNode
         """
-        error_msg = ErrorStrings.message_no_semantics(self, str(node), node.get_source_position())
+        code, error_msg = Messages.get_no_semantics(self, str(node), node.get_source_position())
         node.type = ErrorTypeSymbol()
         # just warn though
         Logger.log_message(message=error_msg,
-                           code=MessageCode.NO_SEMANTICS,
+                           code=code,
                            error_position=node.get_source_position(),
                            log_level=LoggingLevel.WARNING)
         return

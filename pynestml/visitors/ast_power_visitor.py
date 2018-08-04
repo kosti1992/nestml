@@ -25,7 +25,7 @@ from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.utils.either import Either
-from pynestml.utils.error_strings import ErrorStrings
+from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
@@ -77,12 +77,12 @@ class ASTPowerVisitor(ASTVisitor):
                 literal = expr.get_numeric_literal()
                 return Either.value(literal)
             else:
-                error_message = ErrorStrings.message_unit_base(self, expr.get_source_position())
+                _, error_message = Messages.get_unit_base(self, expr.get_source_position())
                 return Either.error(error_message)
         elif expr.is_unary_operator() and expr.get_unary_operator().is_unary_minus:
             term = self.calculate_numeric_value(expr.get_expression())
             if term.is_error():
                 return term
             return Either.value(-term.get_value())
-        error_message = ErrorStrings.message_non_constant_exponent(self, expr.get_source_position())
+        _, error_message = Messages.get_non_constant_exponent(self, expr.get_source_position())
         return Either.error(error_message)

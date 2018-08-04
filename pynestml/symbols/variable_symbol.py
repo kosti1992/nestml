@@ -46,9 +46,9 @@ class VariableSymbol(Symbol):
         variable_type        The type of the variable, either a shape, or buffer or function. Type: VariableType
     """
 
-    def __init__(self, element_reference=None, scope=None, name=None, block_type=None, vector_parameter=None,
-                 declaring_expression=None, is_predefined=False, is_function=False, is_recordable=False,
-                 type_symbol=None, initial_value=None, variable_type=None):
+    def __init__(self, element_reference = None, scope = None, name = None, block_type = None, vector_parameter = None,
+                 declaring_expression = None, is_predefined = False, is_function = False, is_recordable = False,
+                 type_symbol = None, initial_value = None, variable_type = None):
         """
         Standard constructor.
         :param element_reference: a reference to the first element where this type has been used/defined
@@ -304,8 +304,7 @@ class VariableSymbol(Symbol):
         :return: True if conductance based, otherwise False.
         :rtype: bool
         """
-        # TODO it is a workaround. improve.
-        return self.is_conductance_based  # or self.type_symbol.print_symbol().startswith("nS")
+        return self.is_conductance_based
 
     def set_conductance_based(self, is_conductance_base):
         """
@@ -376,7 +375,7 @@ class VariableSymbol(Symbol):
                 self.is_conductance_based == other.is_conductance_based and
                 self.is_recordable == other.is_recordable)
 
-    def print_comment(self, prefix=None):
+    def print_comment(self, prefix = None):
         """
         Prints the stored comment.
         :return: the corresponding comment.

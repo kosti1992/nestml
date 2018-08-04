@@ -86,9 +86,6 @@ class ASTSymbolTableVisitor(ASTVisitor):
             else:
                 buffers = (buffer for buffer in node.get_input_blocks().get_input_lines())
             from pynestml.meta_model.ast_ode_shape import ASTOdeShape
-            # todo by KP: ode declarations are not used, is this correct?
-            # ode_declarations = (decl for decl in node.get_equations_blocks().get_declarations() if
-            #                    not isinstance(decl, ASTOdeShape))
             mark_conductance_based_buffers(input_lines=buffers)
         # now update the equations
         if node.get_equations_blocks() is not None and len(node.get_equations_blocks().get_declarations()) > 0:
@@ -734,7 +731,6 @@ def add_ode_to_variable(ode_equation):
                                                                   SymbolKind.VARIABLE))
     if existing_symbol is not None:
         existing_symbol.set_ode_definition(ode_equation.get_rhs())
-        # todo added on merge
         ode_equation.get_scope().update_variable_symbol(existing_symbol)
         code, message = Messages.get_ode_updated(ode_equation.get_lhs().get_name_of_lhs())
         Logger.log_message(error_position=existing_symbol.get_referenced_object().get_source_position(),
