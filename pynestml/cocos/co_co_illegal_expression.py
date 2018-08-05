@@ -23,6 +23,7 @@ from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.logging_helper import LoggingHelper
 from pynestml.utils.messages import Messages
@@ -89,7 +90,7 @@ class CorrectExpressionVisitor(ASTVisitor):
 
     def handle_complex_assignment(self, node):
         rhs_expr = node.get_expression()
-        lhs_variable_symbol = node.resolve_lhs_variable_symbol()
+        lhs_variable_symbol = ASTHelper.resolve_ast_to_variable_symbol(node.get_variable())
         rhs_type_symbol = rhs_expr.type
 
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):

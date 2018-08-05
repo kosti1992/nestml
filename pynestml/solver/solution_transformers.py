@@ -21,7 +21,7 @@ import re
 
 from sympy import Symbol, diff, exp, simplify
 from sympy.parsing.sympy_parser import parse_expr
-
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.solver.transformer_base import add_declarations_to_initial_values, add_declarations_to_internals, \
@@ -58,8 +58,8 @@ def integrate_delta_solution(equations_block, neuron, shape, shape_to_buffers):
                     return False
         return True
 
-    ode_lhs = str(equations_block.get_ode_equations()[0].get_lhs().get_name())
-    ode_rhs = str(equations_block.get_ode_equations()[0].get_rhs())
+    ode_lhs = str(ASTHelper.get_ode_equations_from_equations_block(equations_block)[0].get_lhs().get_name())
+    ode_rhs = str(ASTHelper.get_ode_equations_from_equations_block(equations_block)[0].get_rhs())
     shape_name = shape.get_variable().get_name()
     if not (ode_is_lin_const_coeff(ode_lhs, ode_rhs, [shape_name])):
         raise Exception("Cannot handle delta shape in a not linear constant coefficient ODE.")

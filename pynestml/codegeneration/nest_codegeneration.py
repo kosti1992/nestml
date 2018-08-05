@@ -24,6 +24,7 @@ import re
 from jinja2 import Environment, FileSystemLoader
 from odetoolbox import analysis
 
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.codegeneration.expressions_pretty_printer import ExpressionsPrettyPrinter
 from pynestml.codegeneration.gsl_names_converter import GSLNamesConverter
 from pynestml.codegeneration.gsl_reference_converter import GSLReferenceConverter
@@ -136,9 +137,9 @@ def analyse_and_generate_neuron(neuron):
         for convolve in convolve_calls:
             shape_to_buffers[str(convolve.get_args()[0])] = str(convolve.get_args()[1])
         OdeTransformer.refactor_convolve_call(neuron.get_equations_block())
-        make_functions_self_contained(equations_block.get_ode_functions())
-        replace_functions_through_defining_expressions(equations_block.get_ode_equations(),
-                                                       equations_block.get_ode_functions())
+        make_functions_self_contained(ASTHelper.get_ode_functions_from_equations_block(equations_block))
+        replace_functions_through_defining_expressions(ASTHelper.get_ode_equations_from_equations_block(equations_block),
+                                                       ASTHelper.get_ode_functions_from_equations_block(equations_block))
         # transform everything into gsl processable (e.g. no functional shapes) or exact form.
         transform_shapes_and_odes(neuron, shape_to_buffers)
         # update the symbol table
@@ -232,8 +233,8 @@ def define_solver_type(neuron, namespace):
     """
     namespace['useGSL'] = False
     if neuron.get_equations_block() is not None and len(neuron.get_equations_block().get_declarations()) > 0:
-        if (not is_functional_shape_present(neuron.get_equations_block().get_ode_shapes())) or \
-                len(neuron.get_equations_block().get_ode_equations()) > 1:
+        if (not is_functional_shape_present(ASTHelper.get_ode_shapes_from_equations_block(neuron.get_equations_block()))) or \
+                len(ASTHelper.get_ode_equations_from_equations_block(neuron.get_equations_block())) > 1:
             namespace['names'] = GSLNamesConverter()
             namespace['useGSL'] = True
             converter = NESTReferenceConverter(True)
@@ -271,18 +272,18 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
     if isinstance(neuron.get_equations_blocks(), ASTEquationsBlock):
         equations_block = neuron.get_equations_block()
 
-        if len(equations_block.get_ode_shapes()) == 0:
+        if len(ASTHelper.get_ode_shapes_from_equations_block(equations_block)) == 0:
             code, message = Messages.get_neuron_solved_by_solver(neuron.get_name())
             Logger.log_message(neuron, code, message, neuron.get_source_position(), LoggingLevel.INFO)
             result = neuron
-        if len(equations_block.get_ode_shapes()) == 1 and \
-                str(equations_block.get_ode_shapes()[0].get_expression()).strip().startswith(
-                    "delta"):  # assume the model is well formed
-            shape = equations_block.get_ode_shapes()[0]
+        if len(ASTHelper.get_ode_shapes_from_equations_block(equations_block)) == 1 and \
+                str(ASTHelper.get_ode_shapes_from_equations_block(equations_block)[0].get_expression()).strip().\
+                        startswith("delta"):  # assume the model is well formed
+            shape = ASTHelper.get_ode_shapes_from_equations_block(equations_block)[0]
 
             integrate_delta_solution(equations_block, neuron, shape, shape_to_buffers)
             return result
-        elif len(equations_block.get_ode_equations()) == 1:
+        elif len(ASTHelper.get_ode_equations_from_equations_block(equations_block)) == 1:
             code, message = Messages.get_neuron_analyzed(neuron.get_name())
             Logger.log_message(neuron, code, message, neuron.get_source_position(), LoggingLevel.INFO)
             solver_result = solve_ode_with_shapes(equations_block)
@@ -292,7 +293,7 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
                 result.remove_equations_block()
             elif solver_result["solver"] is "numeric":
                 at_least_one_functional_shape = False
-                for shape in equations_block.get_ode_shapes():
+                for shape in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
                     if shape.get_variable().get_differential_order() == 0:
                         at_least_one_functional_shape = True
                 if at_least_one_functional_shape:
@@ -303,7 +304,7 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
             code, message = Messages.get_neuron_solved_by_solver(neuron.get_name())
             Logger.log_message(neuron, code, message, neuron.get_source_position(), LoggingLevel.INFO)
             at_least_one_functional_shape = False
-            for shape in equations_block.get_ode_shapes():
+            for shape in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
                 if shape.get_variable().get_differential_order() == 0:
                     at_least_one_functional_shape = True
                     break
@@ -351,12 +352,12 @@ def transform_ode_and_shapes_to_json(equations_block):
     """
     result = {"odes": [], "shapes": []}
 
-    for equation in equations_block.get_ode_equations():
+    for equation in ASTHelper.get_ode_equations_from_equations_block(equations_block):
         result["odes"].append({"symbol": equation.get_lhs().get_name(),
                                "definition": _printer.print_expression(equation.get_rhs())})
 
     ode_shape_names = set()
-    for shape in equations_block.get_ode_shapes():
+    for shape in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
         if shape.get_variable().get_differential_order() == 0:
             result["shapes"].append({"type": "function",
                                      "symbol": shape.get_variable().get_complete_name(),
@@ -417,7 +418,7 @@ def transform_functional_shapes_to_json(equations_block):
     """
     result = {"odes": [], "shapes": []}
 
-    for shape in equations_block.get_ode_shapes():
+    for shape in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
         if shape.get_variable().get_differential_order() == 0:
             result["shapes"].append({"type": "function",
                                      "symbol": shape.get_variable().get_complete_name(),

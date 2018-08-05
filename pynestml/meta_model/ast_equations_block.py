@@ -68,47 +68,7 @@ class ASTEquationsBlock(ASTNode):
         """
         return self.declarations
 
-    def get_ode_equations(self):
-        # todo: factor out
-        """
-        Returns a list of all ode equations in this block.
-        :return: a list of all ode equations.
-        :rtype: list(ASTOdeEquations)
-        """
-        ret = list()
-        for decl in self.get_declarations():
-            if isinstance(decl, ASTOdeEquation):
-                ret.append(decl)
-        return ret
-
-    def get_ode_shapes(self):
-        # todo: factor out
-        """
-        Returns a list of all ode shapes in this block.
-        :return: a list of all ode shapes.
-        :rtype: list(ASTOdeShape)
-        """
-        ret = list()
-        for decl in self.get_declarations():
-            if isinstance(decl, ASTOdeShape):
-                ret.append(decl)
-        return ret
-
-    def get_ode_functions(self):
-        # todo: factor out
-        """
-        Returns a list of all ode functions in this block.
-        :return: a list of all ode shapes.
-        :rtype: list(ASTOdeShape)
-        """
-        ret = list()
-        for decl in self.get_declarations():
-            if isinstance(decl, ASTOdeFunction):
-                ret.append(decl)
-        return ret
-
-    def clear(self):
-        # todo: factor out
+    def clear_declarations(self):
         """
         Deletes all declarations as stored in this block.
         """

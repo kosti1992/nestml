@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.codegeneration.expressions_pretty_printer import ExpressionsPrettyPrinter
 from pynestml.codegeneration.nest_names_converter import NestNamesConverter
 from pynestml.codegeneration.pynestml_2_nest_type_converter import PyNestml2NestTypeConverter
@@ -139,7 +140,7 @@ class NestPrinter(object):
         """
         assert (ast_body is not None and isinstance(ast_body, ASTBody)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of body provided (%s)!' % type(ast_body)
-        outputs = ast_body.get_output_blocks()
+        outputs = ASTHelper.get_output_blocks_from_body(ast_body)
         if len(outputs) > 0:
             output = outputs[0]
             if output.is_spike():

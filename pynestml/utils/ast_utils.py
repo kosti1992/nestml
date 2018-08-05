@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.meta_model.ast_function_call import ASTFunctionCall
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.symbol import SymbolKind
@@ -90,7 +91,7 @@ class ASTUtils(object):
         :rtype: bool
         """
         from pynestml.meta_model.ast_body import ASTBody
-        inputs = (inputL for block in body.get_input_blocks() for inputL in block.get_input_lines())
+        inputs = (inputL for block in ASTHelper.get_input_blocks_from_body(body) for inputL in block.get_input_lines())
         for inputL in inputs:
             if inputL.is_spike():
                 return True
@@ -105,7 +106,7 @@ class ASTUtils(object):
         :return: True if current buffer is contained, otherwise false.
         :rtype: bool
         """
-        inputs = (inputL for block in body.get_input_blocks() for inputL in block.get_input_lines())
+        inputs = (inputL for block in ASTHelper.get_input_blocks_from_body(body) for inputL in block.get_input_lines())
         for inputL in inputs:
             if inputL.is_current():
                 return True

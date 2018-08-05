@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.cocos.co_cos_manager import CoCosManager
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_node_factory import ASTNodeFactory
@@ -629,7 +630,7 @@ def make_implicit_odes_explicit(equations_block):
             # check for each smaller order if it is defined
             for i in range(1, order):
                 found = False
-                for eq in equations_block.get_ode_shapes():
+                for eq in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
                     if eq.get_variable().get_name() == declaration.get_variable().get_name() and \
                             eq.get_variable().get_differential_order() == i:
                         found = True
@@ -644,7 +645,7 @@ def make_implicit_odes_explicit(equations_block):
             base_var.differential_order = base_var.differential_order
             if base_var.differential_order == 0:
                 continue
-            for eq in equations_block.get_ode_shapes():
+            for eq in ASTHelper.get_ode_shapes_from_equations_block(equations_block):
                 if eq.get_variable().get_complete_name() == base_var.get_complete_name():
                     base_found = True
                     break
@@ -659,7 +660,7 @@ def make_implicit_odes_explicit(equations_block):
             # check for each smaller order if it is defined
             for i in range(1, order):
                 found = False
-                for ode in equations_block.get_ode_equations():
+                for ode in ASTHelper.get_ode_equations_from_equations_block(equations_block):
                     if (ode.get_lhs().get_name() == declaration.get_lhs().get_name() and
                             ode.get_lhs().get_differential_order() == i):
                         found = True
@@ -672,7 +673,7 @@ def make_implicit_odes_explicit(equations_block):
             base_var = convert_variable_name_to_model_notation(declaration.get_lhs())
             if base_var.differential_order == 0:
                 continue
-            for eq in equations_block.get_ode_equations():
+            for eq in ASTHelper.get_ode_equations_from_equations_block(equations_block):
                 if eq.get_lhs().get_complete_name() == base_var.get_complete_name():
                     base_found = True
                     break

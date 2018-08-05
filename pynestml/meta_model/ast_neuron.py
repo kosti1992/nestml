@@ -250,14 +250,15 @@ class ASTNeuron(ASTNode):
         :rtype list(ASTOdeEquation)
         """
         from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
         blocks = self.get_equations_blocks()
         # the get equations block is not deterministic method, it can return a list or a single object.
         if isinstance(blocks, list):
             for block in blocks:
-                ret.extend(block.get_ode_equations())
+                ret.extend(ASTHelper.get_ode_equations_from_equations_block(block))
         elif isinstance(blocks, ASTEquationsBlock):
-            return blocks.get_ode_equations()
+            return ASTHelper.get_ode_equations_from_equations_block(blocks)
         else:
             return ret
 

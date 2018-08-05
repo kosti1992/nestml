@@ -87,11 +87,10 @@ class ASTBlockWithVariables(ASTNode):
         """
         return self.declarations
 
-    def clear(self):
+    def clear_declarations(self):
         """
         Clears the list of declarations in this block.
         """
-        # todo: factor me out
         del self.declarations
         self.declarations = list()
         return

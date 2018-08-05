@@ -21,7 +21,7 @@ import os
 import unittest
 
 from pynestml.meta_model.ast_source_location import ASTSourceLocation
-
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.codegeneration.nest_codegeneration import generate_nest_module_code, make_functions_self_contained, \
     replace_functions_through_defining_expressions, transform_ode_and_shapes_to_json, transform_shapes_and_odes, \
     analyse_and_generate_neurons
@@ -59,10 +59,10 @@ class CodeGeneratorTest(unittest.TestCase):
         # again
         # TODO: add tests for this function
         # this function changes stuff inplace
-        make_functions_self_contained(equations_block.get_ode_functions())
+        make_functions_self_contained(ASTHelper.get_ode_functions_from_equations_block(equations_block))
 
-        replace_functions_through_defining_expressions(equations_block.get_ode_equations(),
-                                                       equations_block.get_ode_functions())
+        replace_functions_through_defining_expressions(ASTHelper.get_ode_equations_from_equations_block(equations_block),
+                                                       ASTHelper.get_ode_functions_from_equations_block(equations_block))
 
         json_representation = transform_ode_and_shapes_to_json(equations_block)
         self.assertTrue("convolve(I_shape_in, in_spikes)" in json_representation["odes"][0]["definition"])

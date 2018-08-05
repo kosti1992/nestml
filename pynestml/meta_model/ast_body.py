@@ -41,7 +41,7 @@ class ASTBody(ASTNode):
         :rtype source_location: ASTSourceLocation
         """
         super(ASTBody, self).__init__(source_position)
-        self.bodyElements = body_elements
+        self.body_elements = body_elements
 
     def get_body_elements(self):
         """
@@ -49,129 +49,7 @@ class ASTBody(ASTNode):
         :return: a list of body elements.
         :rtype: list()
         """
-        return self.bodyElements
-
-    def get_functions(self):
-        # todo: factor out all these get_... functions
-        """
-        Returns a list of all function block declarations in this body.
-        :return: a list of function declarations.
-        :rtype: list(ASTFunction)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_function import ASTFunction
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTFunction):
-                ret.append(elem)
-        return ret
-
-    def get_update_blocks(self):
-        """
-        Returns a list of all update blocks defined in this body.
-        :return: a list of update-block elements.
-        :rtype: list(ASTUpdateBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_update_block import ASTUpdateBlock
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTUpdateBlock):
-                ret.append(elem)
-        return ret
-
-    def get_state_blocks(self):
-        """
-        Returns a list of all state blocks defined in this body.
-        :return: a list of state-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
-                ret.append(elem)
-        return ret
-
-    def get_parameter_blocks(self):
-        """
-        Returns a list of all parameter blocks defined in this body.
-        :return: a list of parameters-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_parameters:
-                ret.append(elem)
-        return ret
-
-    def get_internals_blocks(self):
-        """
-        Returns a list of all internals blocks defined in this body.
-        :return: a list of internals-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_internals:
-                ret.append(elem)
-        return ret
-
-    def get_equations_blocks(self):
-        """
-        Returns a list of all equations blocks defined in this body.
-        :return: a list of equations-blocks.
-        :rtype: list(ASTEquationsBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTEquationsBlock):
-                ret.append(elem)
-        return ret
-
-    def get_input_blocks(self):
-        """
-        Returns a list of all input-blocks defined.
-        :return: a list of defined input-blocks.
-        :rtype: list(ASTInputBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_input_block import ASTInputBlock
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTInputBlock):
-                ret.append(elem)
-        return ret
-
-    def get_output_blocks(self):
-        """
-        Returns a list of all output-blocks defined.
-        :return: a list of defined output-blocks.
-        :rtype: list(ASTOutputBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_output_block import ASTOutputBlock
-        for elem in self.get_body_elements():
-            if isinstance(elem, ASTOutputBlock):
-                ret.append(elem)
-        return ret
-
-    def get_spike_buffers(self):
-        """
-        Returns a list of all spike input buffers defined in the model.
-        :return: a list of all spike input buffers
-        :rtype: list(ASTInputLine)
-        """
-        ret = list()
-        blocks = self.get_input_blocks()
-        if isinstance(blocks, list):
-            for block in blocks:
-                for line in block.get_input_lines():
-                    if line.is_spike():
-                        ret.append(line)
-            return ret
-        else:
-            return ret
+        return self.body_elements
 
     def equals(self, other):
         """

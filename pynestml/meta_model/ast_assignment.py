@@ -43,8 +43,8 @@ class ASTAssignment(ASTNode):
         rhs = None
     """
 
-    def __init__(self, lhs=None, is_direct_assignment=False, is_compound_sum=False, is_compound_minus=False,
-                 is_compound_product=False, is_compound_quotient=False, rhs=None, source_position=None):
+    def __init__(self, lhs = None, is_direct_assignment = False, is_compound_sum = False, is_compound_minus = False,
+                 is_compound_product = False, is_compound_quotient = False, rhs = None, source_position = None):
         """
         Standard constructor.
         :param lhs: the left-hand side variable to which is assigned to.
@@ -107,78 +107,3 @@ class ASTAssignment(ASTNode):
                 self.is_compound_sum == other.is_compound_sum and
                 self.is_direct_assignment == other.is_direct_assignment and
                 self.get_expression().equals(other.get_expression()))
-
-    def deconstruct_compound_assignment(self):
-        # todo: factor out
-        """
-        From lhs and rhs it constructs a new expression which corresponds to direct assignment.
-        E.g.: a += b*c -> a = a + b*c
-        :return: the rhs for an equivalent direct assignment.
-        :rtype: ast_expression
-        """
-        from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
-        # TODO: get rid of this through polymorphism?
-        assert not self.is_direct_assignment, "Can only be invoked on a compound assignment."
-
-        operator = self.extract_operator_from_compound_assignment()
-        lhs_variable = self.get_lhs_variable_as_expression()
-        rhs_in_brackets = self.get_bracketed_rhs_expression()
-        result = self.construct_equivalent_direct_assignment_rhs(operator, lhs_variable, rhs_in_brackets)
-        # create symbols for the new Expression:
-        visitor = ASTSymbolTableVisitor()
-        result.accept(visitor)
-        return result
-
-    def get_lhs_variable_as_expression(self):
-        # todo: factor out
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        # TODO: maybe calculate new source positions exactly?
-        result = ASTNodeFactory.create_ast_simple_expression(variable=self.get_variable(),
-                                                             source_position=self.get_variable().get_source_position())
-        result.update_scope(self.get_scope())
-        return result
-
-    def extract_operator_from_compound_assignment(self):
-        # todo: factor out
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        assert not self.is_direct_assignment
-        # TODO: maybe calculate new source positions exactly?
-        result = None
-        if self.is_compound_minus:
-            result = ASTNodeFactory.create_ast_arithmetic_operator(is_minus_op=True,
-                                                                   source_position=self.get_source_position())
-        elif self.is_compound_product:
-            result = ASTNodeFactory.create_ast_arithmetic_operator(is_times_op=True,
-                                                                   source_position=self.get_source_position())
-        elif self.is_compound_quotient:
-            result = ASTNodeFactory.create_ast_arithmetic_operator(is_div_op=True,
-                                                                   source_position=self.get_source_position())
-        elif self.is_compound_sum:
-            result = ASTNodeFactory.create_ast_arithmetic_operator(is_plus_op=True,
-                                                                   source_position=self.get_source_position())
-        else:
-            raise RuntimeError('Type of compound operator not recognized!')
-        result.update_scope(self.get_scope())
-        return result
-
-    def get_bracketed_rhs_expression(self):
-        # todo: factor out
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        # TODO: maybe calculate new source positions exactly?
-        result = ASTNodeFactory.create_ast_expression(is_encapsulated=True,
-                                                      expression=self.get_expression(),
-                                                      source_position=self.get_expression().get_source_position())
-        result.update_scope(self.get_scope())
-        return result
-
-    def construct_equivalent_direct_assignment_rhs(self, operator, lhs_variable, rhs_in_brackets):
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        # TODO: maybe calculate new source positions exactly?
-        result = ASTNodeFactory.create_ast_compound_expression(lhs=lhs_variable, binary_operator=operator,
-                                                               rhs=rhs_in_brackets,
-                                                               source_position=self.get_source_position())
-        result.update_scope(self.get_scope())
-        return result
-
-    def resolve_lhs_variable_symbol(self):
-        return self.get_variable().resolve_in_own_scope()
