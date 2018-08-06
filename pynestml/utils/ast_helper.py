@@ -29,6 +29,7 @@ from pynestml.meta_model.ast_output_block import ASTOutputBlock
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.symbols.variable_symbol import VariableSymbol
+from pynestml.symbols.symbol import SymbolKind
 
 
 class ASTHelper(object):
@@ -37,9 +38,10 @@ class ASTHelper(object):
     """
 
     @classmethod
-    def resolve_ast_to_variable_symbol(cls, variable):
+    def resolve_ast_variable_to_variable_symbol(cls, variable):
         # type: (ASTVariable) -> VariableSymbol
-        return variable.resolve_in_own_scope()
+        assert variable.get_scope() is not None
+        return variable.get_scope().resolve_to_symbol(variable.get_complete_name(), SymbolKind.VARIABLE)
 
     @classmethod
     def construct_equivalent_direct_assignment_rhs(cls, assignment, operator, lhs_variable, rhs_in_brackets):
@@ -274,4 +276,29 @@ class ASTHelper(object):
         for decl in equations_block.get_declarations():
             if isinstance(decl, ASTOdeShape):
                 ret.append(decl)
+        return ret
+
+    @classmethod
+    def get_variables_from_expression(cls, expression):
+        """
+        Returns a list of all variables as used in this rhs.
+        :return: a list of variables.
+        :rtype: list(ASTVariable)
+        """
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        ret = list()
+
+        if isinstance(expression, ASTSimpleExpression):
+            if expression.is_variable():
+                ret.append(expression.get_variable())
+        else:
+            if expression.is_expression():
+                ret.extend(cls.get_variables_from_expression(expression.get_expression()))
+            elif expression.is_compound_expression():
+                ret.extend(cls.get_variables_from_expression(expression.get_lhs()))
+                ret.extend(cls.get_variables_from_expression(expression.get_rhs()))
+            elif expression.is_ternary_operator():
+                ret.extend(cls.get_variables_from_expression(expression.get_condition()))
+                ret.extend(cls.get_variables_from_expression(expression.get_if_true()))
+                ret.extend(cls.get_variables_from_expression(expression.get_if_not()))
         return ret

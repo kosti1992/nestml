@@ -20,14 +20,14 @@
 from copy import copy
 
 from pynestml.meta_model.ast_node import ASTNode
-from pynestml.utils.either import Either
+from pynestml.meta_model.typeable import Typeable
+from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import MessageCode
-from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 
 
-class ASTVariable(ASTNode):
+class ASTVariable(ASTNode, Typeable):
     """
     This class is used to store a single variable.
     
@@ -60,13 +60,6 @@ class ASTVariable(ASTNode):
         super(ASTVariable, self).__init__(source_position=source_position)
         self.name = name
         self.differential_order = differential_order
-        self.type_symbol = None
-
-    def resolve_in_own_scope(self):
-        # todo: factor me out
-        from pynestml.symbols.symbol import SymbolKind
-        assert self.get_scope() is not None
-        return self.get_scope().resolve_to_symbol(self.get_complete_name(), SymbolKind.VARIABLE)
 
     def get_name(self):
         """
@@ -112,7 +105,6 @@ class ASTVariable(ASTNode):
             return self.get_name()
 
     def get_type_symbol(self):
-        # todo: factor me out
         """
         Returns the type symbol of this rhs.
         :return: a single type symbol.
@@ -135,20 +127,7 @@ class ASTVariable(ASTNode):
 
         return copy(self.type_symbol)
 
-    def set_type_symbol(self, type_symbol):
-        # todo: factor me out
-        """
-        Updates the current type symbol to the handed over one.
-        :param type_symbol: a single type symbol object.
-        :type type_symbol: type_symbol
-        """
-        assert (type_symbol is not None and isinstance(type_symbol, Either)), \
-            '(PyNestML.AST.Variable) No or wrong type of type symbol provided (%s)!' % type(type_symbol)
-        self.type_symbol = type_symbol
-        return
-
     def is_unit_variable(self):
-        # todo:factor me out
         """
         Provided on-the-fly information whether this variable represents a unit-variable, e.g., nS.
         Caution: It assumes that the symbol table has already been constructed.

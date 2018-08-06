@@ -56,8 +56,9 @@ class VectorInDeclarationVisitor(ASTVisitor):
         :param node: a single declaration.
         :type node: ASTDeclaration
         """
+        from pynestml.utils.ast_helper import ASTHelper
         if node.has_expression():
-            variables = node.get_expression().get_variables()
+            variables = ASTHelper.get_variables_from_expression(node.get_expression())
             for variable in variables:
                 if variable is not None:
                     symbol = node.get_scope().resolve_to_symbol(variable.get_complete_name(), SymbolKind.VARIABLE)

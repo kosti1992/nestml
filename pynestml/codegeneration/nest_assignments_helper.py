@@ -77,6 +77,7 @@ class NestAssignmentsHelper(object):
         :return: True if vectorized, otherwise False.
         :rtype: bool
         """
+        from pynestml.utils.ast_helper import ASTHelper
         from pynestml.symbols.symbol import SymbolKind
         assert isinstance(assignment, ASTAssignment), \
             '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(assignment)
@@ -87,7 +88,7 @@ class NestAssignmentsHelper(object):
                 return True
             else:
                 # otherwise we have to check if one of the variables used in the rhs is a vector
-                for var in assignment.get_expression().get_variables():
+                for var in ASTHelper.get_variables_from_expression(assignment.get_expression()):
                     symbol = var.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
                     if symbol is not None and symbol.has_vector_parameter():
                         return True
@@ -105,11 +106,12 @@ class NestAssignmentsHelper(object):
         :return: the corresponding size parameter
         :rtype: str
         """
+        from pynestml.utils.ast_helper import ASTHelper
         from pynestml.symbols.symbol import SymbolKind
         assert (assignment is not None and isinstance(assignment, ASTAssignment)), \
             '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(assignment)
         vector_variable = None
-        for variable in assignment.get_expression().get_variables():
+        for variable in ASTHelper.get_variables_from_expression(assignment.get_expression()):
             symbol = variable.get_scope().resolve_to_symbol(variable.get_complete_name(), SymbolKind.VARIABLE)
             if symbol is not None and symbol.has_vector_parameter():
                 vector_variable = symbol

@@ -90,7 +90,7 @@ class CorrectExpressionVisitor(ASTVisitor):
 
     def handle_complex_assignment(self, node):
         rhs_expr = node.get_expression()
-        lhs_variable_symbol = ASTHelper.resolve_ast_to_variable_symbol(node.get_variable())
+        lhs_variable_symbol = ASTHelper.resolve_ast_variable_to_variable_symbol(node.get_variable())
         rhs_type_symbol = rhs_expr.type
 
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):

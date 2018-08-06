@@ -17,12 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from copy import copy
-
 from pynestml.meta_model.ast_node import ASTNode
+from pynestml.meta_model.typeable import Typeable
 
 
-class ASTFunction(ASTNode):
+class ASTFunction(ASTNode, Typeable):
     """
     This class is used to store a user-defined function.
     ASTFunction a function definition:
@@ -115,24 +114,6 @@ class ASTFunction(ASTNode):
         :rtype: ASTBlock
         """
         return self.block
-
-    def get_type_symbol(self):
-        # todo: this should not be here
-        """
-        Returns the type symbol of this rhs.
-        :return: a single type symbol.
-        :rtype: type_symbol
-        """
-        return copy(self.type_symbol)
-
-    def set_type_symbol(self, type_symbol):
-        # todo: this should not be here
-        """
-        Updates the current type symbol to the handed over one.
-        :param type_symbol: a single type symbol object.
-        :type type_symbol: type_symbol
-        """
-        self.type_symbol = type_symbol
 
     def equals(self, other):
         """

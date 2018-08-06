@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.symbols.symbol import SymbolKind
@@ -50,7 +51,7 @@ class CoCoAllVariablesDefined(CoCo):
         node.accept(expression_collector_visitor)
         expressions = expression_collector_visitor.ret
         for expr in expressions:
-            for var in expr.get_variables():
+            for var in ASTHelper.get_variables_from_expression(expr):
                 symbol = var.get_scope().resolve_to_symbol(var.get_complete_name(), SymbolKind.VARIABLE)
                 # this part is required to check that we handle invariants differently
                 # expr_par = node.get_parent(expr)

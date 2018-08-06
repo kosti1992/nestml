@@ -142,17 +142,6 @@ class ASTSimpleExpression(ASTExpressionNode):
         """
         return self.variable is not None and self.numeric_literal is None
 
-    def get_variables(self):
-        """
-        This function is used for better interactions with the general rhs meta_model class.
-        :return: returns a single list with this variable if such an exists, otherwise an empty list
-        :rtype: list(ASTVariable)
-        """
-        ret = list()
-        if self.is_variable():
-            ret.append(self.get_variable())
-        return ret
-
     def has_unit(self):
         """
         Returns whether this is a numeric literal with a defined unit.
