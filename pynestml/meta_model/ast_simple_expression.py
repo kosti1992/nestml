@@ -45,8 +45,8 @@ class ASTSimpleExpression(ASTExpressionNode):
 
     """
 
-    def __init__(self, function_call=None, boolean_literal=None, numeric_literal=None, is_inf=False,
-                 variable=None, string=None, source_position=None):
+    def __init__(self, function_call = None, boolean_literal = None, numeric_literal = None, is_inf = False,
+                 variable = None, string = None, source_position = None):
         """
         Standard constructor.
         :param function_call: a function call.
@@ -107,17 +107,6 @@ class ASTSimpleExpression(ASTExpressionNode):
         """
         return self.function_call
 
-    def get_function_calls(self):
-        """
-        This function is used for better interactions with the general rhs meta_model class.
-        :return: returns a single list with this function call if such an exists, otherwise an empty list
-        :rtype: list(ASTFunctionCall)
-        """
-        ret = list()
-        if self.is_function_call():
-            ret.append(self.get_function_call())
-        return ret
-
     def is_numeric_literal(self):
         """
         Returns whether it is a numeric literal or not.
@@ -149,17 +138,6 @@ class ASTSimpleExpression(ASTExpressionNode):
         :rtype: bool
         """
         return self.variable is not None and self.numeric_literal is not None
-
-    def get_units(self):
-        """
-        This function is used for better interactions with the general rhs meta_model class.
-        :return: returns a single list with unit if such an exists, otherwise an empty list
-        :rtype: list(ASTVariable)
-        """
-        ret = list()
-        if self.has_unit():
-            ret.append(self.get_variable())
-        return ret
 
     def get_variable(self):
         """

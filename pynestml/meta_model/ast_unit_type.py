@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from pynestml.meta_model.i_typeable import ITypeable
 from pynestml.meta_model.ast_node import ASTNode
 from pynestml.symbols.type_symbol import TypeSymbol
 
 
-class ASTUnitType(ASTNode):
+class ASTUnitType(ASTNode, ITypeable):
     """
     This class stores information regarding unit types and their properties.
     ASTUnitType. Represents an unit datatype. It can be a plain datatype as 'mV' or a
@@ -122,16 +122,6 @@ class ASTUnitType(ASTNode):
         :rtype: ASTUnitType
         """
         return self.rhs
-
-    def get_type_symbol(self):
-        # type: (None) -> TypeSymbol
-        # todo: this should not be here
-        return self.type_symbol
-
-    def set_type_symbol(self, type_symbol):
-        # type: (TypeSymbol) -> None
-        # todo: this should not be here
-        self.type_symbol = type_symbol
 
     def equals(self, other):
         """

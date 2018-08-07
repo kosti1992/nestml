@@ -28,8 +28,8 @@ from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.meta_model.ast_output_block import ASTOutputBlock
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
-from pynestml.symbols.variable_symbol import VariableSymbol
 from pynestml.symbols.symbol import SymbolKind
+from pynestml.symbols.variable_symbol import VariableSymbol
 
 
 class ASTHelper(object):
@@ -301,4 +301,54 @@ class ASTHelper(object):
                 ret.extend(cls.get_variables_from_expression(expression.get_condition()))
                 ret.extend(cls.get_variables_from_expression(expression.get_if_true()))
                 ret.extend(cls.get_variables_from_expression(expression.get_if_not()))
+        return ret
+
+    @classmethod
+    def get_units_from_expression(cls, expression):
+        """
+        Returns a list of all units as use in this rhs.
+        :return: a list of all used units.
+        :rtype: list(ASTVariable)
+        """
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        from pynestml.meta_model.ast_expression import ASTExpression
+        ret = list()
+        if isinstance(expression, ASTSimpleExpression):
+            if expression.has_unit():
+                ret.append(expression.get_variable())
+        elif isinstance(expression, ASTExpression):
+            if expression.is_expression():
+                ret.extend(cls.get_units_from_expression(expression.get_expression()))
+            elif expression.is_compound_expression():
+                ret.extend(cls.get_units_from_expression((expression.get_lhs())))
+                ret.extend(cls.get_units_from_expression((expression.get_rhs())))
+            elif expression.is_ternary_operator():
+                ret.extend(cls.get_units_from_expression(expression.get_condition()))
+                ret.extend(cls.get_units_from_expression(expression.get_if_true()))
+                ret.extend(cls.get_units_from_expression(expression.get_if_not()))
+        return ret
+
+    @classmethod
+    def get_function_calls_from_expression(cls, expression):
+        """
+        Returns a list of all function calls as used in this rhs
+        :return: a list of all function calls in this rhs.
+        :rtype: list(ASTFunctionCall)
+        """
+        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        from pynestml.meta_model.ast_expression import ASTExpression
+        ret = list()
+        if isinstance(expression, ASTSimpleExpression):
+            if expression.is_function_call():
+                ret.append(expression.get_function_call())
+        elif isinstance(expression, ASTExpression):
+            if expression.is_expression():
+                ret.extend(cls.get_function_calls_from_expression(expression.get_expression()))
+            elif expression.is_compound_expression():
+                ret.extend(cls.get_function_calls_from_expression(expression.get_lhs()))
+                ret.extend(cls.get_function_calls_from_expression(expression.get_rhs()))
+            elif expression.is_ternary_operator():
+                ret.extend(cls.get_function_calls_from_expression(expression.get_condition()))
+                ret.extend(cls.get_function_calls_from_expression(expression.get_if_true()))
+                ret.extend(cls.get_function_calls_from_expression(expression.get_if_not()))
         return ret

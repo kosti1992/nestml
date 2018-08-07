@@ -1,5 +1,5 @@
 #
-# typeable.py
+# i_typeable.py
 #
 # This file is part of NEST.
 #
@@ -22,7 +22,7 @@ from copy import copy
 from pynestml.utils.either import Either
 
 
-class Typeable(object):
+class ITypeable(object):
     """
     This interface indicates that an AST element can store a corresponding type symbol, e.g., a variable
     with a respective type.

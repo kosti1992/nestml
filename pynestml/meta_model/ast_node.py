@@ -146,7 +146,6 @@ class ASTNode(object):
         return self.comment is not None and len(self.comment) > 0
 
     def print_comment(self, prefix):
-        # todo: check if this method is still required
         """
         Prints the comment of this meta_model element.
         :param prefix: a prefix string

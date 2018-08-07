@@ -20,14 +20,14 @@
 from copy import copy
 
 from pynestml.meta_model.ast_node import ASTNode
-from pynestml.meta_model.typeable import Typeable
+from pynestml.meta_model.i_typeable import ITypeable
 from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import MessageCode
 
 
-class ASTVariable(ASTNode, Typeable):
+class ASTVariable(ASTNode, ITypeable):
     """
     This class is used to store a single variable.
     

@@ -422,10 +422,11 @@ class ASTUtils(object):
         :return: True if contained, otherwise False.
         :rtype: bool
         """
+        from pynestml.utils.ast_helper import ASTHelper
         if not variable.get_declaring_expression():
             return False
         else:
-            for func in variable.get_declaring_expression().get_function_calls():
+            for func in ASTHelper.get_function_calls_from_expression(variable.get_declaring_expression()):
                 if func.get_name() == PredefinedFunctions.CONVOLVE or \
                         func.get_name() == PredefinedFunctions.CURR_SUM or \
                         func.get_name() == PredefinedFunctions.COND_SUM:

@@ -17,11 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.meta_model.ast_expression_node import ASTExpressionNode
-from pynestml.meta_model.ast_logical_operator import ASTLogicalOperator
 from pynestml.meta_model.ast_arithmetic_operator import ASTArithmeticOperator
 from pynestml.meta_model.ast_bit_operator import ASTBitOperator
 from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
+from pynestml.meta_model.ast_expression_node import ASTExpressionNode
+from pynestml.meta_model.ast_logical_operator import ASTLogicalOperator
 
 
 class ASTExpression(ASTExpressionNode):
@@ -200,44 +200,6 @@ class ASTExpression(ASTExpressionNode):
         :rtype: ASTExpression
         """
         return self.if_not
-
-    def get_units(self):
-        """
-        Returns a list of all units as use in this rhs.
-        :return: a list of all used units.
-        :rtype: list(ASTVariable)
-        """
-        # TODO: extract this to utils
-        ret = list()
-        if self.is_expression():
-            ret.extend(self.get_expression().get_units())
-        elif self.is_compound_expression():
-            ret.extend(self.get_lhs().get_units())
-            ret.extend(self.get_rhs().get_units())
-        elif self.is_ternary_operator():
-            ret.extend(self.get_condition().get_units())
-            ret.extend(self.get_if_true().get_units())
-            ret.extend(self.get_if_not().get_units())
-        return ret
-
-    def get_function_calls(self):
-        """
-        Returns a list of all function calls as used in this rhs
-        :return: a list of all function calls in this rhs.
-        :rtype: list(ASTFunctionCall)
-        """
-        # TODO: extract this to utils
-        ret = list()
-        if self.is_expression():
-            ret.extend(self.get_expression().get_function_calls())
-        elif self.is_compound_expression():
-            ret.extend(self.get_lhs().get_function_calls())
-            ret.extend(self.get_rhs().get_function_calls())
-        elif self.is_ternary_operator():
-            ret.extend(self.get_condition().get_function_calls())
-            ret.extend(self.get_if_true().get_function_calls())
-            ret.extend(self.get_if_not().get_function_calls())
-        return ret
 
     def equals(self, other):
         """
