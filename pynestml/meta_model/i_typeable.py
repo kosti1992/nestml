@@ -38,9 +38,7 @@ class ITypeable(object):
         """
         Updates the current type symbol to the handed over one.
         :param type_symbol: a single type symbol object.
-        :type type_symbol: type_symbol
+        :type type_symbol: TypeSymbol
         """
-        assert (type_symbol is not None and isinstance(type_symbol, Either)), \
-            '(PyNestML.AST.Variable) No or wrong type of type symbol provided (%s)!' % type(type_symbol)
         self.type_symbol = type_symbol
-        return
+        
