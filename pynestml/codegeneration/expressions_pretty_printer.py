@@ -34,17 +34,12 @@ class ExpressionsPrettyPrinter(object):
     This class is used to transform only parts of the procedural language and not nestml in whole.
     """
 
-    def __init__(self, reference_converter=None, types_printer=None):
-        # type: (IReferenceConverter,TypesPrinter) -> None
-        # todo by kp: this should expect a ITypesPrinter as the second arg
+    def __init__(self, reference_converter = None):
+        # type: (IReferenceConverter) -> None
         if reference_converter is not None:
             self.reference_converter = reference_converter
         else:
             self.reference_converter = IdempotentReferenceConverter()
-        if types_printer is not None:
-            self.types_printer = types_printer
-        else:
-            self.types_printer = TypesPrinter()
 
     def print_expression(self, node):
         # type: (ASTExpressionNode) -> str
@@ -57,19 +52,18 @@ class ExpressionsPrettyPrinter(object):
         # type: (ASTExpressionNode) -> str
         if isinstance(node, ASTSimpleExpression):
             if node.has_unit():
-                # todo by kp: this should not be done in the typesPrinter, obsolete
-                return self.types_printer.pretty_print(node.get_numeric_literal()) + '*' + \
-                       self.reference_converter.convert_name_reference(node.get_variable())
+                return (self.reference_converter.convert_numeric(node.get_numeric_literal()) + '*' +
+                        self.reference_converter.convert_name_reference(node.get_variable()))
             elif node.is_numeric_literal():
                 return str(node.get_numeric_literal())
             elif node.is_inf_literal:
                 return self.reference_converter.convert_constant('inf')
             elif node.is_string():
-                return self.types_printer.pretty_print(node.get_string())
+                return self.reference_converter.convert_string(node.get_string())
             elif node.is_boolean_true:
-                return self.types_printer.pretty_print(True)
+                return self.reference_converter.convert_bool(True)
             elif node.is_boolean_false:
-                return self.types_printer.pretty_print(False)
+                return self.reference_converter.convert_bool(False)
             elif node.is_variable():
                 return self.reference_converter.convert_name_reference(node.get_variable())
             elif node.is_function_call():
@@ -118,20 +112,3 @@ class ExpressionsPrettyPrinter(object):
             if function_call.get_args().index(arg) < len(function_call.get_args()) - 1:
                 ret += ', '
         return ret
-
-
-class TypesPrinter(object):
-    """
-    Returns a processable format of the handed over element.
-    """
-
-    @classmethod
-    def pretty_print(cls, element):
-        assert (element is not None), \
-            '(PyNestML.CodeGeneration.PrettyPrinter) No element provided (%s)!' % element
-        if isinstance(element, bool) and element:
-            return 'true'
-        elif isinstance(element, bool) and not element:
-            return 'false'
-        elif isinstance(element, int) or isinstance(element, float):
-            return str(element)

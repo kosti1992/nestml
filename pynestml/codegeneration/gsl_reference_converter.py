@@ -36,7 +36,7 @@ class GSLReferenceConverter(IReferenceConverter):
     """
     maximal_exponent = 10.0
 
-    def __init__(self, is_upper_bound=False):
+    def __init__(self, is_upper_bound = False):
         """
         Standard constructor.
         :param is_upper_bound: Indicates whether an upper bound for the exponent shall be used.
@@ -57,7 +57,7 @@ class GSLReferenceConverter(IReferenceConverter):
 
         if PredefinedUnits.is_unit(ast_variable.get_complete_name()):
             return str(
-                UnitConverter.get_factor(PredefinedUnits.get_unit(ast_variable.get_complete_name()).get_unit()))
+                    UnitConverter.get_factor(PredefinedUnits.get_unit(ast_variable.get_complete_name()).get_unit()))
         if symbol.is_init_values():
             return GSLNamesConverter.name(symbol)
         elif symbol.is_buffer():
@@ -159,3 +159,12 @@ class GSLReferenceConverter(IReferenceConverter):
 
     def convert_arithmetic_operator(self, op):
         return NESTReferenceConverter.convert_arithmetic_operator(op)
+
+    def convert_bool(self, value):
+        return NESTReferenceConverter.convert_bool(value)
+
+    def convert_numeric(self, value):
+        return NESTReferenceConverter.convert_numeric(value)
+
+    def convert_string(self, value):
+        return NESTReferenceConverter.convert_string(value)

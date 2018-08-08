@@ -41,4 +41,3 @@ class ITypeable(object):
         :type type_symbol: TypeSymbol
         """
         self.type_symbol = type_symbol
-        

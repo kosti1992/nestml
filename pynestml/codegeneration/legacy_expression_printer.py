@@ -35,13 +35,11 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
         :param reference_converter: a single reference converter object.
         :type reference_converter: IReferenceConverter
         """
-        from pynestml.codegeneration.expressions_pretty_printer import TypesPrinter
         super(LegacyExpressionPrinter, self).__init__(reference_converter)
         if reference_converter is not None:
             self.reference_converter = reference_converter
         else:
             self.reference_converter = IdempotentReferenceConverter()
-        self.types_printer = TypesPrinter()
 
     def do_print(self, node):
         """
@@ -51,18 +49,17 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
         :return: string representation of the rhs
         :rtype: str
         """
-        # todo : printing of literals etc. should be done by constant converter, not a type converter
         if isinstance(node, ASTSimpleExpression):
             if node.is_numeric_literal():
-                return self.types_printer.pretty_print(node.get_numeric_literal())
+                return self.reference_converter.convert_numeric(node.get_numeric_literal())
             elif node.is_inf_literal:
                 return self.reference_converter.convert_constant('inf')
             elif node.is_string():
-                return self.types_printer.pretty_print(node.get_string())
+                return self.reference_converter.convert_string(node.get_string())
             elif node.is_boolean_true:
-                return self.types_printer.pretty_print(True)
+                return self.reference_converter.convert_bool(True)
             elif node.is_boolean_false:
-                return self.types_printer.pretty_print(False)
+                return self.reference_converter.convert_bool(False)
             elif node.is_variable():
                 return self.reference_converter.convert_name_reference(node.get_variable())
             elif node.is_function_call():

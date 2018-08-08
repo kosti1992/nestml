@@ -109,3 +109,12 @@ class IdempotentReferenceConverter(IReferenceConverter):
 
     def convert_bit_operator(self, op):
         return str(op)
+
+    def convert_bool(self, value):
+        return str(value)
+
+    def convert_numeric(self, value):
+        return str(value)
+
+    def convert_string(self, value):
+        return str(value)

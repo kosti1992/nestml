@@ -5,7 +5,8 @@ import nest
 nest.Install("models")
 nest.set_verbosity("M_WARNING")
 
-def test(referenceModel, testant, gsl_error_tol, tolerance=0.000001):
+
+def test(referenceModel, testant, gsl_error_tol, tolerance = 0.000001):
     nest.ResetKernel()
     neuron1 = nest.Create(referenceModel)
     neuron2 = nest.Create(testant)
@@ -40,19 +41,21 @@ def test(referenceModel, testant, gsl_error_tol, tolerance=0.000001):
     Vms2 = dmm2["events"][V_m_specifier]
     ts2 = dmm2["events"]["times"]
 
-    # pylab.plot(ts1, Vms1, label = "Reference " + referenceModel)
-    # pylab.plot(ts2, Vms2, label = "Testant " + testant)
-    # pylab.legend(loc='upper right')
+    #pylab.plot(ts1, Vms1, label="Reference " + referenceModel)
+    #pylab.plot(ts2, Vms2, label="Testant " + testant)
+    #pylab.legend(loc='upper right')
+    #pylab.show()
 
     for index in range(0, len(Vms1)):
         if abs(Vms1[index] - Vms2[index]) > tolerance:
             print('!!!!!!!!!!!!!!!!!!!!')
             print(str(Vms1[index]) + " divers from  " + str(Vms2[index]) + " at iteration: " + str(
-                index) + " of overall iterations: " + str(len(Vms1)))
+                    index) + " of overall iterations: " + str(len(Vms1)))
             print('!!!!!!!!!!!!!!!!!!!!')
             raise Exception(testant + ": TEST FAILED")
         elif abs(Vms1[index] - Vms2[index]) > 0:
-            None  # print("Greater than 0 difference" + str(abs(Vms1[index]-Vms2[index])) + " at iteration: " + str(index) + " of overall iterations: " + str(len(Vms1)))
+            None  # print("Greater than 0 difference" + str(abs(Vms1[index]-Vms2[index])) + " at iteration: " + str(
+            # index) + " of overall iterations: " + str(len(Vms1)))
     print(testant + " PASSED")
 
 
@@ -103,12 +106,12 @@ def test_multysinapse():
         if abs(Vms1[index] - Vms2[index]) > 0.000001:
             print('!!!!!!!!!!!!!!!!!!!!')
             print(str(Vms1[index]) + " divers from  " + str(Vms2[index]) + " at iteration: " + str(
-                index) + " of overall iterations: " + str(len(Vms1)))
+                    index) + " of overall iterations: " + str(len(Vms1)))
             print('!!!!!!!!!!!!!!!!!!!!')
             raise Exception("TEST FAILED")
         elif abs(Vms1[index] - Vms2[index]) > 0:
             print("Greater than 0 difference" + str(abs(Vms1[index] - Vms2[index])) + " at iteration: " + str(
-                index) + " of overall iterations: " + str(len(Vms1)))
+                    index) + " of overall iterations: " + str(len(Vms1)))
     print("Test: PASSED")
 
 
