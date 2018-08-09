@@ -352,3 +352,36 @@ class ASTHelper(object):
                 ret.extend(cls.get_function_calls_from_expression(expression.get_if_true()))
                 ret.extend(cls.get_function_calls_from_expression(expression.get_if_not()))
         return ret
+
+    @classmethod
+    def get_functions_from_neuron(cls, neuron):
+        """
+        Returns a list of all function block declarations in this body.
+        :return: a list of function declarations.
+        :rtype: list(ASTFunction)
+        """
+        ret = list()
+        from pynestml.meta_model.ast_function import ASTFunction
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTFunction):
+                ret.append(elem)
+        return ret
+
+    @classmethod
+    def get_update_blocks_from_neuron(cls,neuron):
+        """
+        Returns a list of all update blocks defined in this body.
+        :return: a list of update-block elements.
+        :rtype: list(ASTUpdateBlock)
+        """
+        ret = list()
+        from pynestml.meta_model.ast_update_block import ASTUpdateBlock
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTUpdateBlock):
+                ret.append(elem)
+        if isinstance(ret, list) and len(ret) == 1:
+            return ret[0]
+        elif isinstance(ret, list) and len(ret) == 0:
+            return None
+        else:
+            return ret

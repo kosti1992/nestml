@@ -20,6 +20,7 @@
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.symbols.symbol import SymbolKind
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
@@ -36,7 +37,7 @@ class CoCoFunctionUnique(CoCo):
         :type node: ASTNeuron
         """
         checked_funcs_names = list()
-        for func in node.get_functions():
+        for func in ASTHelper.get_functions_from_neuron(node):
             if func.get_name() not in checked_funcs_names:
                 symbols = func.get_scope().resolve_to_all_symbols(func.get_name(), SymbolKind.FUNCTION)
                 if isinstance(symbols, list) and len(symbols) > 1:

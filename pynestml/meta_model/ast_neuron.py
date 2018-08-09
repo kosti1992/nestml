@@ -18,14 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-from pynestml.meta_model.ast_node import ASTNode
-from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.meta_model.ast_body import ASTBody
 from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
-from pynestml.symbols.variable_symbol import BlockType
-from pynestml.symbols.variable_symbol import VariableSymbol
+from pynestml.meta_model.ast_node import ASTNode
+from pynestml.meta_model.ast_ode_shape import ASTOdeShape
+from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
 from pynestml.utils.ast_utils import ASTUtils
-from pynestml.utils.logger import LoggingLevel, Logger
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
 
@@ -90,37 +89,6 @@ class ASTNeuron(ASTNode):
         :rtype: str
         """
         return self.artifact_name
-
-    def get_functions(self):
-        """
-        Returns a list of all function block declarations in this body.
-        :return: a list of function declarations.
-        :rtype: list(ASTFunction)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_function import ASTFunction
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTFunction):
-                ret.append(elem)
-        return ret
-
-    def get_update_blocks(self):
-        """
-        Returns a list of all update blocks defined in this body.
-        :return: a list of update-block elements.
-        :rtype: list(ASTUpdateBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_update_block import ASTUpdateBlock
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTUpdateBlock):
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
 
     def get_state_blocks(self):
         """
@@ -673,7 +641,8 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
-        block = self.get_update_blocks()
+        from pynestml.utils.ast_helper import ASTHelper
+        block = ASTHelper.get_update_blocks_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)

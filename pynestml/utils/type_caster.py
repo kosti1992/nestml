@@ -20,34 +20,38 @@
 
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.utils.logger import Logger, LoggingLevel
-from pynestml.utils.logging_helper import LoggingHelper
 from pynestml.utils.messages import Messages
 
 
 class TypeCaster(object):
     @staticmethod
-    def do_magnitude_conversion_rhs_to_lhs(_rhs_type_symbol, _lhs_type_symbol, _containing_expression):
+    def do_magnitude_conversion_rhs_to_lhs(rhs_type_symbol, lhs_type_symbol, containing_expression):
         """
         determine conversion factor from rhs to lhs, register it with the relevant expression, drop warning
         """
-        _containing_expression.set_implicit_conversion_factor(
-                UnitTypeSymbol.get_conversion_factor_from_to(_rhs_type_symbol.astropy_unit,
-                                                             _lhs_type_symbol.astropy_unit))
-        _containing_expression.type = _lhs_type_symbol
+        containing_expression.set_implicit_conversion_factor(
+                UnitTypeSymbol.get_conversion_factor_from_to(rhs_type_symbol.astropy_unit,
+                                                             lhs_type_symbol.astropy_unit))
+        containing_expression.type = lhs_type_symbol
 
-        code, message = Messages.get_implicit_magnitude_conversion(_lhs_type_symbol, _rhs_type_symbol,
-                                                                   _containing_expression.
+        code, message = Messages.get_implicit_magnitude_conversion(lhs_type_symbol, rhs_type_symbol,
+                                                                   containing_expression.
                                                                    get_implicit_conversion_factor())
         Logger.log_message(code=code, message=message,
-                           error_position=_containing_expression.get_source_position(),
+                           error_position=containing_expression.get_source_position(),
                            log_level=LoggingLevel.WARNING)
 
     @staticmethod
-    def try_to_recover_or_error(_lhs_type_symbol, _rhs_type_symbol, _containing_expression):
-        if _rhs_type_symbol.differs_only_in_magnitude_or_is_equal_to(_lhs_type_symbol):
-            TypeCaster.do_magnitude_conversion_rhs_to_lhs(_rhs_type_symbol, _lhs_type_symbol, _containing_expression)
-        elif _rhs_type_symbol.is_castable_to(_lhs_type_symbol):
-            LoggingHelper.drop_implicit_cast_warning(_containing_expression.get_source_position(), _lhs_type_symbol,
-                                                     _rhs_type_symbol)
+    def try_to_recover_or_error(lhs_type_symbol, rhs_type_symbol, containing_expression):
+        if rhs_type_symbol.differs_only_in_magnitude_or_is_equal_to(lhs_type_symbol):
+            TypeCaster.do_magnitude_conversion_rhs_to_lhs(rhs_type_symbol, lhs_type_symbol, containing_expression)
+        elif rhs_type_symbol.is_castable_to(lhs_type_symbol):
+            code, message = Messages.get_implicit_cast_rhs_to_lhs(rhs_type_symbol,
+                                                                  lhs_type_symbol)
+            Logger.log_message(error_position=containing_expression.get_source_position(),
+                               code=code, message=message, log_level=LoggingLevel.WARNING)
+
         else:
-            LoggingHelper.drop_incompatible_types_error(_containing_expression, _lhs_type_symbol, _rhs_type_symbol)
+            code, message = Messages.get_type_different_from_expected(lhs_type_symbol, rhs_type_symbol)
+            Logger.log_message(error_position=containing_expression.get_source_position(),
+                               code=code, message=message, log_level=LoggingLevel.ERROR)

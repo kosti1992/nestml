@@ -162,7 +162,9 @@ def replace_integrate_call(neuron, update_instructions):
     :return: The neuron without an integrate calls. The function calls are replaced through an
              incremental exact solution,
     """
-    integrate_call = ASTUtils.get_function_call(neuron.get_update_blocks(), PredefinedFunctions.INTEGRATE_ODES)
+    from pynestml.utils.ast_helper import ASTHelper
+    integrate_call = ASTUtils.get_function_call(
+            ASTHelper.get_update_blocks_from_neuron(neuron), PredefinedFunctions.INTEGRATE_ODES)
     # by construction of a valid neuron, only a single integrate call should be there
     if isinstance(integrate_call, list):
         integrate_call = integrate_call[0]
@@ -219,11 +221,12 @@ def add_assignment_to_update_block(assignment, neuron):
     :param neuron: a single neuron instance
     :return: the modified neuron
     """
+    from pynestml.utils.ast_helper import ASTHelper
     small_stmt = ASTNodeFactory.create_ast_small_stmt(assignment=assignment,
                                                       source_position=ASTSourceLocation.get_added_source_position())
     stmt = ASTNodeFactory.create_ast_stmt(small_stmt=small_stmt,
                                           source_position=ASTSourceLocation.get_added_source_position())
-    neuron.get_update_blocks().get_block().get_stmts().append(stmt)
+    ASTHelper.get_update_blocks_from_neuron(neuron).get_block().get_stmts().append(stmt)
     return neuron
 
 
@@ -235,11 +238,12 @@ def add_declaration_to_update_block(declaration, neuron):
     :param neuron: a single neuron instance
     :return: a modified neuron
     """
+    from pynestml.utils.ast_helper import ASTHelper
     small_stmt = ASTNodeFactory.create_ast_small_stmt(declaration=declaration,
                                                       source_position=ASTSourceLocation.get_added_source_position())
     stmt = ASTNodeFactory.create_ast_stmt(small_stmt=small_stmt,
                                           source_position=ASTSourceLocation.get_added_source_position())
-    neuron.get_update_blocks().get_block().get_stmts().append(stmt)
+    ASTHelper.get_update_blocks_from_neuron(neuron).get_block().get_stmts().append(stmt)
     return neuron
 
 

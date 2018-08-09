@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
@@ -49,7 +50,7 @@ class CoCoNoNestNameSpaceCollision(CoCo):
         :param node: a single neuron instance.
         :type node: ASTNeuron
         """
-        for func in node.get_functions():
+        for func in ASTHelper.get_functions_from_neuron(node):
             if func.get_name() in self.nest_name_space:
                 code, message = Messages.get_nest_collision(func.get_name())
                 Logger.log_message(error_position=func.get_source_position(),

@@ -18,4 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
-all = ['deferred_logging_exception', 'implicit_cast_exception', 'implicit_magnitude_cast_exception']
+all = [
+    'invalid_path_exception'
+]

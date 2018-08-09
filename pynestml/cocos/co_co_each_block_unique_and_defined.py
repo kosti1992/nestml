@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.cocos.co_co import CoCo
 from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 
@@ -49,15 +50,17 @@ class CoCoEachBlockUniqueAndDefined(CoCo):
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that update block is defined exactly once
-        if isinstance(node.get_update_blocks(), list) and len(node.get_update_blocks()) > 1:
+        if isinstance(ASTHelper.get_update_blocks_from_neuron(node), list) and len(
+                ASTHelper.get_update_blocks_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Update', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif node.get_update_blocks() is None:
+        elif ASTHelper.get_update_blocks_from_neuron(node) is None:
             code, message = Messages.get_block_not_defined_correctly('Update', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif isinstance(node.get_update_blocks(), list) and len(node.get_update_blocks()) == 0:
+        elif isinstance(ASTHelper.get_update_blocks_from_neuron(node), list) and \
+                len(ASTHelper.get_update_blocks_from_neuron(node)) == 0:
             code, message = Messages.get_block_not_defined_correctly('Update', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)

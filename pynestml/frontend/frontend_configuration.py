@@ -90,7 +90,7 @@ class FrontendConfiguration(object):
                                          help=help_dev)
         parsed_args = cls.argument_parser.parse_args(args)
         # get the source path
-        cls.handle_source_path(parsed_args.path[0])
+        cls.__handle_source_path(parsed_args.path[0])
 
         # initialize the logger
         if parsed_args.logging_level is not None:
@@ -102,7 +102,7 @@ class FrontendConfiguration(object):
         # check if a dry run shall be preformed, i.e. without generating a target model
         cls.dry_run = parsed_args.dry
         # now update the target path
-        cls.handle_target_path(parsed_args.target)
+        cls.__handle_target_path(parsed_args.target)
         # now adjust the name of the module, if it is a single file, then it is called just module
         if parsed_args.module_name is not None:
             cls.module_name = parsed_args.module_name[0]
@@ -180,7 +180,7 @@ class FrontendConfiguration(object):
         return cls.is_debug
 
     @classmethod
-    def handle_target_path(cls, path):
+    def __handle_target_path(cls, path):
         # check if a target has been selected, otherwise set the buildNest as target
         if path is not None:
             if os.path.isabs(path):
@@ -197,7 +197,7 @@ class FrontendConfiguration(object):
             os.makedirs(cls.target_path)
 
     @classmethod
-    def handle_source_path(cls, path):
+    def __handle_source_path(cls, path):
         # check if a target has been selected, otherwise set the buildNest as target
         if path is None:
             # check if the mandatory path arg has been handed over, just terminate

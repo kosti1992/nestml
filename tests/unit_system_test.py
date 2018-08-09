@@ -20,15 +20,16 @@
 import os
 import unittest
 
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.codegeneration.expressions_pretty_printer import ExpressionsPrettyPrinter
 from pynestml.codegeneration.nest_printer import NestPrinter
 from pynestml.codegeneration.nest_reference_converter import NESTReferenceConverter
+from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.symbol_table.symbol_table import SymbolTable
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.symbols.predefined_units import PredefinedUnits
 from pynestml.symbols.predefined_variables import PredefinedVariables
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.model_parser import ModelParser
 
@@ -42,7 +43,7 @@ printer = NestPrinter(ExpressionsPrettyPrinter(), NESTReferenceConverter())
 
 
 def get_first_statement_in_update_block(model):
-    return model.get_neuron_list()[0].get_update_blocks().get_block().get_stmts()[0]
+    return ASTHelper.get_update_blocks_from_neuron(model.get_neuron_list()[0]).get_block().get_stmts()[0]
 
 
 def get_first_declaration_in_state_block(model):
@@ -50,7 +51,7 @@ def get_first_declaration_in_state_block(model):
 
 
 def get_first_declared_function(model):
-    return model.get_neuron_list()[0].get_functions()[0]
+    return ASTHelper.get_functions_from_neuron(model.get_neuron_list()[0])[0]
 
 
 def print_rhs_of_first_assignment_in_update_block(model):

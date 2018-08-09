@@ -25,7 +25,6 @@ from pynestml.symbols.error_type_symbol import ErrorTypeSymbol
 from pynestml.symbols.predefined_types import PredefinedTypes
 from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
-from pynestml.utils.logging_helper import LoggingHelper
 from pynestml.utils.messages import Messages
 from pynestml.utils.type_caster import TypeCaster
 from pynestml.visitors.ast_visitor import ASTVisitor
@@ -64,7 +63,10 @@ class CorrectExpressionVisitor(ASTVisitor):
             lhs_type = node.get_data_type().get_type_symbol()
             rhs_type = node.get_expression().type
             if isinstance(rhs_type, ErrorTypeSymbol):
-                LoggingHelper.drop_missing_type_error(node)
+                code, message = Messages.get_type_could_not_be_derived(node.get_expression())
+                Logger.log_message(code=code, message=message,
+                                   error_position=node.get_expression().get_source_position(),
+                                   log_level=LoggingLevel.ERROR)
                 return
             if self.__types_do_not_match(lhs_type, rhs_type):
                 TypeCaster.try_to_recover_or_error(lhs_type, rhs_type, node.get_expression())
@@ -94,7 +96,11 @@ class CorrectExpressionVisitor(ASTVisitor):
         rhs_type_symbol = rhs_expr.type
 
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):
-            LoggingHelper.drop_missing_type_error(node)
+            code, message = Messages.get_type_could_not_be_derived(node.get_expression())
+            Logger.log_message(code=code, message=message,
+                               error_position=node.get_expression().get_source_position(),
+                               log_level=LoggingLevel.ERROR)
+
             return
 
         if self.__types_do_not_match(lhs_variable_symbol.get_type_symbol(), rhs_type_symbol):
@@ -113,7 +119,11 @@ class CorrectExpressionVisitor(ASTVisitor):
 
         rhs_type_symbol = node.get_expression().type
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):
-            LoggingHelper.drop_missing_type_error(node)
+            code, message = Messages.get_type_could_not_be_derived(node.get_expression())
+            Logger.log_message(code=code, message=message,
+                               error_position=node.get_expression().get_source_position(),
+                               log_level=LoggingLevel.ERROR)
+
             return
 
         if lhs_variable_symbol is not None and self.__types_do_not_match(lhs_variable_symbol.get_type_symbol(),
