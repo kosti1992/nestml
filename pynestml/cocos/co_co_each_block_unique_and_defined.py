@@ -84,15 +84,17 @@ class CoCoEachBlockUniqueAndDefined(CoCo):
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that input block is defined exactly once
-        if isinstance(node.get_input_blocks(), list) and len(node.get_input_blocks()) > 1:
+        if isinstance(ASTHelper.get_input_block_from_neuron(node), list) and \
+                len(ASTHelper.get_input_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Input', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif isinstance(node.get_input_blocks(), list) and len(node.get_input_blocks()) == 0:
+        elif isinstance(ASTHelper.get_input_block_from_neuron(node), list) and \
+                len(ASTHelper.get_input_block_from_neuron(node)) == 0:
             code, message = Messages.get_block_not_defined_correctly('Input', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif node.get_input_blocks() is None:
+        elif ASTHelper.get_input_block_from_neuron(node) is None:
             code, message = Messages.get_block_not_defined_correctly('Input', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)

@@ -293,7 +293,7 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
 
             if solver_result["solver"] is "analytical":
                 result = integrate_exact_solution(neuron, solver_result)
-                result.remove_equations_block()
+                ASTHelper.remove_equations_block_from_neuron(result)
             elif solver_result["solver"] is "numeric":
                 at_least_one_functional_shape = False
                 for shape in ASTHelper.get_ode_shapes_from_equations_block(equations_block):

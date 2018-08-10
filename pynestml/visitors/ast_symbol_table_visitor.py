@@ -79,13 +79,15 @@ class ASTSymbolTableVisitor(ASTVisitor):
         # before following checks occur, we need to ensure several simple properties
         CoCosManager.post_symbol_table_builder_checks(node)
         # the following part is done in order to mark conductance based buffers as such.
-        if node.get_input_blocks() is not None and ASTHelper.get_equations_block_from_neuron(node) is not None and \
+        if ASTHelper.get_input_block_from_neuron(node) is not None and\
+                ASTHelper.get_equations_block_from_neuron(node) is not None and \
                 len(ASTHelper.get_equations_block_from_neuron(node).get_declarations()) > 0:
             # this case should be prevented, since several input blocks result in  a incorrect model
-            if isinstance(node.get_input_blocks(), list):
-                buffers = (buffer for bufferA in node.get_input_blocks() for buffer in bufferA.get_input_lines())
+            if isinstance(ASTHelper.get_input_block_from_neuron(node), list):
+                buffers = (bufferB for bufferA in ASTHelper.get_input_block_from_neuron(node)
+                           for bufferB in bufferA.get_input_lines())
             else:
-                buffers = (buffer for buffer in node.get_input_blocks().get_input_lines())
+                buffers = (bufferA for bufferA in ASTHelper.get_input_block_from_neuron(node).get_input_lines())
             from pynestml.meta_model.ast_ode_shape import ASTOdeShape
             mark_conductance_based_buffers(input_lines=buffers)
         # now update the equations

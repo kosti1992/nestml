@@ -19,7 +19,6 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 from pynestml.meta_model.ast_body import ASTBody
-from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
 from pynestml.meta_model.ast_node import ASTNode
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
@@ -89,67 +88,6 @@ class ASTNeuron(ASTNode):
         :rtype: str
         """
         return self.artifact_name
-
-    def remove_equations_block(self):
-        # type: (...) -> None
-        """
-        Deletes all equations blocks. By construction as checked through cocos there is only one there.
-        """
-
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTEquationsBlock):
-                self.get_body().get_body_elements().remove(elem)
-
-    def get_initial_values_declarations(self):
-        """
-        Returns a list of initial values declarations made in this neuron.
-        :return: a list of initial values declarations
-        :rtype: list(ASTDeclaration)
-        """
-        from pynestml.utils.ast_helper import ASTHelper
-        initial_values_block = ASTHelper.get_initial_block_from_neuron(self)
-        initial_values_declarations = list()
-        if initial_values_block is not None:
-            for decl in initial_values_block.get_declarations():
-                initial_values_declarations.append(decl)
-        return initial_values_declarations
-
-    def get_equations(self):
-        """
-        Returns all ode equations as defined in this neuron.
-        :return list of ode-equations
-        :rtype list(ASTOdeEquation)
-        """
-        from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
-        from pynestml.utils.ast_helper import ASTHelper
-        ret = list()
-        blocks = ASTHelper.get_equations_block_from_neuron(self)
-        # the get equations block is not deterministic method, it can return a list or a single object.
-        if isinstance(blocks, list):
-            for block in blocks:
-                ret.extend(ASTHelper.get_ode_equations_from_equations_block(block))
-        elif isinstance(blocks, ASTEquationsBlock):
-            return ASTHelper.get_ode_equations_from_equations_block(blocks)
-        else:
-            return ret
-
-    def get_input_blocks(self):
-        """
-        Returns a list of all input-blocks defined.
-        :return: a list of defined input-blocks.
-        :rtype: list(ASTInputBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_input_block import ASTInputBlock
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTInputBlock):
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
 
     def get_input_buffers(self):
         """
@@ -484,6 +422,7 @@ class ASTNeuron(ASTNode):
         :rtype: list(ASTExpression)
         """
         from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
         blocks = ASTHelper.get_parameter_block_from_neuron(self)
         # the get parameters block is not deterministic method, it can return a list or a single object.
@@ -562,6 +501,7 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
+        from pynestml.utils.ast_helper import ASTHelper
         block = ASTHelper.get_parameter_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
@@ -589,6 +529,7 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
+        from pynestml.utils.ast_helper import ASTHelper
         block = ASTHelper.get_internals_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''

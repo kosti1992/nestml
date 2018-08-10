@@ -456,3 +456,49 @@ class ASTHelper(object):
                 ret = elem
                 break
         return ret
+
+    @classmethod
+    def remove_equations_block_from_neuron(cls, neuron):
+        # type: (...) -> None
+        """
+        Deletes all equations blocks. By construction as checked through cocos there is only one there.
+        """
+
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTEquationsBlock):
+                neuron.get_body().get_body_elements().remove(elem)
+
+    @classmethod
+    def get_initial_values_declarations_from_neuron(cls, neuron):
+        """
+        Returns a list of initial values declarations made in this neuron.
+        :return: a list of initial values declarations
+        :rtype: list(ASTDeclaration)
+        """
+        initial_values_block = ASTHelper.get_initial_block_from_neuron(neuron)
+        initial_values_declarations = list()
+        if initial_values_block is not None:
+            for decl in initial_values_block.get_declarations():
+                initial_values_declarations.append(decl)
+        return initial_values_declarations
+
+    @classmethod
+    def get_equations_from_neuron(cls, neuron):
+        """
+        Returns all ode equations as defined in this neuron.
+        :return list of ode-equations
+        :rtype list(ASTOdeEquation)
+        """
+        block = ASTHelper.get_equations_block_from_neuron(neuron)
+        return ASTHelper.get_ode_equations_from_equations_block(block)
+
+    @classmethod
+    def get_input_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all input-blocks defined.
+        :return: a list of defined input-blocks.
+        :rtype: list(ASTInputBlock)
+        """
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTInputBlock):
+                return elem
