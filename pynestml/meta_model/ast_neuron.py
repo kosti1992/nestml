@@ -90,104 +90,6 @@ class ASTNeuron(ASTNode):
         """
         return self.artifact_name
 
-    def get_state_blocks(self):
-        """
-        Returns a list of all state blocks defined in this body.
-        :return: a list of state-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def get_initial_blocks(self):
-        """
-        Returns a list of all initial blocks defined in this body.
-        :return: a list of initial-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def get_parameter_blocks(self):
-        """
-        Returns a list of all parameter blocks defined in this body.
-        :return: a list of parameters-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_parameters:
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def get_internals_blocks(self):
-        """
-        Returns a list of all internals blocks defined in this body.
-        :return: a list of internals-blocks.
-        :rtype: list(ASTBlockWithVariables)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTBlockWithVariables) and elem.is_internals:
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def get_equations_blocks(self):
-        """
-        Returns a list of all equations BLOCKS defined in this body.
-        :return: a list of equations-blocks.
-        :rtype: list(ASTEquationsBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTEquationsBlock):
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def get_equations_block(self):
-        """
-        Returns the unique equations block defined in this body.
-        :return: a  equations-block.
-        :rtype: ASTEquationsBlock
-        """
-        return self.get_equations_blocks()
-
     def remove_equations_block(self):
         # type: (...) -> None
         """
@@ -204,7 +106,8 @@ class ASTNeuron(ASTNode):
         :return: a list of initial values declarations
         :rtype: list(ASTDeclaration)
         """
-        initial_values_block = self.get_initial_blocks()
+        from pynestml.utils.ast_helper import ASTHelper
+        initial_values_block = ASTHelper.get_initial_block_from_neuron(self)
         initial_values_declarations = list()
         if initial_values_block is not None:
             for decl in initial_values_block.get_declarations():
@@ -220,7 +123,7 @@ class ASTNeuron(ASTNode):
         from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
         from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        blocks = self.get_equations_blocks()
+        blocks = ASTHelper.get_equations_block_from_neuron(self)
         # the get equations block is not deterministic method, it can return a list or a single object.
         if isinstance(blocks, list):
             for block in blocks:
@@ -582,8 +485,9 @@ class ASTNeuron(ASTNode):
         """
         from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
         ret = list()
-        blocks = self.get_parameter_blocks()
+        blocks = ASTHelper.get_parameter_block_from_neuron(self)
         # the get parameters block is not deterministic method, it can return a list or a single object.
+        # TODO:refactor this,  we now assure that it is only a single object
         if isinstance(blocks, list):
             for block in blocks:
                 for decl in block.get_declarations():
@@ -602,9 +506,10 @@ class ASTNeuron(ASTNode):
         :param declaration: a single declaration
         :type declaration: ASTDeclaration
         """
-        if self.get_internals_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_internals_block_from_neuron(self) is None:
             ASTUtils.create_internal_block(self)
-        self.get_internals_blocks().get_declarations().append(declaration)
+            ASTHelper.get_internals_block_from_neuron(self).get_declarations().append(declaration)
         return
 
     def add_to_initial_values_block(self, declaration):
@@ -614,9 +519,10 @@ class ASTNeuron(ASTNode):
         :param declaration: a single declaration.
         :type declaration: ASTDeclaration
         """
-        if self.get_initial_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_initial_block_from_neuron(self) is None:
             ASTUtils.create_initial_values_block(self)
-        self.get_initial_blocks().get_declarations().append(declaration)
+        ASTHelper.get_initial_block_from_neuron(self).get_declarations().append(declaration)
         return
 
     def add_shape(self, shape):
@@ -625,8 +531,9 @@ class ASTNeuron(ASTNode):
         Adds the handed over declaration to the initial values block.
         :param shape: a single declaration.
         """
-        assert self.get_equations_block() is not None
-        self.get_equations_block().get_declarations().append(shape)
+        from pynestml.utils.ast_helper import ASTHelper
+        assert ASTHelper.get_equations_block_from_neuron(self) is not None
+        ASTHelper.get_equations_block_from_neuron(self).get_declarations().append(shape)
 
     """
     The following print methods are used by the backend and represent the comments as stored at the corresponding 
@@ -642,7 +549,7 @@ class ASTNeuron(ASTNode):
         :rtype: str
         """
         from pynestml.utils.ast_helper import ASTHelper
-        block = ASTHelper.get_update_blocks_from_neuron(self)
+        block = ASTHelper.get_update_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
@@ -655,7 +562,7 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
-        block = self.get_parameter_blocks()
+        block = ASTHelper.get_parameter_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
@@ -668,7 +575,8 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
-        block = self.get_state_blocks()
+        from pynestml.utils.ast_helper import ASTHelper
+        block = ASTHelper.get_state_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)
@@ -681,7 +589,7 @@ class ASTNeuron(ASTNode):
         :return: the corresponding comment.
         :rtype: str
         """
-        block = self.get_internals_blocks()
+        block = ASTHelper.get_internals_block_from_neuron(self)
         if block is None:
             return prefix if prefix is not None else ''
         return block.print_comment(prefix)

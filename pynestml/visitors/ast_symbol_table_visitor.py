@@ -61,8 +61,8 @@ class ASTSymbolTableVisitor(ASTVisitor):
                            message=message, log_level=LoggingLevel.INFO)
         # before starting the work on the neuron, make everything which was implicit explicit
         # but if we have a model without an equations block, just skip this step
-        if node.get_equations_blocks() is not None:
-            make_implicit_odes_explicit(node.get_equations_blocks())
+        if ASTHelper.get_equations_block_from_neuron(node) is not None:
+            make_implicit_odes_explicit(ASTHelper.get_equations_block_from_neuron(node))
         scope = Scope(scope_type=ScopeType.GLOBAL, source_position=node.get_source_position())
         node.update_scope(scope)
         node.get_body().update_scope(scope)
@@ -79,8 +79,8 @@ class ASTSymbolTableVisitor(ASTVisitor):
         # before following checks occur, we need to ensure several simple properties
         CoCosManager.post_symbol_table_builder_checks(node)
         # the following part is done in order to mark conductance based buffers as such.
-        if node.get_input_blocks() is not None and node.get_equations_blocks() is not None and \
-                len(node.get_equations_blocks().get_declarations()) > 0:
+        if node.get_input_blocks() is not None and ASTHelper.get_equations_block_from_neuron(node) is not None and \
+                len(ASTHelper.get_equations_block_from_neuron(node).get_declarations()) > 0:
             # this case should be prevented, since several input blocks result in  a incorrect model
             if isinstance(node.get_input_blocks(), list):
                 buffers = (buffer for bufferA in node.get_input_blocks() for buffer in bufferA.get_input_lines())
@@ -89,8 +89,9 @@ class ASTSymbolTableVisitor(ASTVisitor):
             from pynestml.meta_model.ast_ode_shape import ASTOdeShape
             mark_conductance_based_buffers(input_lines=buffers)
         # now update the equations
-        if node.get_equations_blocks() is not None and len(node.get_equations_blocks().get_declarations()) > 0:
-            equation_block = node.get_equations_blocks()
+        if ASTHelper.get_equations_block_from_neuron(node) is not None and \
+                len(ASTHelper.get_equations_block_from_neuron(node).get_declarations()) > 0:
+            equation_block = ASTHelper.get_equations_block_from_neuron(node)
             assign_ode_to_variables(equation_block)
         CoCosManager.post_ode_specification_checks(node)
         Logger.set_current_neuron(None)

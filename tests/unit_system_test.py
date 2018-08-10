@@ -43,11 +43,11 @@ printer = NestPrinter(ExpressionsPrettyPrinter(), NESTReferenceConverter())
 
 
 def get_first_statement_in_update_block(model):
-    return ASTHelper.get_update_blocks_from_neuron(model.get_neuron_list()[0]).get_block().get_stmts()[0]
+    return ASTHelper.get_update_block_from_neuron(model.get_neuron_list()[0]).get_block().get_stmts()[0]
 
 
 def get_first_declaration_in_state_block(model):
-    return model.get_neuron_list()[0].get_state_blocks().get_declarations()[0]
+    return ASTHelper.get_state_block_from_neuron(model.get_neuron_list()[0]).get_declarations()[0]
 
 
 def get_first_declared_function(model):

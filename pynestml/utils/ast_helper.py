@@ -33,6 +33,7 @@ from pynestml.symbols.variable_symbol import VariableSymbol
 
 
 class ASTHelper(object):
+    # todo: update comments
     """
     Contains a set of methods as used to interact with AST classes.
     """
@@ -128,7 +129,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_update_blocks_from_body(cls, body):
+    def get_update_block_from_body(cls, body):
         """
         Returns a list of all update blocks defined in this body.
         :return: a list of update-block elements.
@@ -142,21 +143,20 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_state_blocks_from_body(cls, body):
+    def get_state_block_from_body(cls, body):
         """
         Returns a list of all state blocks defined in this body.
         :return: a list of state-blocks.
         :rtype: list(ASTBlockWithVariables)
         """
         ret = list()
-
         for elem in body.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
                 ret.append(elem)
         return ret
 
     @classmethod
-    def get_parameter_blocks_from_body(cls, body):
+    def get_parameter_block_from_body(cls, body):
         """
         Returns a list of all parameter blocks defined in this body.
         :return: a list of parameters-blocks.
@@ -170,7 +170,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_internals_blocks_from_body(cls, body):
+    def get_internals_block_from_body(cls, body):
         """
         Returns a list of all internals blocks defined in this body.
         :return: a list of internals-blocks.
@@ -183,7 +183,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_equations_blocks_from_body(cls, body):
+    def get_equations_block_from_body(cls, body):
         """
         Returns a list of all equations blocks defined in this body.
         :return: a list of equations-blocks.
@@ -196,7 +196,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_input_blocks_from_body(cls, body):
+    def get_input_block_from_body(cls, body):
         """
         Returns a list of all input-blocks defined.
         :return: a list of defined input-blocks.
@@ -209,7 +209,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_output_blocks_from_body(cls, body):
+    def get_output_block_from_body(cls, body):
         """
         Returns a list of all output-blocks defined.
         :return: a list of defined output-blocks.
@@ -229,7 +229,7 @@ class ASTHelper(object):
         :rtype: list(ASTInputLine)
         """
         ret = list()
-        blocks = cls.get_input_blocks_from_body(body)
+        blocks = cls.get_input_block_from_body(body)
         if isinstance(blocks, list):
             for block in blocks:
                 for line in block.get_input_lines():
@@ -368,7 +368,7 @@ class ASTHelper(object):
         return ret
 
     @classmethod
-    def get_update_blocks_from_neuron(cls,neuron):
+    def get_update_block_from_neuron(cls, neuron):
         """
         Returns a list of all update blocks defined in this body.
         :return: a list of update-block elements.
@@ -385,3 +385,74 @@ class ASTHelper(object):
             return None
         else:
             return ret
+
+    @classmethod
+    def get_state_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all state blocks defined in this body.
+        :return: a list of state-blocks.
+        :rtype: list(ASTBlockWithVariables)
+        """
+        ret = None
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
+                ret = elem
+                break
+        return ret
+
+    @classmethod
+    def get_initial_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all initial blocks defined in this body.
+        :return: a list of initial-blocks.
+        :rtype: list(ASTBlockWithVariables)
+        """
+        ret = None
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
+                ret = elem
+                break
+        return ret
+
+    @classmethod
+    def get_parameter_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all parameter blocks defined in this body.
+        :return: a list of parameters-blocks.
+        :rtype: list(ASTBlockWithVariables)
+        """
+        ret = None
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_parameters:
+                ret = elem
+                break
+        return ret
+
+    @classmethod
+    def get_internals_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all internals blocks defined in this body.
+        :return: a list of internals-blocks.
+        :rtype: list(ASTBlockWithVariables)
+        """
+        ret = None
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_internals:
+                ret = elem
+                break
+        return ret
+
+    @classmethod
+    def get_equations_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all equations BLOCKS defined in this body.
+        :return: a list of equations-blocks.
+        :rtype: list(ASTEquationsBlock)
+        """
+        from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
+        ret = None
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTEquationsBlock):
+                ret = elem
+                break
+        return ret

@@ -45,37 +45,41 @@ class CoCoEachBlockUniqueAndDefined(CoCo):
         """
         assert (node is not None and isinstance(node, ASTNeuron)), \
             '(PyNestML.CoCo.BlocksUniques) No or wrong type of neuron provided (%s)!' % type(node)
-        if isinstance(node.get_state_blocks(), list) and len(node.get_state_blocks()) > 1:
+        if isinstance(ASTHelper.get_state_block_from_neuron(node), list) \
+                and len(ASTHelper.get_state_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('State', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that update block is defined exactly once
-        if isinstance(ASTHelper.get_update_blocks_from_neuron(node), list) and len(
-                ASTHelper.get_update_blocks_from_neuron(node)) > 1:
+        if isinstance(ASTHelper.get_update_block_from_neuron(node), list) and len(
+                ASTHelper.get_update_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Update', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif ASTHelper.get_update_blocks_from_neuron(node) is None:
+        elif ASTHelper.get_update_block_from_neuron(node) is None:
             code, message = Messages.get_block_not_defined_correctly('Update', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        elif isinstance(ASTHelper.get_update_blocks_from_neuron(node), list) and \
-                len(ASTHelper.get_update_blocks_from_neuron(node)) == 0:
+        elif isinstance(ASTHelper.get_update_block_from_neuron(node), list) and \
+                len(ASTHelper.get_update_block_from_neuron(node)) == 0:
             code, message = Messages.get_block_not_defined_correctly('Update', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that parameters block is defined at most once
-        if isinstance(node.get_parameter_blocks(), list) and len(node.get_parameter_blocks()) > 1:
+        if isinstance(ASTHelper.get_parameter_block_from_neuron(node), list) and \
+                len(ASTHelper.get_parameter_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Parameters', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that internals block is defined at most once
-        if isinstance(node.get_internals_blocks(), list) and len(node.get_internals_blocks()) > 1:
+        if isinstance(ASTHelper.get_internals_block_from_neuron(node), list) and \
+                len(ASTHelper.get_internals_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Internals', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
         # check that equations block is defined at most once
-        if isinstance(node.get_equations_blocks(), list) and len(node.get_equations_blocks()) > 1:
+        if isinstance(ASTHelper.get_equations_block_from_neuron(node), list) and \
+                len(ASTHelper.get_equations_block_from_neuron(node)) > 1:
             code, message = Messages.get_block_not_defined_correctly('Equations', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)

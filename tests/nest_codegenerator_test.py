@@ -54,7 +54,7 @@ class CodeGeneratorTest(unittest.TestCase):
         compilation_unit = ModelParser.parse_model(path)
         assert len(compilation_unit.get_neuron_list()) == 1
         ast_neuron = compilation_unit.get_neuron_list()[0]
-        equations_block = ast_neuron.get_equations_block()
+        equations_block = ASTHelper.get_equations_block_from_neuron(ast_neuron)
         # the idea here is to go through the rhs, print expressions, use the same mechanism as before, and reread them
         # again
         # TODO: add tests for this function

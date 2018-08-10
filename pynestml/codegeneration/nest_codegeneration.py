@@ -129,14 +129,14 @@ def analyse_and_generate_neuron(neuron):
     # make normalization
     # apply spikes to buffers
     # get rid of convolve, store them and apply then at the end
-    equations_block = neuron.get_equations_block()
+    equations_block = ASTHelper.get_equations_block_from_neuron(neuron)
     shape_to_buffers = {}
-    if neuron.get_equations_block() is not None:
+    if ASTHelper.get_equations_block_from_neuron(neuron) is not None:
         # extract function names and corresponding incoming buffers
         convolve_calls = OdeTransformer.get_sum_function_calls(equations_block)
         for convolve in convolve_calls:
             shape_to_buffers[str(convolve.get_args()[0])] = str(convolve.get_args()[1])
-        OdeTransformer.refactor_convolve_call(neuron.get_equations_block())
+        OdeTransformer.refactor_convolve_call(ASTHelper.get_equations_block_from_neuron(neuron))
         make_functions_self_contained(ASTHelper.get_ode_functions_from_equations_block(equations_block))
         replace_functions_through_defining_expressions(ASTHelper.get_ode_equations_from_equations_block(equations_block),
                                                        ASTHelper.get_ode_functions_from_equations_block(equations_block))
@@ -233,9 +233,11 @@ def define_solver_type(neuron, namespace):
     :param neuron: a single neuron
     """
     namespace['useGSL'] = False
-    if neuron.get_equations_block() is not None and len(neuron.get_equations_block().get_declarations()) > 0:
-        if (not is_functional_shape_present(ASTHelper.get_ode_shapes_from_equations_block(neuron.get_equations_block()))) or \
-                len(ASTHelper.get_ode_equations_from_equations_block(neuron.get_equations_block())) > 1:
+    if ASTHelper.get_equations_block_from_neuron(neuron) is not None and \
+            len(ASTHelper.get_equations_block_from_neuron(neuron).get_declarations()) > 0:
+        if (not is_functional_shape_present(ASTHelper.get_ode_shapes_from_equations_block(
+                ASTHelper.get_equations_block_from_neuron(neuron)))) or \
+                len(ASTHelper.get_ode_equations_from_equations_block(ASTHelper.get_equations_block_from_neuron(neuron))) > 1:
             namespace['names'] = GSLNamesConverter()
             namespace['useGSL'] = True
             converter = NESTReferenceConverter(True)
@@ -270,8 +272,8 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
     # it should be ensured that most one equations block is present
     result = neuron
 
-    if isinstance(neuron.get_equations_blocks(), ASTEquationsBlock):
-        equations_block = neuron.get_equations_block()
+    if isinstance(ASTHelper.get_equations_block_from_neuron(neuron), ASTEquationsBlock):
+        equations_block = ASTHelper.get_equations_block_from_neuron(neuron)
 
         if len(ASTHelper.get_ode_shapes_from_equations_block(equations_block)) == 0:
             code, message = Messages.get_neuron_solved_by_solver(neuron.get_name())

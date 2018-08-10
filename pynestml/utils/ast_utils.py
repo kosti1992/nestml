@@ -91,7 +91,7 @@ class ASTUtils(object):
         """
         from pynestml.utils.ast_helper import ASTHelper
         from pynestml.meta_model.ast_body import ASTBody
-        inputs = (inputL for block in ASTHelper.get_input_blocks_from_body(body) for inputL in block.get_input_lines())
+        inputs = (inputL for block in ASTHelper.get_input_block_from_body(body) for inputL in block.get_input_lines())
         for inputL in inputs:
             if inputL.is_spike():
                 return True
@@ -107,7 +107,7 @@ class ASTUtils(object):
         :rtype: bool
         """
         from pynestml.utils.ast_helper import ASTHelper
-        inputs = (inputL for block in ASTHelper.get_input_blocks_from_body(body) for inputL in block.get_input_lines())
+        inputs = (inputL for block in ASTHelper.get_input_block_from_body(body) for inputL in block.get_input_lines())
         for inputL in inputs:
             if inputL.is_current():
                 return True
@@ -374,7 +374,8 @@ class ASTUtils(object):
         :rtype: ASTNeuron
         """
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        if neuron.get_internals_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_internals_block_from_neuron(neuron) is None:
             internal = ASTNodeFactory.create_ast_block_with_variables(False, False, True, False, list(),
                                                                       ASTSourcePosition.get_added_source_position())
             neuron.get_body().get_body_elements().append(internal)
@@ -391,7 +392,8 @@ class ASTUtils(object):
         """
         # local import since otherwise circular dependency
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        if neuron.get_internals_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_internals_block_from_neuron(neuron) is None:
             state = ASTNodeFactory.create_ast_block_with_variables(True, False, False, False, list(),
                                                                    ASTSourcePosition.get_added_source_position())
             neuron.get_body().get_body_elements().append(state)
@@ -408,7 +410,8 @@ class ASTUtils(object):
         """
         # local import since otherwise circular dependency
         from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-        if neuron.get_initial_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_initial_block_from_neuron(neuron) is None:
             initial_values = ASTNodeFactory. \
                 create_ast_block_with_variables(False, False, False, True, list(),
                                                 ASTSourcePosition.get_added_source_position())
@@ -442,9 +445,10 @@ class ASTUtils(object):
         :param declaration: a single declaration
         :type declaration: ASTDeclaration
         """
-        if neuron.get_state_blocks() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_state_block_from_neuron(neuron) is None:
             ASTUtils.create_state_block(neuron)
-        neuron.get_state_blocks().get_declarations().append(declaration)
+        ASTHelper.get_state_block_from_neuron(neuron).get_declarations().append(declaration)
         return
 
     @classmethod

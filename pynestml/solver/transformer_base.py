@@ -164,7 +164,7 @@ def replace_integrate_call(neuron, update_instructions):
     """
     from pynestml.utils.ast_helper import ASTHelper
     integrate_call = ASTUtils.get_function_call(
-            ASTHelper.get_update_blocks_from_neuron(neuron), PredefinedFunctions.INTEGRATE_ODES)
+            ASTHelper.get_update_block_from_neuron(neuron), PredefinedFunctions.INTEGRATE_ODES)
     # by construction of a valid neuron, only a single integrate call should be there
     if isinstance(integrate_call, list):
         integrate_call = integrate_call[0]
@@ -226,7 +226,7 @@ def add_assignment_to_update_block(assignment, neuron):
                                                       source_position=ASTSourceLocation.get_added_source_position())
     stmt = ASTNodeFactory.create_ast_stmt(small_stmt=small_stmt,
                                           source_position=ASTSourceLocation.get_added_source_position())
-    ASTHelper.get_update_blocks_from_neuron(neuron).get_block().get_stmts().append(stmt)
+    ASTHelper.get_update_block_from_neuron(neuron).get_block().get_stmts().append(stmt)
     return neuron
 
 
@@ -243,7 +243,7 @@ def add_declaration_to_update_block(declaration, neuron):
                                                       source_position=ASTSourceLocation.get_added_source_position())
     stmt = ASTNodeFactory.create_ast_stmt(small_stmt=small_stmt,
                                           source_position=ASTSourceLocation.get_added_source_position())
-    ASTHelper.get_update_blocks_from_neuron(neuron).get_block().get_stmts().append(stmt)
+    ASTHelper.get_update_block_from_neuron(neuron).get_block().get_stmts().append(stmt)
     return neuron
 
 
