@@ -294,7 +294,7 @@ void {{neuronName}}::update(nest::Time const & origin,const long from, const lon
     B_.{{names.buffer_value(inputLine)}} = get_{{names.name(inputLine)}}().get_value(lag);
     {% endif -%}
     {%- endfor -%}
-    {%- set dynamics = neuron.get_update_blocks() -%}
+    {%- set dynamics = helper.get_update_blocks_from_neuron(neuron) -%}
     {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}
     {%- include "directives/Block.jinja2" -%}{%- endfilter -%}
     {%- endwith %}
@@ -310,7 +310,7 @@ void {{neuronName}}::handle(nest::DataLoggingRequest& e){
   B_.logger_.handle(e);
 }
 
-{% for function in neuron.get_functions() -%}
+{% for function in helper.get_functions_from_neuron(neuron) -%}
 {{printer.print_function_definition(function, neuronName)}}
 {
   {%- with ast = function.get_block() -%}

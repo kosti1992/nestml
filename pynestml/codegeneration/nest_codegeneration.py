@@ -211,6 +211,7 @@ def setup_generation_helpers(neuron):
     namespace['names'] = NestNamesConverter()
     namespace['declarations'] = NestDeclarationsHelper()
     namespace['utils'] = ASTUtils()
+    namespace['helper'] = ASTHelper()
     namespace['idemPrinter'] = LegacyExpressionPrinter()
     namespace['outputEvent'] = namespace['printer'].print_output_event(neuron.get_body())
     namespace['is_spike_input'] = ASTUtils.is_spike_input(neuron.get_body())

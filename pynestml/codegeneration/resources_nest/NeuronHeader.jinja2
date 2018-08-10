@@ -412,7 +412,7 @@ private:
   {% endfor %}
 
   // Generate function header
-  {% for function in neuron.get_functions() %}
+  {% for function in helper.get_functions_from_neuron(neuron) %}
   {{printer.print_function_declaration(function)}};
   {% endfor %}
   /**
