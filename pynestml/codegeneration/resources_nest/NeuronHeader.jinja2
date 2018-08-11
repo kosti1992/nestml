@@ -91,7 +91,7 @@ extern "C" inline int {{neuronName}}_dynamics( double, const double y[], double 
 
   Parameters:
   The following parameters can be set in the status dictionary.
-  {% for parameter in neuron.get_parameter_symbols() -%}
+  {% for parameter in helper.get_parameter_symbols_from_neuron(neuron) -%}
   {% if parameter.has_comment() -%}
     {{parameter.get_symbol_name()}} [{{parameter.get_type_symbol().print_symbol()}}] {{parameter.print_comment()}}
   {% endif -%}
@@ -341,12 +341,12 @@ private:
     /** buffers and sums up incoming spikes/currents */
     std::vector< nest::RingBuffer > spike_inputs_;
 
-    {% for inputLine in neuron.get_spike_buffers() %}
+    {% for inputLine in helper.get_spike_buffers_from_neuron(neuron) %}
     {{printer.print_buffer_array_getter(inputLine)}}
     {{printer.print_buffer_declaration_value(inputLine)}};
     {% endfor %}
     {% else -%}
-    {% for inputLine in neuron.get_spike_buffers() %}
+    {% for inputLine in helper.get_spike_buffers_from_neuron(neuron) %}
     {{printer.print_buffer_getter(inputLine, true)}}
     {{printer.print_buffer_declaration_header(inputLine)}}
     {{printer.print_buffer_declaration(inputLine)}};
@@ -354,7 +354,7 @@ private:
     {% endfor %}
     {% endif -%}
 
-    {% for inputLine in neuron.get_current_buffers() -%}
+    {% for inputLine in helper.get_current_buffers_from_neuron(neuron) -%}
     {{printer.print_buffer_declaration_header(inputLine)}}
     {{printer.print_buffer_declaration(inputLine)}};
     {{printer.print_buffer_getter(inputLine, true)}}
@@ -389,7 +389,7 @@ private:
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for parameter in neuron.get_parameter_symbols() -%}
+  {%- for parameter in helper.get_parameter_symbols_from_neuron(neuron) -%}
   {%- with variable = parameter -%}
   {%- include "directives/MemberVariableGetterSetter.jinja2" -%}
   {%- endwith -%}
@@ -407,7 +407,7 @@ private:
   {%- endwith -%}
   {%- endfor %}
 
-  {% for buffer in neuron.get_input_buffers() %}
+  {% for buffer in helper.get_input_buffers_from_neuron(neuron) %}
   {{printer.print_buffer_getter(buffer, false)}};
   {% endfor %}
 
@@ -451,7 +451,7 @@ inline nest::port {{neuronName}}::send_test_event(
 {% if is_spike_input %}
 inline nest::port {{neuronName}}::handles_test_event(nest::SpikeEvent&, nest::port receptor_type){
   {% if neuron.is_multisynapse_spikes() -%}
-    if ( receptor_type <= 0 || receptor_type > static_cast< nest::port >( get_{{neuron.get_spike_buffers()[0].get_vector_parameter()}}()) ) {
+    if ( receptor_type <= 0 || receptor_type > static_cast< nest::port >( get_{{helper.get_spike_buffers_from_neuron(neuron)[0].get_vector_parameter()}}()) ) {
         // TODO refactor me. The code assumes that there is only one. Check by coco.
         throw nest::IncompatibleReceptorType( receptor_type, get_name(), "SpikeEvent" );
     }
@@ -505,7 +505,7 @@ inline nest::port {{neuronName}}::handles_test_event(
 
 // TODO call get_status on used or internal components
 inline void {{neuronName}}::get_status(DictionaryDatum &__d) const{
-  {%- for parameter in neuron.get_parameter_symbols() -%}
+  {%- for parameter in helper.get_parameter_symbols_from_neuron(neuron) -%}
   {%- with variable = parameter -%}{%- filter indent(2,True) -%}
   {% include "directives/WriteInDictionary.jinja2" %}
   {% endfilter -%}{% endwith -%}
@@ -541,7 +541,7 @@ inline void {{neuronName}}::get_status(DictionaryDatum &__d) const{
 }
 
 inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
-  {%- for parameter in neuron.get_parameter_symbols() -%}
+  {%- for parameter in helper.get_parameter_symbols_from_neuron(neuron) -%}
   {%- with variable = parameter -%}
   {%- include "directives/ReadFromDictionaryToTmp.jinja2" %}
   {%- endwith -%}
@@ -565,7 +565,7 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   Archiving_Node::set_status(__d);
 
   // if we get here, temporaries contain consistent set of properties
-  {%- for parameter in neuron.get_parameter_symbols() -%}
+  {%- for parameter in helper.get_parameter_symbols_from_neuron(neuron) -%}
   {%- with variable = parameter -%}
   {%- include "directives/AssignTmpDictionaryValue.jinja2" -%}
   {%- endwith -%}

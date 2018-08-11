@@ -502,3 +502,61 @@ class ASTHelper(object):
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTInputBlock):
                 return elem
+
+    @classmethod
+    def get_input_buffers_from_neuron(cls, neuron):
+        """
+        Returns a list of all defined input buffers.
+        :return: a list of all input buffers.
+        :rtype: list(VariableSymbol)
+        """
+        from pynestml.symbols.variable_symbol import BlockType
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and (symbol.block_type == BlockType.INPUT_BUFFER_SPIKE or
+                                                       symbol.block_type == BlockType.INPUT_BUFFER_CURRENT):
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_spike_buffers_from_neuron(cls, neuron):
+        """
+        Returns a list of all spike input buffers defined in the model.
+        :return: a list of all spike input buffers.
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for BUFFER in ASTHelper.get_input_buffers_from_neuron(neuron):
+            if BUFFER.is_spike_buffer():
+                ret.append(BUFFER)
+        return ret
+
+    @classmethod
+    def get_current_buffers_from_neuron(cls, neuron):
+        """
+        Returns a list of all current buffers defined in the model.
+        :return: a list of all current input buffers.
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for BUFFER in ASTHelper.get_input_buffers_from_neuron(neuron):
+            if BUFFER.is_current_buffer():
+                ret.append(BUFFER)
+        return ret
+
+    @classmethod
+    def get_parameter_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all parameter symbol defined in the model.
+        :return: a list of parameter symbols.
+        :rtype: list(VariableSymbol)
+        """
+        from pynestml.symbols.variable_symbol import BlockType
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.PARAMETERS and \
+                    not symbol.is_predefined:
+                ret.append(symbol)
+        return ret

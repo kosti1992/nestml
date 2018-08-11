@@ -89,59 +89,6 @@ class ASTNeuron(ASTNode):
         """
         return self.artifact_name
 
-    def get_input_buffers(self):
-        """
-        Returns a list of all defined input buffers.
-        :return: a list of all input buffers.
-        :rtype: list(VariableSymbol)
-        """
-        from pynestml.symbols.variable_symbol import BlockType
-        symbols = self.get_scope().get_symbols_in_this_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol, VariableSymbol) and (symbol.block_type == BlockType.INPUT_BUFFER_SPIKE or
-                                                       symbol.block_type == BlockType.INPUT_BUFFER_CURRENT):
-                ret.append(symbol)
-        return ret
-
-    def get_spike_buffers(self):
-        """
-        Returns a list of all spike input buffers defined in the model.
-        :return: a list of all spike input buffers.
-        :rtype: list(VariableSymbol)
-        """
-        ret = list()
-        for BUFFER in self.get_input_buffers():
-            if BUFFER.is_spike_buffer():
-                ret.append(BUFFER)
-        return ret
-
-    def get_current_buffers(self):
-        """
-        Returns a list of all current buffers defined in the model.
-        :return: a list of all current input buffers.
-        :rtype: list(VariableSymbol)
-        """
-        ret = list()
-        for BUFFER in self.get_input_buffers():
-            if BUFFER.is_current_buffer():
-                ret.append(BUFFER)
-        return ret
-
-    def get_parameter_symbols(self):
-        """
-        Returns a list of all parameter symbol defined in the model.
-        :return: a list of parameter symbols.
-        :rtype: list(VariableSymbol)
-        """
-        symbols = self.get_scope().get_symbols_in_this_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.PARAMETERS and \
-                    not symbol.is_predefined:
-                ret.append(symbol)
-        return ret
-
     def get_state_symbols(self):
         """
         Returns a list of all state symbol defined in the model.
@@ -223,8 +170,8 @@ class ASTNeuron(ASTNode):
         :return: True if multi-synaptic, otherwise False.
         :rtype: bool
         """
-        buffers = self.get_spike_buffers()
-        for iBuffer in buffers:
+        from pynestml.utils.ast_helper import ASTHelper
+        for iBuffer in ASTHelper.get_spike_buffers_from_neuron(self):
             if iBuffer.has_vector_parameter():
                 return True
         return False
@@ -235,8 +182,9 @@ class ASTNeuron(ASTNode):
         :return: a list of spike buffers variable symbols
         :rtype: list(VariableSymbol)
         """
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        for iBuffer in self.get_spike_buffers():
+        for iBuffer in ASTHelper.get_spike_buffers_from_neuron(self):
             if iBuffer.is_excitatory() and iBuffer.is_inhibitory():
                 if iBuffer is not None:
                     ret.append(iBuffer)
@@ -266,8 +214,9 @@ class ASTNeuron(ASTNode):
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        for param in self.get_parameter_symbols():
+        for param in ASTHelper.get_parameter_symbols_from_neuron(self):
             if not param.is_function and not param.is_predefined:
                 ret.append(param)
         return ret
@@ -409,8 +358,8 @@ class ASTNeuron(ASTNode):
         :return: True if vector buffers defined, otherwise False.
         :rtype: bool
         """
-        buffers = self.get_input_buffers()
-        for BUFFER in buffers:
+        from pynestml.utils.ast_helper import ASTHelper
+        for BUFFER in ASTHelper.get_input_buffers_from_neuron(self):
             if BUFFER.has_vector_parameter():
                 return True
         return False

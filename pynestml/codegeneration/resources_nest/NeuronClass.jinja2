@@ -86,7 +86,7 @@ namespace nest
   {%- for variable in neuron.get_internal_symbols() %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
-  {%- for variable in neuron.get_parameter_symbols() %}
+  {%- for variable in helper.get_parameter_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
   {%- for odeAlias in neuron.get_ode_aliases() %}
@@ -206,7 +206,7 @@ void {{neuronName}}::init_state_(const Node& proto){
 {% endif %}
 
 void {{neuronName}}::init_buffers_(){
-  {% for buffer in neuron.get_input_buffers() -%}
+  {% for buffer in helper.get_input_buffers_from_neuron(neuron) -%}
   {{ printer.print_buffer_initialization(buffer) }}
   {% endfor %}
   B_.logger_.reset(); // includes resize
@@ -251,7 +251,7 @@ void {{neuronName}}::calibrate(){
   {%- endif -%}
   {%- endfor -%}
 
-  {%- for buffer in neuron.get_input_buffers() -%}
+  {%- for buffer in helper.get_input_buffers_from_neuron(neuron) -%}
     {%- if buffer.has_vector_parameter() -%}
         B_.{{buffer.get_symbol_name()}}.resize(P_.{{buffer.get_vector_parameter()}});
         B_.{{buffer.get_symbol_name()}}_grid_sum_.resize(P_.{{buffer.get_vector_parameter()}});
@@ -285,7 +285,7 @@ void {{neuronName}}::update(nest::Time const & origin,const long from, const lon
   {%- endif %}
 
   for ( long lag = from ; lag < to ; ++lag ) {
-    {% for inputLine in neuron.get_input_buffers() -%}
+    {% for inputLine in helper.get_input_buffers_from_neuron(neuron) -%}
     {% if inputLine.has_vector_parameter() %}
     for (long i=0; i < P_.{{inputLine.get_vector_parameter()}}; i++){
       B_.{{names.buffer_value(inputLine)}}[i] = get_{{names.name(inputLine)}}()[i].get_value(lag);
@@ -323,7 +323,7 @@ void {{neuronName}}::handle(nest::DataLoggingRequest& e){
 void {{neuronName}}::handle(nest::SpikeEvent &e){
   assert(e.get_delay() > 0);
   {% if neuron.is_multisynapse_spikes() -%}
-  {%- set spikeBuffer = neuron.get_spike_buffers()[0] -%}
+  {%- set spikeBuffer = helper.get_spike_buffers_from_neuron(neuron)[0] -%}
   B_.{{spikeBuffer.get_symbol_name()}}[e.get_rport() - 1].add_value(
     e.get_rel_delivery_steps( nest::kernel().simulation_manager.get_slice_origin() ),
     e.get_weight() * e.get_multiplicity() );
@@ -336,7 +336,7 @@ void {{neuronName}}::handle(nest::SpikeEvent &e){
   {% else %}
   const double weight = e.get_weight();
   const double multiplicity = e.get_multiplicity();
-  {% for buffer in neuron.get_spike_buffers() -%}
+  {% for buffer in helper.get_spike_buffers_from_neuron(neuron) -%}
   {% if buffer.is_excitatory() %}
   if ( weight >= 0.0 ){ // excitatory
     get_{{buffer.get_symbol_name()}}().
@@ -364,7 +364,7 @@ void {{neuronName}}::handle(nest::CurrentEvent& e){
   const double weight=e.get_weight();
 
   // add weighted current; HEP 2002-10-04
-  {%- for buffer in neuron.get_current_buffers() %}
+  {%- for buffer in helper.get_current_buffers_from_neuron(neuron) %}
   get_{{buffer.get_symbol_name()}}().add_value(
                e.get_rel_delivery_steps( nest::kernel().simulation_manager.get_slice_origin()),
                weight * current );
