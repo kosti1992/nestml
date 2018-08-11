@@ -294,7 +294,7 @@ void {{neuronName}}::update(nest::Time const & origin,const long from, const lon
     B_.{{names.buffer_value(inputLine)}} = get_{{names.name(inputLine)}}().get_value(lag);
     {% endif -%}
     {%- endfor -%}
-    {%- set dynamics = helper.get_update_blocks_from_neuron(neuron) -%}
+    {%- set dynamics = helper.get_update_block_from_neuron(neuron) -%}
     {%- with ast = dynamics.get_block() -%}{%- filter indent(2,True) -%}
     {%- include "directives/Block.jinja2" -%}{%- endfilter -%}
     {%- endwith %}
