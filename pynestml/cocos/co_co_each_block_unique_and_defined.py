@@ -81,7 +81,7 @@ class CoCoEachBlockUniqueAndDefined(CoCo):
             code, message = Messages.get_block_not_defined_correctly('Input', False)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
-        if visitor.report['input'] == 1:
+        if visitor.report['input'] == 0:
             code, message = Messages.get_block_not_defined_correctly('Input', True)
             Logger.log_message(code=code, message=message, neuron=node, error_position=node.get_source_position(),
                                log_level=LoggingLevel.ERROR)
