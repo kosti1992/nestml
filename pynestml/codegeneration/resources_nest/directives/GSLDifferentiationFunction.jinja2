@@ -18,7 +18,7 @@ extern "C" inline int {{neuronName}}_dynamics(double, const double ode_state[], 
     {% endfor -%}
   {% endfor %}
   {# todo by kp: this part is no longer required since we make all functions self contained
-  {% for function in neuron.get_ode_aliases() -%}
+  {% for function in helper.get_ode_aliases_from_neuron(neuron) -%}
     {% set declaringExpression = function.get_declaring_expression() -%}
   double {{names.name(function)}} = {{printerGSL.print_expression(declaringExpression)}};
   {% endfor -%}

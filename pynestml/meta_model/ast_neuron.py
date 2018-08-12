@@ -21,7 +21,7 @@
 from pynestml.meta_model.ast_body import ASTBody
 from pynestml.meta_model.ast_node import ASTNode
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
-from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
+from pynestml.symbols.variable_symbol import VariableSymbol
 from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
@@ -89,93 +89,6 @@ class ASTNeuron(ASTNode):
         """
         return self.artifact_name
 
-    def get_state_symbols(self):
-        """
-        Returns a list of all state symbol defined in the model.
-        :return: a list of state symbols.
-        :rtype: list(VariableSymbol)
-        """
-        symbols = self.get_scope().get_symbols_in_this_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.STATE and \
-                    not symbol.is_predefined:
-                ret.append(symbol)
-        return ret
-
-    def get_internal_symbols(self):
-        """
-        Returns a list of all internals symbol defined in the model.
-        :return: a list of internals symbols.
-        :rtype: list(VariableSymbol)
-        """
-        from pynestml.symbols.variable_symbol import BlockType
-        symbols = self.get_scope().get_symbols_in_this_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.INTERNALS and \
-                    not symbol.is_predefined:
-                ret.append(symbol)
-        return ret
-
-    def get_ode_aliases(self):
-        """
-        Returns a list of all equation function symbols defined in the model.
-        :return: a list of equation function  symbols.
-        :rtype: list(VariableSymbol)
-        """
-        from pynestml.symbols.variable_symbol import BlockType
-        symbols = self.get_scope().get_symbols_in_this_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol,
-                          VariableSymbol) and symbol.block_type == BlockType.EQUATION and symbol.is_function:
-                ret.append(symbol)
-        return ret
-
-    def variables_defined_by_ode(self):
-        """
-        Returns a list of all variables which are defined by an ode.
-        :return: a list of variable symbols
-        :rtype: list(VariableSymbol)
-        """
-        symbols = self.get_scope().get_symbols_in_complete_scope()
-        ret = list()
-        for symbol in symbols:
-            if isinstance(symbol, VariableSymbol) and symbol.is_ode_defined():
-                ret.append(symbol)
-        return ret
-
-    def get_output_blocks(self):
-        """
-        Returns a list of all output-blocks defined.
-        :return: a list of defined output-blocks.
-        :rtype: list(ASTOutputBlock)
-        """
-        ret = list()
-        from pynestml.meta_model.ast_output_block import ASTOutputBlock
-        for elem in self.get_body().get_body_elements():
-            if isinstance(elem, ASTOutputBlock):
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
-
-    def is_multisynapse_spikes(self):
-        """
-        Returns whether this neuron uses multi-synapse spikes.
-        :return: True if multi-synaptic, otherwise False.
-        :rtype: bool
-        """
-        from pynestml.utils.ast_helper import ASTHelper
-        for iBuffer in ASTHelper.get_spike_buffers_from_neuron(self):
-            if iBuffer.has_vector_parameter():
-                return True
-        return False
-
     def get_multiple_receptors(self):
         """
         Returns a list of all spike buffers which are defined as inhibitory and excitatory.
@@ -227,8 +140,9 @@ class ASTNeuron(ASTNode):
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        for param in self.get_state_symbols():
+        for param in ASTHelper.get_state_symbols_from_neuron(self):
             if not param.is_function and not param.is_predefined:
                 ret.append(param)
         return ret
@@ -246,8 +160,9 @@ class ASTNeuron(ASTNode):
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        for param in self.get_internal_symbols():
+        for param in ASTHelper.get_internal_symbols_from_neuron(self):
             if not param.is_function and not param.is_predefined:
                 ret.append(param)
 

@@ -98,7 +98,7 @@ extern "C" inline int {{neuronName}}_dynamics( double, const double y[], double 
   {% endfor %}
 
   Dynamic state variables:
-  {% for state in neuron.get_state_symbols() -%}
+  {% for state in helper.get_state_symbols_from_neuron(neuron) -%}
   {% if state.has_comment() -%}
     {{state.get_symbol_name()}} [{{state.get_type_symbol().print_symbol()}}] {{state.print_comment()}}
   {% endif -%}
@@ -284,7 +284,7 @@ private:
     };
     //! state vector, must be C-array for GSL solver
     double ode_state[STATE_VEC_SIZE];{% filter indent(4,True) -%}
-    {% for variable in neuron.get_state_symbols() -%}
+    {% for variable in helper.get_state_symbols_from_neuron(neuron) -%}
       {% include "directives/MemberDeclaration.jinja2" -%}
     {% endfor -%}
     {% for variable in neuron.get_function_initial_values_symbols() -%}
@@ -292,7 +292,7 @@ private:
     {% endfor -%}{% endfilter -%}
     {% endif -%}
     {% filter indent(4,True) -%}
-    {% for variable in neuron.get_ode_aliases() -%}
+    {% for variable in helper.get_ode_aliases_from_neuron(neuron) -%}
       {% include 'directives/MemberDeclaration.jinja2' -%}
     {% endfor %}
     {% endfilter -%}
@@ -377,7 +377,7 @@ private:
     {% endif -%}
   };
 
-  {%- for state in neuron.get_state_symbols() -%}
+  {%- for state in helper.get_state_symbols_from_neuron(neuron) -%}
   {%- with variable = state -%}
   {%- include "directives/MemberVariableGetterSetter.jinja2" -%}
   {%- endwith -%}
@@ -395,13 +395,13 @@ private:
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for internal in neuron.get_internal_symbols() -%}
+  {%- for internal in helper.get_internal_symbols_from_neuron(neuron) -%}
   {%- with variable = internal -%}
   {%- include "directives/MemberVariableGetterSetter.jinja2" -%}
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for odeAlias in neuron.get_ode_aliases() %}
+  {%- for odeAlias in helper.get_ode_aliases_from_neuron(neuron) %}
   {%- with variable = odeAlias %}
   {%- include "directives/MemberVariableGetterSetter.jinja2" -%}
   {%- endwith -%}
@@ -450,7 +450,7 @@ inline nest::port {{neuronName}}::send_test_event(
 }
 {% if is_spike_input %}
 inline nest::port {{neuronName}}::handles_test_event(nest::SpikeEvent&, nest::port receptor_type){
-  {% if neuron.is_multisynapse_spikes() -%}
+  {% if helper.neuron_is_multisynapse_spikes(neuron) -%}
     if ( receptor_type <= 0 || receptor_type > static_cast< nest::port >( get_{{helper.get_spike_buffers_from_neuron(neuron)[0].get_vector_parameter()}}()) ) {
         // TODO refactor me. The code assumes that there is only one. Check by coco.
         throw nest::IncompatibleReceptorType( receptor_type, get_name(), "SpikeEvent" );
@@ -510,7 +510,7 @@ inline void {{neuronName}}::get_status(DictionaryDatum &__d) const{
   {% include "directives/WriteInDictionary.jinja2" %}
   {% endfilter -%}{% endwith -%}
   {%- endfor -%}
-  {%- for state in neuron.get_state_symbols() -%}
+  {%- for state in helper.get_state_symbols_from_neuron(neuron) -%}
   {%- with variable = state -%}{%- filter indent(2,True) -%}
   {% include "directives/WriteInDictionary.jinja2" %}
   {% endfilter -%}{% endwith -%}
@@ -546,7 +546,7 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   {%- include "directives/ReadFromDictionaryToTmp.jinja2" %}
   {%- endwith -%}
   {%- endfor -%}
-  {%- for state in neuron.get_state_symbols() %}
+  {%- for state in helper.get_state_symbols_from_neuron(neuron) %}
   {%- with variable = state %}
   {%- include "directives/ReadFromDictionaryToTmp.jinja2" %}
   {% endwith -%}
@@ -571,7 +571,7 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for state in neuron.get_state_symbols() -%}
+  {%- for state in helper.get_state_symbols_from_neuron(helper) -%}
   {%- with variable = state %}
   {%- include "directives/AssignTmpDictionaryValue.jinja2" %}
   {%- endwith %}

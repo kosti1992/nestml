@@ -77,19 +77,19 @@ namespace nest
   // for each quantity to be recorded.
   template <> void RecordablesMap<{{neuronName}}>::create(){
   // use standard names whereever you can for consistency!{% filter indent(2,True) %}
-  {%- for variable in neuron.get_state_symbols() %}
+  {%- for variable in helper.get_state_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
   {%- for variable in neuron.get_initial_values_symbols() %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
-  {%- for variable in neuron.get_internal_symbols() %}
+  {%- for variable in helper.get_internal_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
   {%- for variable in helper.get_parameter_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
-  {%- for odeAlias in neuron.get_ode_aliases() %}
+  {%- for odeAlias in helper.get_ode_aliases_from_neuron(neuron) %}
     {%- with variable = odeAlias %}
       {%- include "directives/RecordCallback.jinja2" %}
     {%- endwith %}
@@ -322,7 +322,7 @@ void {{neuronName}}::handle(nest::DataLoggingRequest& e){
 {% if is_spike_input %}
 void {{neuronName}}::handle(nest::SpikeEvent &e){
   assert(e.get_delay() > 0);
-  {% if neuron.is_multisynapse_spikes() -%}
+  {% if helper.neuron_is_multisynapse_spikes(neuron) -%}
   {%- set spikeBuffer = helper.get_spike_buffers_from_neuron(neuron)[0] -%}
   B_.{{spikeBuffer.get_symbol_name()}}[e.get_rport() - 1].add_value(
     e.get_rel_delivery_steps( nest::kernel().simulation_manager.get_slice_origin() ),

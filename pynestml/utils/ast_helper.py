@@ -29,7 +29,7 @@ from pynestml.meta_model.ast_output_block import ASTOutputBlock
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.symbols.symbol import SymbolKind
-from pynestml.symbols.variable_symbol import VariableSymbol
+from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
 
 
 class ASTHelper(object):
@@ -552,7 +552,6 @@ class ASTHelper(object):
         :return: a list of parameter symbols.
         :rtype: list(VariableSymbol)
         """
-        from pynestml.symbols.variable_symbol import BlockType
         symbols = neuron.get_scope().get_symbols_in_this_scope()
         ret = list()
         for symbol in symbols:
@@ -560,3 +559,91 @@ class ASTHelper(object):
                     not symbol.is_predefined:
                 ret.append(symbol)
         return ret
+
+    @classmethod
+    def get_state_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all state symbol defined in the model.
+        :return: a list of state symbols.
+        :rtype: list(VariableSymbol)
+        """
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.STATE and \
+                    not symbol.is_predefined:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_internal_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all internals symbol defined in the model.
+        :return: a list of internals symbols.
+        :rtype: list(VariableSymbol)
+        """
+        from pynestml.symbols.variable_symbol import BlockType
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.INTERNALS and \
+                    not symbol.is_predefined:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_ode_aliases_from_neuron(cls, neuron):
+        """
+        Returns a list of all equation function symbols defined in the model.
+        :return: a list of equation function  symbols.
+        :rtype: list(VariableSymbol)
+        """
+        from pynestml.symbols.variable_symbol import BlockType
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol,
+                          VariableSymbol) and symbol.block_type == BlockType.EQUATION and symbol.is_function:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_variables_defined_by_ode_from_neuron(cls, neuron):
+        """
+        Returns a list of all variables which are defined by an ode.
+        :return: a list of variable symbols
+        :rtype: list(VariableSymbol)
+        """
+        symbols = neuron.get_scope().get_symbols_in_complete_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and symbol.is_ode_defined():
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_output_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all output-blocks defined.
+        :return: a list of defined output-blocks.
+        :rtype: list(ASTOutputBlock)
+        """
+        ret = None
+        from pynestml.meta_model.ast_output_block import ASTOutputBlock
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTOutputBlock):
+                ret = elem
+                break
+        return ret
+
+    @classmethod
+    def neuron_is_multisynapse_spikes(cls, neuron):
+        """
+        Returns whether this neuron uses multi-synapse spikes.
+        :return: True if multi-synaptic, otherwise False.
+        :rtype: bool
+        """
+        for iBuffer in ASTHelper.get_spike_buffers_from_neuron(neuron):
+            if iBuffer.has_vector_parameter():
+                return True
+        return False
