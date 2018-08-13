@@ -571,7 +571,7 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for state in helper.get_state_symbols_from_neuron(helper) -%}
+  {%- for state in helper.get_state_symbols_from_neuron(neuron) -%}
   {%- with variable = state %}
   {%- include "directives/AssignTmpDictionaryValue.jinja2" %}
   {%- endwith %}
