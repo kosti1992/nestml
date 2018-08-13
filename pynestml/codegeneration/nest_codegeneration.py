@@ -321,7 +321,7 @@ def transform_shapes_and_odes(neuron, shape_to_buffers):
 
 def apply_spikes_from_buffers(neuron, shape_to_buffers):
     spike_updates = []
-    initial_values = neuron.get_initial_values_blocks()
+    initial_values = ASTHelper.get_initial_values_block_from_neuron(neuron)
     for declaration in initial_values.get_declarations():
         variable = declaration.get_variables()[0]
         for shape in shape_to_buffers:

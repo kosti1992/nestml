@@ -540,9 +540,10 @@ class ASTUtils(object):
         # type: (ASTVariable,ASTNeuron) -> bool
         from pynestml.meta_model.ast_variable import ASTVariable
         from pynestml.meta_model.ast_neuron import ASTNeuron
-        if neuron.get_constraint_block() is None:
+        from pynestml.utils.ast_helper import ASTHelper
+        if ASTHelper.get_constraint_block_from_neuron(neuron) is None:
             return False
-        for const in neuron.get_constraint_block().constraints:
+        for const in ASTHelper.get_constraint_block_from_neuron(neuron).constraints:
             if const.variable.get_complete_name() == variable.name:
                 return True
 
@@ -552,10 +553,11 @@ class ASTUtils(object):
         from pynestml.meta_model.ast_variable import ASTVariable
         from pynestml.meta_model.ast_neuron import ASTNeuron
         from pynestml.meta_model.ast_constraint import ASTConstraint
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        if neuron.get_constraint_block() is None:
+        if ASTHelper.get_constraint_block_from_neuron(neuron) is None:
             return ret
-        for const in neuron.get_constraint_block().constraints:
+        for const in ASTHelper.get_constraint_block_from_neuron(neuron).constraints:
             if const.variable.get_complete_name() == variable.name:
                 ret.append(const)
         return ret
@@ -579,11 +581,12 @@ class ASTUtils(object):
         from pynestml.meta_model.ast_neuron import ASTNeuron
         from pynestml.meta_model.ast_constraint import ASTConstraint
         from pynestml.symbols.variable_symbol import BlockType
+        from pynestml.utils.ast_helper import ASTHelper
         ret = list()
-        if neuron.get_constraint_block() is None:
+        if ASTHelper.get_constraint_block_from_neuron(neuron) is None:
             return ret
 
-        for const in neuron.get_constraint_block().constraints:
+        for const in ASTHelper.get_constraint_block_from_neuron(neuron).constraints:
             symbol = neuron.get_scope().resolve_to_symbol(const.variable.get_complete_name(), SymbolKind.VARIABLE)
             if symbol is None:
                 # the constrained var is not defined, this should be reported by cocos

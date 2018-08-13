@@ -30,7 +30,7 @@ from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.utils.ast_utils import ASTUtils
 from pynestml.utils.model_parser import ModelParser
 from pynestml.utils.ode_transformer import OdeTransformer
-
+from pynestml.utils.ast_helper import ASTHelper
 
 def add_declarations_to_internals(neuron, declarations):
     # type: (ASTNeuron, dict[str, str]) -> ASTNeuron
@@ -64,7 +64,7 @@ def add_declaration_to_internals(neuron, variable_name, init_expression):
         ast_declaration = ModelParser.parse_declaration(declaration_string)
         if vector_variable is not None:
             ast_declaration.set_size_parameter(vector_variable.get_vector_parameter())
-        neuron.add_to_internal_block(ast_declaration)
+        ASTHelper.add_to_internal_block(neuron, ast_declaration)
         return neuron
     except:
         raise RuntimeError('Must not fail by construction.')
@@ -102,7 +102,7 @@ def add_declaration_to_initial_values(neuron, variable, initial_value):
         ast_declaration = ModelParser.parse_declaration(declaration_string)
         if vector_variable is not None:
             ast_declaration.set_size_parameter(vector_variable.get_vector_parameter())
-        neuron.add_to_initial_values_block(ast_declaration)
+        ASTHelper.add_to_initial_values_block(neuron, ast_declaration)
         return neuron
     except:
         raise RuntimeError('Must not fail by construction.')
@@ -200,7 +200,8 @@ def apply_incoming_spikes(neuron):
         shape = convCall.get_args()[0].get_variable().get_complete_name()
         buffer = convCall.get_args()[1].get_variable().get_complete_name()
         initial_values = (
-            neuron.get_initial_values_blocks().get_declarations() if neuron.get_initial_values_blocks() is not None
+            ASTHelper.get_initial_values_block_from_neuron(neuron).get_declarations() if
+            ASTHelper.get_initial_values_block_from_neuron(neuron) is not None
             else list())
         for astDeclaration in initial_values:
             for variable in astDeclaration.get_variables():

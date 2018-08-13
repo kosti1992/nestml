@@ -31,6 +31,7 @@ from pynestml.symbols.type_symbol import TypeSymbol
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.symbols.void_type_symbol import VoidTypeSymbol
 from pynestml.utils.ast_utils import ASTUtils
+from pynestml.utils.ast_helper import ASTHelper
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
 from pynestml.utils.type_caster import TypeCaster
@@ -49,10 +50,10 @@ class CoCoConstraintBlockCorrectlyBuilt(CoCo):
     def check_co_co(self, node):
         # type: (ASTNeuron) -> None
         self.__current_neuron = node
-        if node.get_constraint_block() is None:
+        if ASTHelper.get_constraint_block_from_neuron(node) is None:
             # no constraints, thus nothing to do
             return
-        for const in node.get_constraint_block().constraints:
+        for const in ASTHelper.get_constraint_block_from_neuron(node).constraints:
             if const.left_bound is not None:
                 # first check whether the types are suitable
                 self.__bound_typing_check(const.left_bound, const.variable)

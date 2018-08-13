@@ -87,7 +87,7 @@ extern "C" inline int {{neuronName}}_dynamics( double, const double y[], double 
   Name: {{neuronName}}.
 
   Description:{% filter indent(2,True) %}
-  {{neuron.print_comment()}}{% endfilter %}
+  {{helper.print_comment_from_neuron(neuron)}}{% endfilter %}
 
   Parameters:
   The following parameters can be set in the status dictionary.
@@ -105,7 +105,7 @@ extern "C" inline int {{neuronName}}_dynamics( double, const double y[], double 
   {% endfor %}
 
   Initial values:
-  {% for init in neuron.get_initial_values_symbols() -%}
+  {% for init in helper.get_initial_values_symbols_from_neuron(neuron) -%}
   {% if init.has_comment() -%}
     {{init.get_symbol_name()}} [{{init.get_type_symbol().print_symbol()}}] {{init.print_comment()}}
   {% endif -%}
@@ -178,7 +178,7 @@ public:
   void set_status(const DictionaryDatum &);
 
 private:
-  {% if (neuron.get_multiple_receptors())|length > 1 -%}
+  {% if (helper.get_multiple_receptors_from_neuron(neuron))|length > 1 -%}
     /**
      * Synapse types to connect to
      * @note Excluded upper and lower bounds are defined as INF_, SUP_.
@@ -187,7 +187,7 @@ private:
     enum SynapseTypes
     {
       INF_SPIKE_RECEPTOR = 0,
-      {% for buffer in neuron.get_multiple_receptors() -%}
+      {% for buffer in helper.get_multiple_receptors_from_neuron(neuron) -%}
         {{buffer.get_symbol_name().upper()}} ,
       {% endfor -%}
       SUP_SPIKE_RECEPTOR
@@ -214,7 +214,7 @@ private:
   /**
   * Free parameters of the neuron.
   *
-  {{neuron.print_parameter_comment("*")}}
+  {{helper.print_parameter_comment_of_neuron(neuron,"*")}}
   *
   * These are the parameters that can be set by the user through @c SetStatus.
   * They are initialized from the model prototype when the node is created.
@@ -233,7 +233,7 @@ private:
   */
   struct Parameters_{
     {% filter indent(4,True) %}
-    {% for variable in neuron.get_parameter_non_alias_symbols() -%}
+    {% for variable in helper.get_parameter_non_alias_symbols_from_neuron(neuron) -%}
       {% include 'directives/MemberDeclaration.jinja2' -%}
     {% endfor -%}{% endfilter %}
 
@@ -248,7 +248,7 @@ private:
   /**
   * Dynamic state of the neuron.
   *
-  {{neuron.print_state_comment('*')}}
+  {{helper.print_state_comment_of_neuron(neuron,'*')}}
   *
   * These are the state variables that are advanced in time by calls to
   * @c update(). In many models, some or all of them can be set by the user
@@ -267,16 +267,16 @@ private:
   */
   struct State_{
     {% if not useGSL %}{% filter indent(4,True) -%}
-    {% for variable in neuron.get_state_non_alias_symbols() -%}
+    {% for variable in helper.get_state_non_alias_symbols_from_neuron(neuron) -%}
     {% include "directives/MemberDeclaration.jinja2" -%}
     {% endfor -%}
-    {% for variable in neuron.get_initial_values_symbols() -%}
+    {% for variable in helper.get_initial_values_symbols_from_neuron(neuron) -%}
     {% include "directives/MemberDeclaration.jinja2" -%}
     {% endfor -%}{% endfilter -%}
     {% else -%}
     //! Symbolic indices to the elements of the state vector y
     enum StateVecElems{
-    {% for variable in neuron.get_ode_defined_symbols() -%}
+    {% for variable in helper.get_ode_defined_symbols_from_neuron(neuron) -%}
       {{variable.print_comment("// ")}}
       {{names.convert_to_cpp_name(variable.get_symbol_name())}},
       {% endfor -%}
@@ -287,7 +287,7 @@ private:
     {% for variable in helper.get_state_symbols_from_neuron(neuron) -%}
       {% include "directives/MemberDeclaration.jinja2" -%}
     {% endfor -%}
-    {% for variable in neuron.get_function_initial_values_symbols() -%}
+    {% for variable in helper.get_function_initial_values_symbols_from_neuron(neuron) -%}
       {% include "directives/MemberDeclaration.jinja2" -%}
     {% endfor -%}{% endfilter -%}
     {% endif -%}
@@ -301,9 +301,10 @@ private:
   };
 
   /**
-  * Internal variables of the neuron.
+  * Internal variables of
+  the neuron.
   *
-  {{neuron.print_internal_comment('*')}}
+  {{helper.print_internal_comment_from_neuron(neuron,'*')}}
   *
   * These variables must be initialized by @c calibrate, which is called before
   * the first call to @c update() upon each call to @c Simulate.
@@ -312,7 +313,7 @@ private:
   *       cannot destroy themselves, Variables_ will need a destructor.
   */
   struct Variables_ {
-    {%- for variable in neuron.get_internal_non_alias_symbols() -%}
+    {%- for variable in helper.get_internal_non_alias_symbols_from_neuron(neuron) -%}
       {% filter indent(4,True) %}{% include "directives/MemberDeclaration.jinja2" -%}{% endfilter %}
     {% endfor %}
   };
@@ -333,11 +334,11 @@ private:
 
     /** Logger for all analog data */
     nest::UniversalDataLogger<{{neuronName}}> logger_;
-    {% if ((neuron.get_multiple_receptors())|length > 1) or neuron.is_array_buffer() %}
+    {% if ((helper.get_multiple_receptors_from_neuron(neuron))|length > 1) or helper.neuron_has_array_buffer(neuron) %}
     std::vector<long> receptor_types_;
     {% endif %}
 
-    {%- if ((neuron.get_multiple_receptors())|length > 1) -%}
+    {%- if ((helper.get_multiple_receptors_from_neuron(neuron))|length > 1) -%}
     /** buffers and sums up incoming spikes/currents */
     std::vector< nest::RingBuffer > spike_inputs_;
 
@@ -383,7 +384,7 @@ private:
   {%- endwith -%}
   {%- endfor -%}
 
-  {%- for init in neuron.get_initial_values_symbols() -%}
+  {%- for init in helper.get_initial_values_symbols_from_neuron(neuron) -%}
   {%- with variable = init -%}
   {%- include "directives/MemberVariableGetterSetter.jinja2" -%}
   {%- endwith -%}
@@ -456,8 +457,8 @@ inline nest::port {{neuronName}}::handles_test_event(nest::SpikeEvent&, nest::po
         throw nest::IncompatibleReceptorType( receptor_type, get_name(), "SpikeEvent" );
     }
     return receptor_type;
-  {% elif neuron.get_multiple_receptors()|length > 1 -%}
-    assert( B_.spike_inputs_.size() == {{(neuron.get_multiple_receptors())|length}} );
+  {% elif helper.get_multiple_receptors_from_neuron(neuron)|length > 1 -%}
+    assert( B_.spike_inputs_.size() == {{(helper.get_multiple_receptors_from_neuron(neuron))|length}} );
 
     if ( !( INF_SPIKE_RECEPTOR < receptor_type && receptor_type < SUP_SPIKE_RECEPTOR ) )
     {
@@ -515,16 +516,16 @@ inline void {{neuronName}}::get_status(DictionaryDatum &__d) const{
   {% include "directives/WriteInDictionary.jinja2" %}
   {% endfilter -%}{% endwith -%}
   {%- endfor -%}
-  {%- for init in neuron.get_initial_values_symbols() -%}
+  {%- for init in helper.get_initial_values_symbols_from_neuron(neuron) -%}
   {%- with variable = init -%}{%- filter indent(2,True) -%}
   {% include "directives/WriteInDictionary.jinja2" %}
   {% endfilter -%}{% endwith -%}
   {%- endfor -%}
 
 
-  {% if (neuron.get_multiple_receptors())|length > 1 -%}
+  {% if (helper.get_multiple_receptors_from_neuron(neuron))|length > 1 -%}
   DictionaryDatum __receptor_type = new Dictionary();
-  {% for spikeBuffer in neuron.get_multiple_receptors() -%}
+  {% for spikeBuffer in helper.get_multiple_receptors_from_neuron(neuron) -%}
   ( *__receptor_type )[ "{{spikeBuffer.get_symbol_name().upper()}}" ] = {{spikeBuffer.get_symbol_name().upper()}};
   {% endfor %}
   ( *__d )[ "receptor_types" ] = __receptor_type;
@@ -551,7 +552,7 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   {%- include "directives/ReadFromDictionaryToTmp.jinja2" %}
   {% endwith -%}
   {% endfor -%}
-  {%- for init in neuron.get_initial_values_symbols() %}
+  {%- for init in helper.get_initial_values_symbols_from_neuron(neuron) %}
   {%- with variable = init %}
   {%- include "directives/ReadFromDictionaryToTmp.jinja2" %}
   {% endwith -%}
@@ -577,13 +578,13 @@ inline void {{neuronName}}::set_status(const DictionaryDatum &__d){
   {%- endwith %}
   {%- endfor %}
 
-  {%- for init in neuron.get_initial_values_symbols() -%}
+  {%- for init in helper.get_initial_values_symbols_from_neuron(neuron) -%}
   {%- with variable = init %}
   {%- include "directives/AssignTmpDictionaryValue.jinja2" %}
   {%- endwith %}
   {%- endfor %}
 
-  {% for invariant in neuron.get_parameter_invariants() %}
+  {% for invariant in helper.get_parameter_invariants_from_neuron(neuron) %}
   if ( !({{printer.print_expression(invariant)}}) ) {
     throw nest::BadProperty("The constraint '{{idemPrinter.print_expression(invariant)}}' is violated!");
   }

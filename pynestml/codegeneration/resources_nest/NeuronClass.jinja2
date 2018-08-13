@@ -65,7 +65,7 @@
 
 #include "{{neuronName}}.h"
 
-{% set stateSize = neuron.get_non_function_initial_values_symbols()|length %}
+{% set stateSize = helper.get_non_function_initial_values_symbols_from_neuron(neuron)|length %}
 /* ----------------------------------------------------------------
 * Recordables map
 * ---------------------------------------------------------------- */
@@ -80,7 +80,7 @@ namespace nest
   {%- for variable in helper.get_state_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
-  {%- for variable in neuron.get_initial_values_symbols() %}
+  {%- for variable in helper.get_initial_values_symbols_from_neuron(neuron) %}
     {%- include "directives/RecordCallback.jinja2" %}
   {%- endfor %}
   {%- for variable in helper.get_internal_symbols_from_neuron(neuron) %}
@@ -112,7 +112,7 @@ namespace nest
 
 {{neuronName}}::Buffers_::Buffers_({{neuronName}} &n):
   logger_(n)
-{%- if neuron.get_multiple_receptors()|length > 1 -%}
+{%- if helper.get_multiple_receptors_from_neuron(neuron)|length > 1 -%}
   , spike_inputs_( std::vector< nest::RingBuffer >( SUP_SPIKE_RECEPTOR - 1 ) )
 {%- endif -%}
 {%- if useGSL -%}
@@ -125,7 +125,7 @@ namespace nest
 
 {{neuronName}}::Buffers_::Buffers_(const Buffers_ &, {{neuronName}} &n):
   logger_(n)
-{%- if neuron.get_multiple_receptors()|length > 1 -%}
+{%- if helper.get_multiple_receptors_from_neuron(neuron)|length > 1 -%}
   , spike_inputs_( std::vector< nest::RingBuffer >( SUP_SPIKE_RECEPTOR - 1 ) )
 {%- endif -%}
 {%- if useGSL -%}
@@ -148,19 +148,19 @@ namespace nest
   P_.__gsl_error_tol = 1e-3;
   {%- endif %}
 
-  {%- for parameter in neuron.get_parameter_non_alias_symbols() -%}
+  {%- for parameter in helper.get_parameter_non_alias_symbols_from_neuron(neuron) -%}
   {%- with variable = parameter %}
   {%- include "directives/MemberInitialization.jinja2" %}
   {%- endwith %}
   {%- endfor %}
 
-  {%- for state in neuron.get_state_non_alias_symbols() -%}
+  {%- for state in helper.get_state_non_alias_symbols_from_neuron(neuron) -%}
   {%- with variable = state %}
   {%- include "directives/MemberInitialization.jinja2" %}
   {%- endwith %}
   {%- endfor %}
 
-  {%- for init in neuron.get_initial_values_symbols() -%}
+  {%- for init in helper.get_initial_values_symbols_from_neuron(neuron) -%}
   {%- with variable = init -%}
   {%- include "directives/MemberInitialization.jinja2" %}
   {%- endwith %}{% endfor %}
@@ -168,16 +168,16 @@ namespace nest
 
 {{neuronName}}::{{neuronName}}(const {{neuronName}}& __n):
   Archiving_Node(), P_(__n.P_), S_(__n.S_), B_(__n.B_, *this){
-  {% for parameter in neuron.get_parameter_non_alias_symbols() -%}
+  {% for parameter in helper.get_parameter_non_alias_symbols_from_neuron(neuron) -%}
     P_.{{names.name(parameter)}} = __n.P_.{{names.name(parameter)}};
   {% endfor %}
-  {% for state in neuron.get_state_non_alias_symbols() -%}
+  {% for state in helper.get_state_non_alias_symbols_from_neuron(neuron) -%}
     S_.{{names.name(state)}} = __n.S_.{{names.name(state)}};
   {% endfor %}
-  {% for init in neuron.get_initial_values_non_alias_symbols() -%}
+  {% for init in helper.get_initial_values_non_alias_symbols_from_neuron(neuron) -%}
     S_.{{names.name(init)}} = __n.S_.{{names.name(init)}};
   {% endfor %}
-  {% for internal in neuron.get_internal_non_alias_symbols() -%}
+  {% for internal in helper.get_internal_non_alias_symbols_from_neuron(neuron) -%}
     V_.{{names.name(internal)}} = __n.V_.{{names.name(internal)}};
   {% endfor %}
 }
@@ -241,11 +241,11 @@ void {{neuronName}}::init_buffers_(){
 void {{neuronName}}::calibrate(){
   B_.logger_.init();
 
-  {%- for variable in neuron.get_internal_non_alias_symbols() %}
+  {%- for variable in helper.get_internal_non_alias_symbols_from_neuron(neuron) %}
   {% include "directives/Calibrate.jinja2" %}
   {%- endfor %}
 
-  {%- for variable in neuron.get_state_non_alias_symbols() -%}
+  {%- for variable in helper.get_state_non_alias_symbols_from_neuron(neuron) -%}
   {%- if variable.has_vector_parameter() %}{% filter indent(2,True) %}
   {%- include "directives/Calibrate.jinja2" -%}{% endfilter -%}
   {%- endif -%}
@@ -264,7 +264,7 @@ void {{neuronName}}::calibrate(){
 * ---------------------------------------------------------------- */
 
 /*
- {{neuron.print_dynamics_comment('*')}}
+ {{helper.print_dynamics_comment_of_neuron(neuron,'*')}}
  */
 void {{neuronName}}::update(nest::Time const & origin,const long from, const long to){
   {% for const in utils.get_variable_constraints(neuron) %}
@@ -327,7 +327,7 @@ void {{neuronName}}::handle(nest::SpikeEvent &e){
   B_.{{spikeBuffer.get_symbol_name()}}[e.get_rport() - 1].add_value(
     e.get_rel_delivery_steps( nest::kernel().simulation_manager.get_slice_origin() ),
     e.get_weight() * e.get_multiplicity() );
-  {%- elif neuron.get_multiple_receptors()|length > 1 -%}
+  {%- elif helper.get_multiple_receptors_from_neuron(neuron)|length > 1 -%}
   assert( e.get_rport() < static_cast< int >( B_.spike_inputs_.size() ) );
 
   B_.spike_inputs_[ e.get_rport() ].add_value(

@@ -18,9 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
+from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
 from pynestml.meta_model.ast_function import ASTFunction
 from pynestml.meta_model.ast_input_block import ASTInputBlock
+from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_node_factory import ASTNodeFactory
 from pynestml.meta_model.ast_ode_equation import ASTOdeEquation
 from pynestml.meta_model.ast_ode_function import ASTOdeFunction
@@ -30,6 +32,8 @@ from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
+from pynestml.utils.logger import Logger, LoggingLevel
+from pynestml.utils.messages import Messages
 
 
 class ASTHelper(object):
@@ -76,7 +80,6 @@ class ASTHelper(object):
     def extract_operator_from_compound_assignment(cls, assignment):
         assert not assignment.is_direct_assignment
         # TODO: maybe calculate new source positions exactly?
-        result = None
         if assignment.is_compound_minus:
             result = ASTNodeFactory.create_ast_arithmetic_operator(is_minus_op=True,
                                                                    source_position=assignment.get_source_position())
@@ -647,3 +650,327 @@ class ASTHelper(object):
             if iBuffer.has_vector_parameter():
                 return True
         return False
+
+    @classmethod
+    def get_multiple_receptors_from_neuron(cls, neuron):
+        """
+        Returns a list of all spike buffers which are defined as inhibitory and excitatory.
+        :return: a list of spike buffers variable symbols
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for iBuffer in ASTHelper.get_spike_buffers_from_neuron(neuron):
+            if iBuffer.is_excitatory() and iBuffer.is_inhibitory():
+                if iBuffer is not None:
+                    ret.append(iBuffer)
+                else:
+                    code, message = Messages.get_could_not_resolve(iBuffer.getSymbolName())
+                    Logger.log_message(
+                            message=message,
+                            code=code,
+                            error_position=iBuffer.getSourcePosition(),
+                            log_level=LoggingLevel.ERROR)
+        return ret
+
+    @classmethod
+    def get_constraint_block_from_neuron(cls, neuron):
+        """
+        Returns the constraint block of the model, if any defined.
+        :return: a single constraint block
+        :rtype: ASTConstraintBlock
+        """
+        for block in neuron.get_body().get_body_elements():
+            if isinstance(block, ASTConstraintsBlock):
+                return block
+
+    @classmethod
+    def get_parameter_non_alias_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all variable symbols representing non-function parameter variables.
+        :return: a list of variable symbols
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for param in ASTHelper.get_parameter_symbols_from_neuron(neuron):
+            if not param.is_function and not param.is_predefined:
+                ret.append(param)
+        return ret
+
+    @classmethod
+    def get_state_non_alias_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all variable symbols representing non-function state variables.
+        :return: a list of variable symbols
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for param in ASTHelper.get_state_symbols_from_neuron(neuron):
+            if not param.is_function and not param.is_predefined:
+                ret.append(param)
+        return ret
+
+    @classmethod
+    def get_initial_values_non_alias_symbols_from_neuron(cls, neuron):
+        ret = list()
+        for init in ASTHelper.get_initial_values_symbols_from_neuron(neuron):
+            if not init.is_function and not init.is_predefined:
+                ret.append(init)
+        return ret
+
+    @classmethod
+    def get_internal_non_alias_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all variable symbols representing non-function internal variables.
+        :return: a list of variable symbols
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for param in ASTHelper.get_internal_symbols_from_neuron(neuron):
+            if not param.is_function and not param.is_predefined:
+                ret.append(param)
+        return ret
+
+    @classmethod
+    def get_initial_values_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all initial values symbol defined in the model.
+        :return: a list of initial values symbols.
+        :rtype: list(VariableSymbol)
+        """
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and symbol.block_type == BlockType.INITIAL_VALUES and \
+                    not symbol.is_predefined:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_initial_values_block_from_neuron(cls, neuron):
+        """
+        Returns a list of all initial blocks defined in this body.
+        :return: a list of initial-blocks.
+        :rtype: ASTBlockWithVariables
+        """
+        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
+                return elem
+
+    @classmethod
+    def remove_initial_blocks_from_neuron(cls, neuron):
+        """
+        Remove all equations blocks
+        """
+        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
+        for elem in neuron.get_body().get_body_elements():
+            if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
+                neuron.get_body().get_body_elements().remove(elem)
+
+    @classmethod
+    def get_function_initial_values_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all initial values symbols as defined in the model which are marked as functions.
+        :return: a list of symbols
+        :rtype: list(VariableSymbol)
+        """
+        ret = list()
+        for symbol in ASTHelper.get_initial_values_symbols_from_neuron(neuron):
+            if symbol.is_function:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_non_function_initial_values_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all initial values symbols as defined in the model which are not marked as functions.
+        :return: a list of symbols
+        :rtype:list(VariableSymbol)
+        """
+        ret = list()
+        for symbol in ASTHelper.get_initial_values_symbols_from_neuron(neuron):
+            if not symbol.is_function:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_ode_defined_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all variable symbols which have been defined in th initial_values blocks
+        and are provided with an ode.
+        :return: a list of initial value variables with odes
+        :rtype: list(VariableSymbol)
+        """
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and \
+                    symbol.block_type == BlockType.INITIAL_VALUES and symbol.is_ode_defined() \
+                    and not symbol.is_predefined:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def get_state_symbols_without_ode_from_neuron(cls, neuron):
+        """
+        Returns a list of all elements which have been defined in the state block.
+        :return: a list of of state variable symbols.
+        :rtype: list(VariableSymbol)
+        """
+        symbols = neuron.get_scope().get_symbols_in_this_scope()
+        ret = list()
+        for symbol in symbols:
+            if isinstance(symbol, VariableSymbol) and \
+                    symbol.block_type == BlockType.STATE and not symbol.is_ode_defined() \
+                    and not symbol.is_predefined:
+                ret.append(symbol)
+        return ret
+
+    @classmethod
+    def neuron_has_array_buffer(cls, neuron):
+        """
+        This method indicates whether this neuron uses buffers defined vector-wise.
+        :return: True if vector buffers defined, otherwise False.
+        :rtype: bool
+        """
+        for BUFFER in ASTHelper.get_input_buffers_from_neuron(neuron):
+            if BUFFER.has_vector_parameter():
+                return True
+        return False
+
+    @classmethod
+    def get_parameter_invariants_from_neuron(cls, neuron):
+        """
+        Returns a list of all invariants of all parameters.
+        :return: a list of rhs representing invariants
+        :rtype: list(ASTExpression)
+        """
+        ret = list()
+        block = ASTHelper.get_parameter_block_from_neuron(neuron)
+        # the get parameters block is not deterministic method, it can return a list or a single object.
+        if block is not None:
+            for decl in block.get_declarations():
+                if decl.has_invariant():
+                    ret.append(decl.get_invariant())
+        return ret
+
+    @classmethod
+    def add_to_internal_block(cls, neuron, declaration):
+        """
+        Adds the handed over declaration the internal block
+        :param neuron:
+        :param declaration: a single declaration
+        :type declaration: ASTDeclaration
+        """
+        from pynestml.utils.ast_utils import ASTUtils
+        if ASTHelper.get_internals_block_from_neuron(neuron) is None:
+            ASTUtils.create_internal_block(neuron)
+            ASTHelper.get_internals_block_from_neuron(neuron).get_declarations().append(declaration)
+        return
+
+    @classmethod
+    def add_to_initial_values_block(cls, neuron, declaration):
+        """
+        Adds the handed over declaration to the initial values block.
+        :param neuron:
+        :param declaration: a single declaration.
+        :type declaration: ASTDeclaration
+        """
+        from pynestml.utils.ast_utils import ASTUtils
+        if ASTHelper.get_initial_block_from_neuron(neuron) is None:
+            ASTUtils.create_initial_values_block(neuron)
+        ASTHelper.get_initial_block_from_neuron(neuron).get_declarations().append(declaration)
+        return
+
+    @classmethod
+    def add_shape(cls, neuron, shape):
+        # type: (ASTNeuron) -> None
+        """
+        Adds the handed over declaration to the initial values block.
+        :param neuron:
+        :param shape: a single declaration.
+        """
+        assert ASTHelper.get_equations_block_from_neuron(neuron) is not None
+        ASTHelper.get_equations_block_from_neuron(neuron).get_declarations().append(shape)
+
+    """
+    The following print methods are used by the backend and represent the comments as stored at the corresponding 
+    parts of the neuron definition.
+    """
+
+    @classmethod
+    def print_dynamics_comment_of_neuron(cls, neuron, prefix = None):
+        """
+        Prints the dynamic block comment.
+        :param neuron:
+        :param prefix: a prefix string
+        :type prefix: str
+        :return: the corresponding comment.
+        :rtype: str
+        """
+        block = ASTHelper.get_update_block_from_neuron(neuron)
+        if block is None:
+            return prefix if prefix is not None else ''
+        return block.print_comment(prefix)
+
+    @classmethod
+    def print_parameter_comment_of_neuron(cls, neuron, prefix = None):
+        """
+        Prints the update block comment.
+        :param neuron:
+        :param prefix: a prefix string
+        :type prefix: str
+        :return: the corresponding comment.
+        :rtype: str
+        """
+        block = ASTHelper.get_parameter_block_from_neuron(neuron)
+        if block is None:
+            return prefix if prefix is not None else ''
+        return block.print_comment(prefix)
+
+    @classmethod
+    def print_state_comment_from_neuron(cls, neuron, prefix = None):
+        """
+        Prints the state block comment.
+        :param neuron:
+        :param prefix: a prefix string
+        :type prefix: str
+        :return: the corresponding comment.
+        :rtype: str
+        """
+        block = ASTHelper.get_state_block_from_neuron(neuron)
+        if block is None:
+            return prefix if prefix is not None else ''
+        return block.print_comment(prefix)
+
+    @classmethod
+    def print_internal_comment_from_neuron(cls, neuron, prefix = None):
+        """
+        Prints the internal block comment.
+        :param neuron:
+        :param prefix: a prefix string
+        :type prefix: str
+        :return: the corresponding comment.
+        :rtype: str
+        """
+        block = ASTHelper.get_internals_block_from_neuron(neuron)
+        if block is None:
+            return prefix if prefix is not None else ''
+        return block.print_comment(prefix)
+
+    @classmethod
+    def print_comment_from_neuron(cls, neuron, prefix = None):
+        """
+        Prints the header information of this neuron.
+        :param neuron:
+        :param prefix: a prefix string
+        :type prefix: str
+        :return: the comment.
+        :rtype: str
+        """
+        ret = ''
+        if neuron.get_comment() is None or len(neuron.get_comment()) == 0:
+            return prefix if prefix is not None else ''
+        for comment in neuron.get_comment():
+            ret += (prefix if prefix is not None else '') + comment + '\n'
+        return ret
