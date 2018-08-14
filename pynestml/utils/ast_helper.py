@@ -17,23 +17,29 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.meta_model.ast_arithmetic_operator import ASTArithmeticOperator
+from pynestml.meta_model.ast_assignment import ASTAssignment
 from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
 from pynestml.meta_model.ast_constraints_block import ASTConstraintsBlock
 from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
+from pynestml.meta_model.ast_expression import ASTExpression
 from pynestml.meta_model.ast_function import ASTFunction
 from pynestml.meta_model.ast_input_block import ASTInputBlock
 from pynestml.meta_model.ast_neuron import ASTNeuron
+from pynestml.meta_model.ast_node import ASTNode
 from pynestml.meta_model.ast_node_factory import ASTNodeFactory
 from pynestml.meta_model.ast_ode_equation import ASTOdeEquation
 from pynestml.meta_model.ast_ode_function import ASTOdeFunction
 from pynestml.meta_model.ast_ode_shape import ASTOdeShape
 from pynestml.meta_model.ast_output_block import ASTOutputBlock
+from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.meta_model.ast_update_block import ASTUpdateBlock
 from pynestml.meta_model.ast_variable import ASTVariable
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
+from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
 
 
 class ASTHelper(object):
@@ -50,7 +56,7 @@ class ASTHelper(object):
 
     @classmethod
     def construct_equivalent_direct_assignment_rhs(cls, assignment, operator, lhs_variable, rhs_in_brackets):
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        # type: (ASTAssignment,ASTNode,ASTSimpleExpression,ASTExpression) -> ASTExpression
         result = ASTNodeFactory.create_ast_compound_expression(lhs=lhs_variable, binary_operator=operator,
                                                                rhs=rhs_in_brackets,
                                                                source_position=assignment.get_source_position())
@@ -58,17 +64,17 @@ class ASTHelper(object):
         return result
 
     @classmethod
-    def get_bracketed_rhs_expression(cls, assignment):
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+    def get_bracketed_expression(cls, expression):
+        # type: (ASTExpression) -> ASTExpression
         result = ASTNodeFactory.create_ast_expression(is_encapsulated=True,
-                                                      expression=assignment.get_expression(),
-                                                      source_position=assignment.get_expression().get_source_position())
-        result.update_scope(assignment.get_scope())
+                                                      expression=expression.get_expression(),
+                                                      source_position=expression.get_expression().get_source_position())
+        result.update_scope(expression.get_scope())
         return result
 
     @classmethod
     def get_lhs_variable_as_expression(cls, assignment):
-        from pynestml.meta_model.ast_node_factory import ASTNodeFactory
+        # type: (ASTAssignment) -> ASTSimpleExpression
         # TODO: maybe calculate new source positions exactly?
         result = ASTNodeFactory.create_ast_simple_expression(variable=assignment.get_variable(),
                                                              source_position=assignment.get_variable().
@@ -78,6 +84,7 @@ class ASTHelper(object):
 
     @classmethod
     def extract_operator_from_compound_assignment(cls, assignment):
+        # type: (ASTAssignment) -> ASTArithmeticOperator
         assert not assignment.is_direct_assignment
         # TODO: maybe calculate new source positions exactly?
         if assignment.is_compound_minus:
@@ -105,23 +112,23 @@ class ASTHelper(object):
         :return: the rhs for an equivalent direct assignment.
         :rtype: ast_expression
         """
-        from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
-        # TODO: get rid of this through polymorphism?
-        assert not assignment.is_direct_assignment, "Can only be invoked on a compound assignment."
-
+        # it is already a direct assignment, thus nothing to do
+        if assignment.is_direct_assignment:
+            return assignment
         operator = cls.extract_operator_from_compound_assignment(assignment)
         lhs_variable = cls.get_lhs_variable_as_expression(assignment)
-        rhs_in_brackets = cls.get_bracketed_rhs_expression(assignment)
+        rhs_in_brackets = cls.get_bracketed_expression(assignment)
         result = cls.construct_equivalent_direct_assignment_rhs(assignment, operator, lhs_variable, rhs_in_brackets)
         # create symbols for the new Expression:
-        visitor = ASTSymbolTableVisitor()
-        result.accept(visitor)
+        result.accept(ASTSymbolTableVisitor())
         return result
 
     @classmethod
     def get_functions_from_body(cls, body):
         """
         Returns a list of all function block declarations in this body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
         :return: a list of function declarations.
         :rtype: list(ASTFunction)
         """
@@ -134,118 +141,115 @@ class ASTHelper(object):
     @classmethod
     def get_update_block_from_body(cls, body):
         """
-        Returns a list of all update blocks defined in this body.
-        :return: a list of update-block elements.
-        :rtype: list(ASTUpdateBlock)
+        Returns the update block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: an update-block
+        :rtype: ASTUpdateBlock
         """
-        ret = list()
-
         for elem in body.get_body_elements():
             if isinstance(elem, ASTUpdateBlock):
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_state_block_from_body(cls, body):
         """
-        Returns a list of all state blocks defined in this body.
-        :return: a list of state-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the state block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: a state-block
+        :rtype: ASTBlockWithVariables
         """
-        ret = list()
         for elem in body.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_parameter_block_from_body(cls, body):
         """
         Returns a list of all parameter blocks defined in this body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
         :return: a list of parameters-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        :rtype: ASTBlockWithVariables
         """
-        ret = list()
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
         for elem in body.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_parameters:
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_internals_block_from_body(cls, body):
         """
-        Returns a list of all internals blocks defined in this body.
-        :return: a list of internals-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the internals block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: an internals-block
+        :rtype: ASTBlockWithVariables
         """
-        ret = list()
         for elem in body.get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_internals:
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_equations_block_from_body(cls, body):
         """
-        Returns a list of all equations blocks defined in this body.
-        :return: a list of equations-blocks.
-        :rtype: list(ASTEquationsBlock)
+        Returns the equations block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: an equations-block
+        :rtype: ASTEquationsBlock
         """
-        ret = list()
         for elem in body.get_body_elements():
             if isinstance(elem, ASTEquationsBlock):
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_input_block_from_body(cls, body):
         """
-        Returns a list of all input-blocks defined.
-        :return: a list of defined input-blocks.
-        :rtype: list(ASTInputBlock)
+        Returns the input-block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: an input-block
+        :rtype: ASTInputBlock
         """
-        ret = list()
         for elem in body.get_body_elements():
             if isinstance(elem, ASTInputBlock):
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_output_block_from_body(cls, body):
         """
-        Returns a list of all output-blocks defined.
-        :return: a list of defined output-blocks.
-        :rtype: list(ASTOutputBlock)
+        Returns the output-block defined in the handed over body.
+        :param body: a single neuron body instance
+        :type body: ASTBody
+        :return: an output-block
+        :rtype: ASTOutputBlock
         """
-        ret = list()
         for elem in body.get_body_elements():
             if isinstance(elem, ASTOutputBlock):
-                ret.append(elem)
-        return ret
+                return elem
 
     @classmethod
     def get_spike_buffers_from_body(cls, body):
         """
         Returns a list of all spike input buffers defined in the model.
+        :param body: a single neuron body instance
+        :type body: ASTBody
         :return: a list of all spike input buffers
         :rtype: list(ASTInputLine)
         """
         ret = list()
-        blocks = cls.get_input_block_from_body(body)
-        if isinstance(blocks, list):
-            for block in blocks:
-                for line in block.get_input_lines():
-                    if line.is_spike():
-                        ret.append(line)
-            return ret
-        else:
-            return ret
+        for line in ASTHelper.get_input_block_from_body(body).get_input_lines():
+            if line.is_spike():
+                ret.append(line)
+        return ret
 
     @classmethod
     def get_ode_equations_from_equations_block(cls, equations_block):
         """
         Returns a list of all ode equations in this block.
+        :param equations_block: a single equations block
+        :type equations_block: ASTEquationsBlock
         :return: a list of all ode equations.
         :rtype: list(ASTOdeEquations)
         """
@@ -259,6 +263,8 @@ class ASTHelper(object):
     def get_ode_functions_from_equations_block(cls, equations_block):
         """
         Returns a list of all ode functions in this block.
+        :param equations_block: a single equations block
+        :type equations_block: ASTEquationsBlock
         :return: a list of all ode shapes.
         :rtype: list(ASTOdeShape)
         """
@@ -272,6 +278,8 @@ class ASTHelper(object):
     def get_ode_shapes_from_equations_block(cls, equations_block):
         """
         Returns a list of all ode shapes in this block.
+        :param equations_block: a single equations block
+        :type equations_block: ASTEquationsBlock
         :return: a list of all ode shapes.
         :rtype: list(ASTOdeShape)
         """
@@ -285,12 +293,13 @@ class ASTHelper(object):
     def get_variables_from_expression(cls, expression):
         """
         Returns a list of all variables as used in this rhs.
+        :param expression: a single expression
+        :type expression: ASTExpression or ASTSimpleExpression
         :return: a list of variables.
         :rtype: list(ASTVariable)
         """
-        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
+        # todo: refactor me, use higher order visitor instead
         ret = list()
-
         if isinstance(expression, ASTSimpleExpression):
             if expression.is_variable():
                 ret.append(expression.get_variable())
@@ -310,11 +319,12 @@ class ASTHelper(object):
     def get_units_from_expression(cls, expression):
         """
         Returns a list of all units as use in this rhs.
+        :param expression: a single expression
+        :type expression: ASTExpression or ASTSimpleExpression
         :return: a list of all used units.
         :rtype: list(ASTVariable)
         """
-        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
-        from pynestml.meta_model.ast_expression import ASTExpression
+        # todo: refactor me, use higher order visitor instead
         ret = list()
         if isinstance(expression, ASTSimpleExpression):
             if expression.has_unit():
@@ -334,12 +344,13 @@ class ASTHelper(object):
     @classmethod
     def get_function_calls_from_expression(cls, expression):
         """
-        Returns a list of all function calls as used in this rhs
+        Returns a list of all function calls as used in this rhs.
+        :param expression: a single expression
+        :type expression: ASTExpression or ASTSimpleExpression
         :return: a list of all function calls in this rhs.
         :rtype: list(ASTFunctionCall)
         """
-        from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
-        from pynestml.meta_model.ast_expression import ASTExpression
+        # todo: refactor me, use higher order visitor instead
         ret = list()
         if isinstance(expression, ASTSimpleExpression):
             if expression.is_function_call():
@@ -360,6 +371,8 @@ class ASTHelper(object):
     def get_functions_from_neuron(cls, neuron):
         """
         Returns a list of all function block declarations in this body.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of function declarations.
         :rtype: list(ASTFunction)
         """
@@ -373,100 +386,88 @@ class ASTHelper(object):
     @classmethod
     def get_update_block_from_neuron(cls, neuron):
         """
-        Returns a list of all update blocks defined in this body.
-        :return: a list of update-block elements.
-        :rtype: list(ASTUpdateBlock)
+        Returns the update block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: an update-block
+        :rtype: ASTUpdateBlock
         """
-        ret = list()
-        from pynestml.meta_model.ast_update_block import ASTUpdateBlock
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTUpdateBlock):
-                ret.append(elem)
-        if isinstance(ret, list) and len(ret) == 1:
-            return ret[0]
-        elif isinstance(ret, list) and len(ret) == 0:
-            return None
-        else:
-            return ret
+                return elem
 
     @classmethod
     def get_state_block_from_neuron(cls, neuron):
         """
-        Returns a list of all state blocks defined in this body.
-        :return: a list of state-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the state blocks defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: a state-block
+        :rtype: ASTBlockWithVariables
         """
-        ret = None
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_state:
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def get_initial_block_from_neuron(cls, neuron):
         """
-        Returns a list of all initial blocks defined in this body.
-        :return: a list of initial-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the initial block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: an initial-block
+        :rtype: ASTBlockWithVariables
         """
-        ret = None
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def get_parameter_block_from_neuron(cls, neuron):
         """
-        Returns a list of all parameter blocks defined in this body.
-        :return: a list of parameters-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the parameter block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: a parameters-block.
+        :rtype: ASTBlockWithVariables
         """
-        ret = None
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_parameters:
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def get_internals_block_from_neuron(cls, neuron):
         """
-        Returns a list of all internals blocks defined in this body.
-        :return: a list of internals-blocks.
-        :rtype: list(ASTBlockWithVariables)
+        Returns the internals block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: an internals-block
+        :rtype: ASTBlockWithVariables
         """
-        ret = None
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_internals:
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def get_equations_block_from_neuron(cls, neuron):
         """
-        Returns a list of all equations BLOCKS defined in this body.
-        :return: a list of equations-blocks.
-        :rtype: list(ASTEquationsBlock)
+        Returns the equations block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: an equations-block
+        :rtype: ASTEquationsBlock
         """
-        from pynestml.meta_model.ast_equations_block import ASTEquationsBlock
-        ret = None
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTEquationsBlock):
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def remove_equations_block_from_neuron(cls, neuron):
-        # type: (...) -> None
         """
         Deletes all equations blocks. By construction as checked through cocos there is only one there.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         """
-
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTEquationsBlock):
                 neuron.get_body().get_body_elements().remove(elem)
@@ -475,6 +476,8 @@ class ASTHelper(object):
     def get_initial_values_declarations_from_neuron(cls, neuron):
         """
         Returns a list of initial values declarations made in this neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of initial values declarations
         :rtype: list(ASTDeclaration)
         """
@@ -489,6 +492,8 @@ class ASTHelper(object):
     def get_equations_from_neuron(cls, neuron):
         """
         Returns all ode equations as defined in this neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return list of ode-equations
         :rtype list(ASTOdeEquation)
         """
@@ -498,9 +503,11 @@ class ASTHelper(object):
     @classmethod
     def get_input_block_from_neuron(cls, neuron):
         """
-        Returns a list of all input-blocks defined.
-        :return: a list of defined input-blocks.
-        :rtype: list(ASTInputBlock)
+        Returns the input-block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: an input-block
+        :rtype: ASTInputBlock
         """
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTInputBlock):
@@ -510,6 +517,8 @@ class ASTHelper(object):
     def get_input_buffers_from_neuron(cls, neuron):
         """
         Returns a list of all defined input buffers.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of all input buffers.
         :rtype: list(VariableSymbol)
         """
@@ -526,6 +535,8 @@ class ASTHelper(object):
     def get_spike_buffers_from_neuron(cls, neuron):
         """
         Returns a list of all spike input buffers defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of all spike input buffers.
         :rtype: list(VariableSymbol)
         """
@@ -539,6 +550,8 @@ class ASTHelper(object):
     def get_current_buffers_from_neuron(cls, neuron):
         """
         Returns a list of all current buffers defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of all current input buffers.
         :rtype: list(VariableSymbol)
         """
@@ -552,6 +565,8 @@ class ASTHelper(object):
     def get_parameter_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all parameter symbol defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of parameter symbols.
         :rtype: list(VariableSymbol)
         """
@@ -567,6 +582,8 @@ class ASTHelper(object):
     def get_state_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all state symbol defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of state symbols.
         :rtype: list(VariableSymbol)
         """
@@ -582,10 +599,11 @@ class ASTHelper(object):
     def get_internal_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all internals symbol defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of internals symbols.
         :rtype: list(VariableSymbol)
         """
-        from pynestml.symbols.variable_symbol import BlockType
         symbols = neuron.get_scope().get_symbols_in_this_scope()
         ret = list()
         for symbol in symbols:
@@ -598,6 +616,8 @@ class ASTHelper(object):
     def get_ode_aliases_from_neuron(cls, neuron):
         """
         Returns a list of all equation function symbols defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of equation function  symbols.
         :rtype: list(VariableSymbol)
         """
@@ -605,8 +625,8 @@ class ASTHelper(object):
         symbols = neuron.get_scope().get_symbols_in_this_scope()
         ret = list()
         for symbol in symbols:
-            if isinstance(symbol,
-                          VariableSymbol) and symbol.block_type == BlockType.EQUATION and symbol.is_function:
+            if isinstance(symbol, VariableSymbol) and \
+                    symbol.block_type == BlockType.EQUATION and symbol.is_function:
                 ret.append(symbol)
         return ret
 
@@ -614,6 +634,8 @@ class ASTHelper(object):
     def get_variables_defined_by_ode_from_neuron(cls, neuron):
         """
         Returns a list of all variables which are defined by an ode.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
@@ -628,21 +650,21 @@ class ASTHelper(object):
     def get_output_block_from_neuron(cls, neuron):
         """
         Returns a list of all output-blocks defined.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of defined output-blocks.
         :rtype: list(ASTOutputBlock)
         """
-        ret = None
-        from pynestml.meta_model.ast_output_block import ASTOutputBlock
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTOutputBlock):
-                ret = elem
-                break
-        return ret
+                return elem
 
     @classmethod
     def neuron_is_multisynapse_spikes(cls, neuron):
         """
         Returns whether this neuron uses multi-synapse spikes.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: True if multi-synaptic, otherwise False.
         :rtype: bool
         """
@@ -655,6 +677,8 @@ class ASTHelper(object):
     def get_multiple_receptors_from_neuron(cls, neuron):
         """
         Returns a list of all spike buffers which are defined as inhibitory and excitatory.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of spike buffers variable symbols
         :rtype: list(VariableSymbol)
         """
@@ -676,6 +700,8 @@ class ASTHelper(object):
     def get_constraint_block_from_neuron(cls, neuron):
         """
         Returns the constraint block of the model, if any defined.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a single constraint block
         :rtype: ASTConstraintBlock
         """
@@ -687,6 +713,8 @@ class ASTHelper(object):
     def get_parameter_non_alias_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all variable symbols representing non-function parameter variables.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
@@ -700,6 +728,8 @@ class ASTHelper(object):
     def get_state_non_alias_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all variable symbols representing non-function state variables.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
@@ -711,6 +741,13 @@ class ASTHelper(object):
 
     @classmethod
     def get_initial_values_non_alias_symbols_from_neuron(cls, neuron):
+        """
+        Returns a list of all variable symbols representing non-function initial value variables.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
+        :return: a list of variable symbols
+        :rtype: list(VariableSymbol)
+        """
         ret = list()
         for init in ASTHelper.get_initial_values_symbols_from_neuron(neuron):
             if not init.is_function and not init.is_predefined:
@@ -721,6 +758,8 @@ class ASTHelper(object):
     def get_internal_non_alias_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all variable symbols representing non-function internal variables.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of variable symbols
         :rtype: list(VariableSymbol)
         """
@@ -734,6 +773,8 @@ class ASTHelper(object):
     def get_initial_values_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all initial values symbol defined in the model.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of initial values symbols.
         :rtype: list(VariableSymbol)
         """
@@ -748,11 +789,12 @@ class ASTHelper(object):
     @classmethod
     def get_initial_values_block_from_neuron(cls, neuron):
         """
-        Returns a list of all initial blocks defined in this body.
+        Returns the initial values block defined in the handed over neuron.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of initial-blocks.
         :rtype: ASTBlockWithVariables
         """
-        from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
         for elem in neuron.get_body().get_body_elements():
             if isinstance(elem, ASTBlockWithVariables) and elem.is_initial_values:
                 return elem
@@ -760,7 +802,9 @@ class ASTHelper(object):
     @classmethod
     def remove_initial_blocks_from_neuron(cls, neuron):
         """
-        Remove all equations blocks
+        Removes all equation blocks from the neuron instance.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         """
         from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
         for elem in neuron.get_body().get_body_elements():
@@ -771,6 +815,8 @@ class ASTHelper(object):
     def get_function_initial_values_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all initial values symbols as defined in the model which are marked as functions.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of symbols
         :rtype: list(VariableSymbol)
         """
@@ -784,6 +830,8 @@ class ASTHelper(object):
     def get_non_function_initial_values_symbols_from_neuron(cls, neuron):
         """
         Returns a list of all initial values symbols as defined in the model which are not marked as functions.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of symbols
         :rtype:list(VariableSymbol)
         """
@@ -798,6 +846,8 @@ class ASTHelper(object):
         """
         Returns a list of all variable symbols which have been defined in th initial_values blocks
         and are provided with an ode.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :return: a list of initial value variables with odes
         :rtype: list(VariableSymbol)
         """
@@ -814,6 +864,8 @@ class ASTHelper(object):
     def get_state_symbols_without_ode_from_neuron(cls, neuron):
         """
         Returns a list of all elements which have been defined in the state block.
+        :param neuron: a single neuron
+        :type neuron: ASTNeuron
         :return: a list of of state variable symbols.
         :rtype: list(VariableSymbol)
         """
@@ -830,6 +882,8 @@ class ASTHelper(object):
     def neuron_has_array_buffer(cls, neuron):
         """
         This method indicates whether this neuron uses buffers defined vector-wise.
+        :param neuron: A single neuron instance
+        :type neuron: ASTNeuron
         :return: True if vector buffers defined, otherwise False.
         :rtype: bool
         """
@@ -847,7 +901,6 @@ class ASTHelper(object):
         """
         ret = list()
         block = ASTHelper.get_parameter_block_from_neuron(neuron)
-        # the get parameters block is not deterministic method, it can return a list or a single object.
         if block is not None:
             for decl in block.get_declarations():
                 if decl.has_invariant():
@@ -858,7 +911,8 @@ class ASTHelper(object):
     def add_to_internal_block(cls, neuron, declaration):
         """
         Adds the handed over declaration the internal block
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param declaration: a single declaration
         :type declaration: ASTDeclaration
         """
@@ -872,7 +926,8 @@ class ASTHelper(object):
     def add_to_initial_values_block(cls, neuron, declaration):
         """
         Adds the handed over declaration to the initial values block.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param declaration: a single declaration.
         :type declaration: ASTDeclaration
         """
@@ -884,11 +939,12 @@ class ASTHelper(object):
 
     @classmethod
     def add_shape(cls, neuron, shape):
-        # type: (ASTNeuron) -> None
         """
         Adds the handed over declaration to the initial values block.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param shape: a single declaration.
+        :type shape: ASTOdeShape
         """
         assert ASTHelper.get_equations_block_from_neuron(neuron) is not None
         ASTHelper.get_equations_block_from_neuron(neuron).get_declarations().append(shape)
@@ -899,10 +955,11 @@ class ASTHelper(object):
     """
 
     @classmethod
-    def print_dynamics_comment_of_neuron(cls, neuron, prefix = None):
+    def print_update_comment_of_neuron(cls, neuron, prefix = None):
         """
-        Prints the dynamic block comment.
-        :param neuron:
+        Prints the update block comment.
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param prefix: a prefix string
         :type prefix: str
         :return: the corresponding comment.
@@ -917,7 +974,8 @@ class ASTHelper(object):
     def print_parameter_comment_of_neuron(cls, neuron, prefix = None):
         """
         Prints the update block comment.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param prefix: a prefix string
         :type prefix: str
         :return: the corresponding comment.
@@ -932,7 +990,8 @@ class ASTHelper(object):
     def print_state_comment_from_neuron(cls, neuron, prefix = None):
         """
         Prints the state block comment.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param prefix: a prefix string
         :type prefix: str
         :return: the corresponding comment.
@@ -947,7 +1006,8 @@ class ASTHelper(object):
     def print_internal_comment_from_neuron(cls, neuron, prefix = None):
         """
         Prints the internal block comment.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param prefix: a prefix string
         :type prefix: str
         :return: the corresponding comment.
@@ -962,7 +1022,8 @@ class ASTHelper(object):
     def print_comment_from_neuron(cls, neuron, prefix = None):
         """
         Prints the header information of this neuron.
-        :param neuron:
+        :param neuron: a single neuron instance
+        :type neuron: ASTNeuron
         :param prefix: a prefix string
         :type prefix: str
         :return: the comment.
