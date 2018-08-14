@@ -39,7 +39,6 @@ from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
-from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
 
 
 class ASTHelper(object):
@@ -112,6 +111,7 @@ class ASTHelper(object):
         :return: the rhs for an equivalent direct assignment.
         :rtype: ast_expression
         """
+        from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
         # it is already a direct assignment, thus nothing to do
         if assignment.is_direct_assignment:
             return assignment
