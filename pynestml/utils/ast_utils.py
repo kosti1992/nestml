@@ -91,7 +91,7 @@ class ASTUtils(object):
         """
         from pynestml.utils.ast_helper import ASTHelper
         from pynestml.meta_model.ast_body import ASTBody
-        inputs = (inputL for block in ASTHelper.get_input_block_from_body(body) for inputL in block.get_input_lines())
+        inputs = (inputL for inputL in ASTHelper.get_input_block_from_body(body).get_input_lines())
         for inputL in inputs:
             if inputL.is_spike():
                 return True
@@ -107,7 +107,7 @@ class ASTUtils(object):
         :rtype: bool
         """
         from pynestml.utils.ast_helper import ASTHelper
-        inputs = (inputL for block in ASTHelper.get_input_block_from_body(body) for inputL in block.get_input_lines())
+        inputs = (inputL for inputL in ASTHelper.get_input_block_from_body(body).get_input_lines())
         for inputL in inputs:
             if inputL.is_current():
                 return True

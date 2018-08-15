@@ -42,7 +42,6 @@ from pynestml.utils.messages import Messages
 
 
 class ASTHelper(object):
-    # todo: update comments
     """
     Contains a set of methods as used to interact with AST classes.
     """
@@ -955,7 +954,7 @@ class ASTHelper(object):
     """
 
     @classmethod
-    def print_update_comment_of_neuron(cls, neuron, prefix = None):
+    def print_update_comment_from_neuron(cls, neuron, prefix = None):
         """
         Prints the update block comment.
         :param neuron: a single neuron instance
@@ -971,7 +970,7 @@ class ASTHelper(object):
         return block.print_comment(prefix)
 
     @classmethod
-    def print_parameter_comment_of_neuron(cls, neuron, prefix = None):
+    def print_parameter_comment_from_neuron(cls, neuron, prefix = None):
         """
         Prints the update block comment.
         :param neuron: a single neuron instance

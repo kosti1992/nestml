@@ -140,17 +140,13 @@ class NestPrinter(object):
         """
         assert (ast_body is not None and isinstance(ast_body, ASTBody)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of body provided (%s)!' % type(ast_body)
-        outputs = ASTHelper.get_output_block_from_body(ast_body)
-        if len(outputs) > 0:
-            output = outputs[0]
-            if output.is_spike():
-                return 'nest::SpikeEvent'
-            elif output.is_current():
-                return 'nest::CurrentEvent'
-            else:
-                raise RuntimeError('Unexpected output type. Must be current or spike, is %s.' % str(output))
+        output = ASTHelper.get_output_block_from_body(ast_body)
+        if output.is_spike():
+            return 'nest::SpikeEvent'
+        elif output.is_current():
+            return 'nest::CurrentEvent'
         else:
-            return 'none'
+            raise RuntimeError('Unexpected output type. Must be current or spike, is %s.' % str(output))
 
     @classmethod
     def print_buffer_initialization(cls, variable_symbol):
