@@ -90,12 +90,10 @@ class ShapeUsageVisitor(ASTVisitor):
                 continue
             if node.get_complete_name() == shapeName:
                 parent = ASTUtils.get_parent(self.__neuron_node, node)
-                # TODO:remove me: p_parent = self.__neuron_node.get_parent(node)
                 if parent is not None:
                     if isinstance(parent, ASTOdeShape):
                         continue
                     grandparent = ASTUtils.get_parent(self.__neuron_node, parent)
-                    # TODO:remove me: p_grandparent = self.__neuron_node.get_parent(parent)
                     if grandparent is not None and isinstance(grandparent, ASTFunctionCall):
                         grandparent_func_name = grandparent.get_name()
                         if grandparent_func_name == 'curr_sum' or grandparent_func_name == 'cond_sum' or \

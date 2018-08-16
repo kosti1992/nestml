@@ -39,6 +39,7 @@ from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.variable_symbol import BlockType, VariableSymbol
 from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
+from pynestml.visitors.ast_higher_order_visitor import ASTHigherOrderVisitor
 
 
 class ASTHelper(object):
@@ -297,21 +298,15 @@ class ASTHelper(object):
         :return: a list of variables.
         :rtype: list(ASTVariable)
         """
-        # todo: refactor me, use higher order visitor instead
         ret = list()
-        if isinstance(expression, ASTSimpleExpression):
-            if expression.is_variable():
-                ret.append(expression.get_variable())
-        else:
-            if expression.is_expression():
-                ret.extend(cls.get_variables_from_expression(expression.get_expression()))
-            elif expression.is_compound_expression():
-                ret.extend(cls.get_variables_from_expression(expression.get_lhs()))
-                ret.extend(cls.get_variables_from_expression(expression.get_rhs()))
-            elif expression.is_ternary_operator():
-                ret.extend(cls.get_variables_from_expression(expression.get_condition()))
-                ret.extend(cls.get_variables_from_expression(expression.get_if_true()))
-                ret.extend(cls.get_variables_from_expression(expression.get_if_not()))
+
+        def local_collect_vars(node):
+            if isinstance(node, ASTVariable):
+                ret.append(node)
+
+        visitor = ASTHigherOrderVisitor(visit_funcs=local_collect_vars)
+        expression.accept(visitor)
+
         return ret
 
     @classmethod
@@ -323,21 +318,13 @@ class ASTHelper(object):
         :return: a list of all used units.
         :rtype: list(ASTVariable)
         """
-        # todo: refactor me, use higher order visitor instead
         ret = list()
-        if isinstance(expression, ASTSimpleExpression):
-            if expression.has_unit():
-                ret.append(expression.get_variable())
-        elif isinstance(expression, ASTExpression):
-            if expression.is_expression():
-                ret.extend(cls.get_units_from_expression(expression.get_expression()))
-            elif expression.is_compound_expression():
-                ret.extend(cls.get_units_from_expression((expression.get_lhs())))
-                ret.extend(cls.get_units_from_expression((expression.get_rhs())))
-            elif expression.is_ternary_operator():
-                ret.extend(cls.get_units_from_expression(expression.get_condition()))
-                ret.extend(cls.get_units_from_expression(expression.get_if_true()))
-                ret.extend(cls.get_units_from_expression(expression.get_if_not()))
+
+        def local_get_unit(node):
+            if isinstance(node, ASTSimpleExpression) and node.has_unit():
+                ret.append(node.get_variable())
+
+        expression.accept(ASTHigherOrderVisitor(visit_funcs=local_get_unit))
         return ret
 
     @classmethod
@@ -349,21 +336,13 @@ class ASTHelper(object):
         :return: a list of all function calls in this rhs.
         :rtype: list(ASTFunctionCall)
         """
-        # todo: refactor me, use higher order visitor instead
         ret = list()
-        if isinstance(expression, ASTSimpleExpression):
-            if expression.is_function_call():
-                ret.append(expression.get_function_call())
-        elif isinstance(expression, ASTExpression):
-            if expression.is_expression():
-                ret.extend(cls.get_function_calls_from_expression(expression.get_expression()))
-            elif expression.is_compound_expression():
-                ret.extend(cls.get_function_calls_from_expression(expression.get_lhs()))
-                ret.extend(cls.get_function_calls_from_expression(expression.get_rhs()))
-            elif expression.is_ternary_operator():
-                ret.extend(cls.get_function_calls_from_expression(expression.get_condition()))
-                ret.extend(cls.get_function_calls_from_expression(expression.get_if_true()))
-                ret.extend(cls.get_function_calls_from_expression(expression.get_if_not()))
+
+        def local_get_function_call(node):
+            if isinstance(node, ASTSimpleExpression) and node.is_function_call():
+                ret.append(node.get_function_call())
+
+        expression.accept(ASTHigherOrderVisitor(visit_funcs=local_get_function_call))
         return ret
 
     @classmethod
