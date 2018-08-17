@@ -80,20 +80,25 @@ class ModelParser(object):
     """
 
     @classmethod
-    def parse_model(cls, file_path = None):
+    def parse_model(cls, model = None, from_string=False):
         """
         Parses a handed over model and returns the meta_model representation of it.
-        :param file_path: the path to the file which shall be parsed.
-        :type file_path: str
+        :param model: the path to the file which shall be parsed.
+        :type model: str
+        :param from_string: indicates whether the model shall be parsed from string directly
+        :type from_string: str
         :return: a new ASTNESTMLCompilationUnit object.
         :rtype: ASTNestMLCompilationUnit
         """
-        try:
-            input_file = FileStream(file_path)
-        except IOError:
-            print('(PyNestML.Parser) File ' + str(file_path) + ' not found. Processing is stopped!')
-            return
-        code, message = Messages.get_start_processing_file(file_path)
+        if from_string:
+            input_file = InputStream(model)
+        else:
+            try:
+                input_file = FileStream(model)
+            except IOError:
+                print('(PyNestML.Parser) File ' + str(model) + ' not found. Processing is stopped!')
+                return
+        code, message = Messages.get_start_processing_file(model)
         Logger.log_message(neuron=None, code=code, message=message, error_position=None, log_level=LoggingLevel.INFO)
         # create a lexer and hand over the input
         lexer = PyNestMLLexer(input_file)
