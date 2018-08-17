@@ -86,7 +86,7 @@ class ModelParser(object):
         :param model: the path to the file which shall be parsed.
         :type model: str
         :param from_string: indicates whether the model shall be parsed from string directly
-        :type from_string: str
+        :type from_string: bool
         :return: a new ASTNESTMLCompilationUnit object.
         :rtype: ASTNestMLCompilationUnit
         """
