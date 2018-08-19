@@ -50,7 +50,7 @@ class ASTBuilderVisitor(PyNestMLVisitor):
         try:
             artifact_name = ntpath.basename(ctx.start.source[1].fileName)
         except AttributeError:
-            artifact_name = None
+            artifact_name = '<virtual>'
         compilation_unit = ASTNodeFactory.create_ast_nestml_compilation_unit(list_of_neurons=neurons,
                                                                              source_position=create_source_pos(ctx),
                                                                              artifact_name=artifact_name)

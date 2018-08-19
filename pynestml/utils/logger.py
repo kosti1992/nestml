@@ -108,6 +108,9 @@ class Logger(object):
         elif cls.current_neuron is not None:
             cls.log[cls.curr_message] = (cls.current_neuron.get_artifact_name(), cls.current_neuron,
                                          log_level, code, error_position, message)
+        else:
+            cls.log[cls.curr_message] = ('GLOBAL', cls.current_neuron,
+                                         log_level, code, error_position, message)
         cls.curr_message += 1
         if cls.no_print:
             return
