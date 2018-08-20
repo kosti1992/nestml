@@ -32,9 +32,12 @@ class NestMLErrorListener(DiagnosticErrorListener):
         self.report_ambiguity = report_ambiguity
 
     def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
-        code, message = Messages.get_syntax_error_in_model("%s at: %s" % (msg, offending_symbol.text))
+        if offending_symbol is not None:
+            code, message = Messages.get_syntax_error_in_model("%s at: %s" % (msg, offending_symbol.text))
+        else:
+            code, message = Messages.get_syntax_error_in_model("%s" % msg)
         try:
-            _, file_name = os.path.split(offending_symbol.source[1].fileName)
+            _, file_name = os.path.split(recognizer._input.fileName)
         except AttributeError:
             file_name = None
         Logger.log_message(code=code, message=message, error_position=ASTSourceLocation(line, column, line, column),
