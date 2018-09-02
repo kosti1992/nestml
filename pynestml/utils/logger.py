@@ -241,7 +241,7 @@ class Logger(object):
         :return: a str containing the log
         :rtype: str
         """
-        ret = '['
+        ret = r'['
         for messageNr in cls.log.keys():
             (artifactName, neuron, logLevel, code, errorPosition, message) = cls.log[messageNr]
             ret += '{' + \
@@ -267,7 +267,7 @@ class Logger(object):
             parsed = json.loads('[]', object_pairs_hook=OrderedDict)
         else:
             ret = ret[:-1]  # delete the last ","
-            ret += ']'
+            ret += ']'.replace('\r\n', '')
             parsed = json.loads(ret, object_pairs_hook=OrderedDict)
         return json.dumps(parsed, indent=2, sort_keys=False)
 
