@@ -38,6 +38,19 @@ class CoCoEachBlockUniqueAndDefined(CoCo):
         end
     """
 
+    name = 'each block unique and defined'
+
+    description = """This context  condition ensures that each block is defined at most once.\n
+                Not allowed:\n
+                    state:\n
+                        ...\n
+                    end\n
+                    ...\n
+                    state:\n
+                        ...\n
+                    end\n
+                """
+
     def check_co_co(self, node):
         """
         Checks whether each block is define at most once.

@@ -46,6 +46,10 @@ class CoCoEquationsOnlyForInitValues(CoCo):
         end
     """
 
+    name = 'equations only for initial values'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

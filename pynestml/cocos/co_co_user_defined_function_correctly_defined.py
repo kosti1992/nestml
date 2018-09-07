@@ -47,6 +47,10 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
         processed_function (ast_function): A reference to the currently processed function.
     """
 
+    name = 'user defined functions correct'
+
+    description = 'TODO'
+
     def __init__(self):
         self.processed_function = None
         self.neuron_name = None

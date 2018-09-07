@@ -25,17 +25,19 @@ from pynestml.visitors.ast_visitor import ASTVisitor
 
 
 class CoCoCurrentBuffersNotSpecified(CoCo):
-    """
-    This coco ensures that current buffers are not specified with a keyword.
-    Allowed:
-        input:
-            current <- current
-        end
-    Not allowed:
-        input:
-            current <- inhibitory current
-        end     
-    """
+
+    name = 'current buffers not specified with type'
+
+    description = """This coco ensures that current buffers are not specified with a keyword.\n
+            Allowed:\n
+                input:\n
+                    current <- current\n
+                end\n
+            Not allowed:\n
+                input:\n
+                    current <- inhibitory current\n
+                end
+            """
 
     def check_co_co(self, node):
         """

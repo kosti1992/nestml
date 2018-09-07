@@ -34,6 +34,10 @@ class CoCoVectorVariableInNonVectorDeclaration(CoCo):
         threePlusFour integer = three + 4 <- error: threePlusFour is not a vector
     """
 
+    name = 'no vector-var in non-vector expression'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

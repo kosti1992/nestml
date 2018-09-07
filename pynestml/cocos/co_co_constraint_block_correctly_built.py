@@ -38,11 +38,11 @@ from pynestml.utils.type_caster import TypeCaster
 
 
 class CoCoConstraintBlockCorrectlyBuilt(CoCo):
-    """
-    This coco checks whether the constraint block has been correctly constructed. I.e., that boundaries are not
-    empty (e.g. 1 < V < 0 shall be detected) and types are equal.
 
-    """
+    name = 'constraint block correctly built'
+
+    description = 'This coco checks whether the constraint block has been correctly constructed. I.e., ' \
+                  'that boundaries are not empty (e.g. 1 < V < 0 shall be detected) and types are equal.'
 
     def __init__(self):
         self.__current_neuron = None

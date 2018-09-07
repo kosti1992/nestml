@@ -42,6 +42,10 @@ class CoCoNoShapesExceptInConvolve(CoCo):
 
     """
 
+    name = 'no shapes except in convolve'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

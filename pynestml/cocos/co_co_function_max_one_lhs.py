@@ -34,6 +34,10 @@ class CoCoFunctionMaxOneLhs(CoCo):
         function V_reset,V_rest mV = V_m - 55mV
     """
 
+    name = 'functions have one lhs'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

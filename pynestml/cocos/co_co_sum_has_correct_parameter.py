@@ -34,6 +34,10 @@ class CoCoSumHasCorrectParameter(CoCo):
      V mV = convolve(g_in+g_ex,Buffer)
     """
 
+    name = 'convolve is correctly built'
+
+    description = 'TODO'
+
     def __init__(self):
         self.neuronName = None
 

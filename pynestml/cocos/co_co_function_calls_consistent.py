@@ -36,6 +36,10 @@ class CoCoFunctionCallsConsistent(CoCo):
         maximum integer = max(1,2,3)
     """
 
+    name = 'function calls consistent'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Checks the coco for the handed over neuron.

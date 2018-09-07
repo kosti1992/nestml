@@ -357,3 +357,39 @@ class CoCosManager(object):
         :type neuron: ASTNeuron
         """
         cls.check_init_vars_with_odes_provided(neuron)
+
+    @classmethod
+    def get_per_neuron_cocos(cls):
+        """
+        This method returns all cocos which are only valid for a single neuron, i.e., those which check across
+        neurons are not regarded.
+        :return: a list of coco object
+        """
+        ret = list()
+        ret.append(CoCoFunctionUnique())
+        ret.append(CoCoEachBlockUniqueAndDefined())
+        ret.append(CoCoFunctionCallsConsistent())
+        ret.append(CoCoVariableOncePerScope())
+        ret.append(CoCoAllVariablesDefined())
+        ret.append(CoCoFunctionHaveRhs())
+        ret.append(CoCoFunctionMaxOneLhs())
+        ret.append(CoCoBufferNotAssigned())
+        ret.append(CoCoCorrectOrderInEquation())
+        ret.append(CoCoCorrectNumeratorOfUnit())
+        ret.append(CoCoNeuronNameUnique())
+        ret.append(CoCoNoNestNameSpaceCollision())
+        ret.append(CoCoTypeOfBufferUnique())
+        ret.append(CoCoParametersAssignedOnlyInParameterBlock())
+        ret.append(CoCoCurrentBuffersNotSpecified())
+        ret.append(CoCoOnlySpikeBufferDataTypes())
+        ret.append(CoCoInitVarsWithOdesProvided())
+        ret.append(CoCoUserDefinedFunctionCorrectlyDefined())
+        ret.append(CoCoEquationsOnlyForInitValues())
+        ret.append(CoCoConvolveCondCorrectlyBuilt())
+        ret.append(CoCoNoShapesExceptInConvolve())
+        ret.append(CoCoInvariantIsBoolean())
+        ret.append(CoCoVectorVariableInNonVectorDeclaration())
+        ret.append(CoCoSumHasCorrectParameter())
+        ret.append(CoCoIllegalExpression())
+        ret.append(CoCoConstraintBlockCorrectlyBuilt())
+        return ret

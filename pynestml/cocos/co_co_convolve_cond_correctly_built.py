@@ -25,15 +25,15 @@ from pynestml.visitors.ast_visitor import ASTVisitor
 
 
 class CoCoConvolveCondCorrectlyBuilt(CoCo):
-    """
-    This coco ensures that convolve and cond/curr sum are correctly build, i.e.,
-    that the first argument is the variable from the initial block and the second argument an input buffer.
-    Allowed:
-        function I_syn_exc pA =   convolve(g_ex, spikesExc) * ( V_bounded - E_ex )
-    Not allowed:
-        function I_syn_exc pA =   convolve(g_ex, g_ex) * ( V_bounded - E_ex )
+    name = 'convolve statement correctly built'
 
-    """
+    description = 'This coco ensures that convolve and cond/curr sum are correctly build, i.e.,\n' \
+                  'that the first argument is the variable from the initial block and the second argument an input ' \
+                  'buffer.\n' \
+                  'Allowed:\n' \
+                  '    function I_syn_exc pA =   convolve(g_ex, spikesExc) * ( V_bounded - E_ex )\n' \
+                  'Not allowed:\n' \
+                  '    function I_syn_exc pA =   convolve(g_ex, g_ex) * ( V_bounded - E_ex )\n'
 
     def check_co_co(self, node):
         """

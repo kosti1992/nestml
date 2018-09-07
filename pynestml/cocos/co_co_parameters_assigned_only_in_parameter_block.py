@@ -45,6 +45,10 @@ class CoCoParametersAssignedOnlyInParameterBlock(CoCo):
         end    
     """
 
+    name = 'parameters not assigned to'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

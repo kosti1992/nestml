@@ -35,6 +35,10 @@ class CoCoIllegalExpression(CoCo):
     This coco checks that all expressions are correctly typed.
     """
 
+    name = 'illegal expressions'
+
+    description = 'TODO'
+
     def check_co_co(self, neuron):
         """
         Ensures the coco for the handed over neuron.

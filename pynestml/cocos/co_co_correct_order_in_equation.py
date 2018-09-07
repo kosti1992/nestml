@@ -39,6 +39,19 @@ class CoCoCorrectOrderInEquation(CoCo):
         end  
     """
 
+    name = 'correct order in equation'
+
+    description = 'This coco ensures that whenever a ode-equation is assigned to a variable,' \
+                  ' it have a differential order of at least one.\n ' \
+                  'Allowed:\n' \
+                  '    equations:\n' \
+                  '        V_m\' = ...\n' \
+                  '    end\n' \
+                  'Not allowed:\n' \
+                  '    equations:\n' \
+                  '        V_m = ...\n' \
+                  '    end'
+
     @classmethod
     def check_co_co(cls, node):
         """

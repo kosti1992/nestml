@@ -34,6 +34,10 @@ class CoCoTypeOfBufferUnique(CoCo):
         spike <- inhibitory inhibitory spike
     """
 
+    name = 'type of buffer valid'
+
+    description = 'TODO'
+
     def __init__(self):
         self.neuronName = None
 

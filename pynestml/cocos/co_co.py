@@ -30,6 +30,10 @@ class CoCo:
     """
     __metaclass__ = ABCMeta
 
+    name = ''
+
+    description = ''
+
     @abstractmethod
     def check_co_co(self, node):
         """

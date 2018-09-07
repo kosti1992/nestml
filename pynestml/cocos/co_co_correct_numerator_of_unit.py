@@ -26,14 +26,14 @@ from pynestml.visitors.ast_visitor import ASTVisitor
 
 
 class CoCoCorrectNumeratorOfUnit(CoCo):
-    """
-    This coco ensures that all units which consist of a dividend and divisor, where the numerator is a numeric
-    value, have 1 as the numerator. 
-    Allowed:
-        V_m 1/mV = ...
-    Not allowed:
-        V_m 2/mV = ...
-    """
+    name = 'correct numerator of unit'
+
+    description = 'This coco ensures that all units which consist of a dividend and divisor, where ' \
+                  'the numerator is a numeric value, have 1 as the numerator.\n' \
+                  'Allowed:\n' \
+                  '    V_m 1/mV = ...\n' \
+                  'Not allowed:\n' \
+                  '    V_m 2/mV = ...'
 
     def check_co_co(self, node):
         """

@@ -29,6 +29,10 @@ class CoCoFunctionHaveRhs(CoCo):
     This coco ensures that all function declarations, e.g., function V_rest mV = V_m - 55mV, have a rhs.
     """
 
+    name = 'functions have rhs'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

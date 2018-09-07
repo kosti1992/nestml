@@ -28,6 +28,10 @@ class CoCoNoTwoNeuronsInSetOfCompilationUnits(CoCo):
     This Coco checks that for a handed over list of compilation units, not two neurons have the same name.
     """
 
+    name = 'no namespace collision in set of CU'
+
+    description = 'TODO'
+
     def check_co_co(self, list_of_compilation_units):
         """
         Checks the coco.

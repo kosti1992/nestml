@@ -44,6 +44,10 @@ class CoCoNeuronNameUnique(CoCo):
         end
     """
 
+    name = 'neuron name is unique'
+
+    description = 'TODO'
+
     def check_co_co(self, compilation_unit):
         """
         Checks the coco for the handed over compilation unit.

@@ -26,14 +26,15 @@ from pynestml.visitors.ast_visitor import ASTVisitor
 
 
 class CoCoBufferNotAssigned(CoCo):
-    """
-    This coco ensures that no values are assigned to buffers.
-    Allowed:
-        currentSum = current + 10mV # current being a buffer
-    Not allowed:
-        current = currentSum + 10mV
-    
-    """
+
+    name = 'no assignments to Buffers'
+
+    description = 'This coco ensures that no values are assigned to buffers.\n'\
+        'Allowed:\n'\
+        '    currentSum = current + 10mV # current being a buffer\n'\
+        'Not allowed\n:'\
+        '    current = currentSum + 10mV'\
+
 
     def check_co_co(self, node):
         """

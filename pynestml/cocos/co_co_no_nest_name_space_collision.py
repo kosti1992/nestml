@@ -44,6 +44,10 @@ class CoCoNoNestNameSpaceCollision(CoCo):
     nest_name_space = ['update', 'calibrate', 'handle', 'connect_sender', 'check_connection', 'get_status',
                        'set_status', 'init_state_', 'init_buffers_']
 
+    name = 'no NEST namespace collision'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

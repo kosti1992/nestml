@@ -49,6 +49,10 @@ class CoCoInitVarsWithOdesProvided(CoCo):
         end
     """
 
+    name = 'initial values provided with ODEs'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Checks this coco on the handed over neuron.

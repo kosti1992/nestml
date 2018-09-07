@@ -39,6 +39,10 @@ class CoCoOnlySpikeBufferDataTypes(CoCo):
         end
     """
 
+    name = 'only spike buffers specified with data type'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Ensures the coco for the handed over neuron.

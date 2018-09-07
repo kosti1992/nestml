@@ -30,6 +30,10 @@ class CoCoFunctionUnique(CoCo):
     This Coco ensures that each function is defined exactly once (thus no redeclaration occurs).
     """
 
+    name = 'functions unique'
+
+    description = 'TODO'
+
     def check_co_co(self, node):
         """
         Checks if each function is defined uniquely.

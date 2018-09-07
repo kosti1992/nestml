@@ -34,6 +34,10 @@ class CoCoInvariantIsBoolean(CoCo):
 
     """
 
+    name = 'invariant is boolean'
+
+    description = 'TODO'
+
     def check_co_co(self, neuron):
         """
         Ensures the coco for the handed over neuron.

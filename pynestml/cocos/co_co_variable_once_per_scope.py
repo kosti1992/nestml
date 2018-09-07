@@ -29,6 +29,10 @@ class CoCoVariableOncePerScope(CoCo):
     This coco ensures that each variables is defined at most once per scope, thus no redeclaration occurs.
     """
 
+    name = 'variable once per scope'
+
+    description = ''
+
     def check_co_co(self, node):
         """
         Checks if each variable is defined at most once per scope. Obviously, this test does not check if a declaration
