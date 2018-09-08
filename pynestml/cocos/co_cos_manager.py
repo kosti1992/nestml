@@ -376,7 +376,6 @@ class CoCosManager(object):
         ret.append(CoCoBufferNotAssigned())
         ret.append(CoCoCorrectOrderInEquation())
         ret.append(CoCoCorrectNumeratorOfUnit())
-        ret.append(CoCoNeuronNameUnique())
         ret.append(CoCoNoNestNameSpaceCollision())
         ret.append(CoCoTypeOfBufferUnique())
         ret.append(CoCoParametersAssignedOnlyInParameterBlock())
@@ -392,4 +391,15 @@ class CoCosManager(object):
         ret.append(CoCoSumHasCorrectParameter())
         ret.append(CoCoIllegalExpression())
         ret.append(CoCoConstraintBlockCorrectlyBuilt())
+        return ret
+
+    @classmethod
+    def get_per_compilation_unit_cocos(cls):
+        """
+        Returns all cocos which have to be checked on each compilation unit and not individual neuron istances.
+        :return: a list of cocos.
+        :rtype: list(CoCo)
+        """
+        ret = list()
+        ret.append(CoCoNeuronNameUnique())
         return ret
